@@ -1,0 +1,165 @@
+html{
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    margin: 0em;
+}
+body{
+    width: 70%;
+    display: inline-block;
+}
+p{
+    display: inline-block;
+    margin: 0.5em 0 0.5em 0;
+}
+ul {
+    font-size: 1.1em; /* 文字サイズを調整 */
+    line-height: 0.8; /* 行間の幅を調整 */
+}
+#scenario_descriptions{
+    background: #f3f9fc;
+    border: 2px skyblue dashed; 
+    padding: 10px 10px; 
+    border-radius: 15px; 
+    text-align:left"
+}
+
+.title{
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+#show_area{
+    display: inline-block;
+    align-items: center;
+    width: auto;
+    text-align: center;
+    margin:auto;
+}
+#table_area{
+    text-align: center;
+}
+/*#first_sentence{
+    padding-right: 220px;
+}*/
+/*#sample_before{
+    width: 45%;
+}*/
+#arrow{
+    width: 10%;
+}
+/*#sample_after{
+    width: 30%;
+}*/
+#estimate_description{
+    display:inline-block;
+}
+.sample{
+    display:inline-block;
+    height: 30vh;
+    width: auto;
+    vertical-align: middle;
+}
+#arrow{
+    width: 100px;
+    height: 75px;
+}
+.area{
+    width:  100%;
+    height:  75%;
+}
+#estimate_input_area form{
+    display:grid;
+}
+.sample{
+    margin: 0 auto;
+}
+#estimate_slider{
+    width: 50%;
+    height: 10%;
+    margin: 1em;
+}
+
+
+button,
+input[type="submit"],
+.btn,
+.next_button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin: 6px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 140px;
+    min-height: 36px;
+    text-align: center;
+    transition: background-color 0.3s;
+    width: auto; /* 固定幅を解除 */
+    line-height: 1.2;
+}
+
+button:hover:not([disabled]),
+input[type="submit"]:hover:not([disabled]),
+.btn:hover:not([disabled]),
+.next_button:hover:not([disabled]) {
+    background-color: #45a049;
+}
+
+button:disabled,
+input[type="submit"]:disabled,
+.btn:disabled,
+.next_button:disabled {
+    background-color: #cccccc;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#notes{
+    width: 100%;
+    display: none;
+}
+#notes>b{
+    color: red;
+}
+@media (min-width: 300px) and (max-width: 800px) {
+    button,
+    input[type="submit"],
+    .btn,
+    .next_button {
+        width: auto; /* 固定幅を解除 */
+        min-width: 140px;
+        max-width: 80%;
+    }
+    #scenario_descriptions{
+        width: 70%;
+        padding: 8px 19px;
+        margin: 1em 0 2em 0;
+        color: #2c2c2f;
+        background: #cde4ff;
+        border-top: solid 5px #5989cf;
+        border-bottom: solid 5px #5989cf;
+        display: inline-block;
+    }
+    span{
+        display : inline-block;
+    }
+    .sample{
+        display:inline-block;
+        height: 30vw;
+        width:  auto;
+        max-width: 30vw;
+        max-height: 50vh;
+        vertical-align: middle;
+    }
+    #show_area{
+    display: flex;
+    width : auto;
+    height: auto;
+    min-height: 30vh;
+    }
+}

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - サーバーエラー</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f5f5f5;
+            text-align: center;
+        }
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .error-message {
+            background-color: #fff8f8;
+            border-left: 4px solid #e74c3c;
+            padding: 10px 15px;
+            margin: 15px 0;
+            color: #333;
+        }
+        .btn {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #45a049;
+        }
+        .error-details {
+            margin-top: 20px;
+            color: #777;
+            font-size: 14px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>500 - サーバーエラー</h1>
+        
+        <!-- 動的なエラーメッセージを表示 -->
+        <div class="error-message">
+            {{ error_message or "申し訳ありません。サーバー側で問題が発生しました。" }}
+        </div>
+        
+        <p>しばらく経ってから再度お試しいただくか、管理者にお問い合わせください。</p>
+        
+        <!-- 動的なリカバリーパスを使用 -->
+        <a href="{{ recovery_path or '/' }}" class="btn">
+            {{ '戻る' if recovery_path else 'トップページへ戻る' }}
+        </a>
+        
+        <div class="error-details" id="error-details"></div>
+    </div>
+
+    <script>
+    // エラーレポーティング用のコード
+    document.addEventListener('DOMContentLoaded', function() {
+        // 現在のエラー状況をレポート
+        const reportErrorData = {
+            type: 'server_error',
+            message: '{{ error_message or "サーバーエラー" }}',
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            context: {
+                referrer: document.referrer,
+                userAgent: navigator.userAgent,
+                screenSize: window.innerWidth + 'x' + window.innerHeight
+            }
+        };
+
+        fetch('/api/report-error', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(reportErrorData),
+            keepalive: true
+        }).catch(err => {
+            console.error('エラーレポーティングエラー:', err);
+        });
+    });
+    </script>
+
+    <!-- エラーハンドラースクリプトを導入 -->
+    <script src="{{ url_for('static', filename='javascript/error-handler.js') }}"></script>
+</body>
+</html>

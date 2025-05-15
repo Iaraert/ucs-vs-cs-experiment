@@ -1,0 +1,26 @@
+# UCS vs CS 実験アプリケーション
+# 開発環境用の追加依存パッケージ
+
+# 基本パッケージを継承
+-r requirements.txt
+
+# テスト関連
+pytest>=7.0.0
+pytest-flask>=1.2.0
+pytest-cov>=3.0.0
+
+# コード品質
+flake8>=4.0.0
+black>=22.1.0
+isort>=5.10.0
+mypy>=0.950  # 型チェック
+pylint>=2.13.0  # より詳細なコード分析
+
+# デバッグと開発ツール
+flask-debugtoolbar>=0.13.0
+ipython>=8.0.0
+jupyter>=1.0.0  # 実験データの分析用
+
+# ドキュメンテーション
+sphinx>=4.4.0
+sphinx-rtd-theme>=1.0.0  # Read the Docsテーマ

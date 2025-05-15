@@ -1,0 +1,109 @@
+html{
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    margin: 0em;
+}
+body{
+    width: 70%;
+    display: inline-block;
+}
+p{
+    display: inline-block;
+    margin: 0.5em 0 0.5em 0;
+    }
+#examine_header{
+    margin: 1em 0 2em 0;
+    font-weight: bold;
+}
+#scenario_descriptions{
+    background: #f3f9fc;
+    border: 2px skyblue dashed; 
+    padding: 10px 10px; 
+    border-radius: 15px; 
+    text-align:left"
+}
+.title{
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.area{
+    width:  100%;
+    height:  75%;
+}
+
+/* ボタンスタイルの統一 */
+button,
+input[type="submit"],
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin: 6px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 140px;
+    min-height: 36px;
+    text-align: center;
+    transition: background-color 0.3s;
+    width: auto; /* 固定幅を解除 */
+    line-height: 1.2;
+}
+
+button:hover:not([disabled]),
+input[type="submit"]:hover:not([disabled]),
+.btn:hover:not([disabled]) {
+    background-color: #45a049;
+}
+
+button:disabled,
+input[type="submit"]:disabled,
+.btn:disabled {
+    background-color: #cccccc;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+#notes{
+    width: 100%;
+    display: none;
+}
+#notes>b{
+    color: red;
+}
+#start_area{
+    background-color: #def5fa; 
+    padding: 1px 11px;
+}
+#start_message{
+    color: rgb(1, 110, 1); 
+    text-align: center;
+}
+@media (min-width: 300px) and (max-width: 800px) {
+    button,
+    input[type="submit"],
+    .btn {
+        width: auto; /* 固定幅を解除 */
+        min-width: 140px;
+        max-width: 80%;
+    }
+    #scenario_descriptions{
+        width: 70%;
+        padding: 8px 19px;
+        margin: 1em 0 2em 0;
+        color: #2c2c2f;
+        background: #cde4ff;
+        border-top: solid 5px #5989cf;
+        border-bottom: solid 5px #5989cf;
+        display: inline-block;
+    }
+
+    span{
+        display : inline-block;
+    }
+}

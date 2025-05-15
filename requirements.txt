@@ -1,0 +1,29 @@
+# UCS vs CS 実験アプリケーション
+# 基本的な依存パッケージ
+
+# Webフレームワーク
+flask>=2.0.0
+flask-wtf>=1.0.0  # フォーム処理
+flask-login>=0.6.0  # ユーザー認証
+flask-migrate>=3.1.0  # データベースマイグレーション
+
+# 本番サーバー
+gunicorn>=20.1.0
+
+# データベースORM
+sqlalchemy>=1.4.0
+flask-sqlalchemy>=3.0.0
+
+# システムパッケージ（必要に応じてインストール）
+# psycopg2-binary>=2.9.3  # PostgreSQLを使用する場合
+
+# セキュリティ
+python-dotenv>=0.20.0  # 環境変数管理
+werkzeug>=2.0.0  # FlaskのセキュリティユーティリティTools
+
+# 日付と時刻の処理
+pytz>=2022.1
+
+# データ処理・分析（実験データ用）
+numpy>=1.22.0
+pandas>=1.4.0

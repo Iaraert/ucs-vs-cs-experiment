@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/end.css') }}"/>
+    <title>回答完了ページ</title>
+</head>
+
+<body>
+    <div id="end_area">
+    <h2 id="end_message">実験へのご協力ありがとうございました。</h2>
+    </div>
+    <div id="reward_area">
+    <ul>
+        <h3>謝金の受け取りについて</h3>
+        <li> 以下のコードを、クラウドワークス上で指定した回答欄に入力して下さい。</li>
+        <li><textarea rows = 1 id="complete_code" readonly></textarea><br><button id="copy_button">数字をコピーする</button></li>
+        <li>コードが表示されない場合、URLの末尾の「id=」から始まる数字をコードとしてご利用ください。</li>
+        <li>間違ったコードの入力、または入力が無い場合は報酬をお支払いできませんのでご了承ください。</li>
+        <li>クラウドワークスへの入力を確認してからページを閉じてください。</li>
+    </ul>
+    </div>
+<script>
+function copy(){
+    document.getElementById('complete_code').select();
+    return document.execCommand("copy");
+}
+
+var text = document.getElementById('complete_code');
+text.readonly = false;
+text.value = window.location.search.split('=')[1];
+text.readonly = true;
+document.querySelector("#copy_button").addEventListener("click", copy);
+
+window.onbeforeunload = function(e) {
+    e.returnValue = "ページを離れると、これまで入力した内容は全て破棄されます。ページを離れてもよろしいですか？";
+}
+preventBrowserBack();
+// ブラウザバックを禁止する関数
+function preventBrowserBack() {
+    history.pushState(null, null, location.href);
+    window.addEventListener('popstate', (e) => {
+        history.go(1);
+    });
+}
+
+</script>
+</body>
+
+</html>

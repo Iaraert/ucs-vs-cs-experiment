@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine2.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/examine2.js') }}"></script>
+    <title>回答ページ</title>
+</head>
+
+<body>
+    <div id="start_area">
+        <div id="scenario_title" class="title"></div>
+        <div id="page"></div>
+    <h1 id="start_message">あなたの日常的なスポーツ活動に関する質問です。</h1>
+    </div>
+    <p>
+        以下の説明をよく読んで、お答え下さい。今回の調査は、推定の過程を研究することが目的の調査であり、こうした説明文が時間をかけてよく読まれているかどうかが重要な意味を持ちます。
+        つきましては大変失礼なお願いなのですが、あなたがこの説明文をきちんと読んでいるかどうかを確認させてください。
+        この説明文を読んだら、以下の質問で野球と水泳とその他を選択し、次のページに進んでください。
+    </p>
+
+    <div class="question">
+        <h2>以下のうち日常的にしているスポーツ活動はありますか？</h2>
+        <p>日常的とは、2週間に1回ほど運動していることとします。日常的にしているスポーツ活動が複数ある場合は、複数選択してください。</p>
+        <div class="options" id="scenario_descriptions" style="text-align: left;">
+            <label><input type="checkbox" name="sports" value="スキー"> スキー</label><br>
+            <label><input type="checkbox" name="sports" value="サッカー"> サッカー</label><br>
+            <label><input type="checkbox" name="sports" value="野球"> 野球</label><br>
+            <label><input type="checkbox" name="sports" value="ランニング"> ランニング</label><br>
+            <label><input type="checkbox" name="sports" value="水泳"> 水泳</label><br>
+            <label><input type="checkbox" name="sports" value="テニス"> テニス</label><br>
+            <label><input type="checkbox" name="sports" value="バドミントン"> バドミントン</label><br>
+            <label><input type="checkbox" name="sports" value="バスケットボール"> バスケットボール</label><br>
+            <label><input type="checkbox" name="sports" value="その他"> その他</label>
+        </div>
+    </div>
+
+    <button id="finish_all_scenarios" class="btn" onclick="get_value_fin()">次のページに進む</button>
+
+</body>
+</html>

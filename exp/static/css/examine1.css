@@ -1,0 +1,933 @@
+/***************************************
+ * 基本レイアウト
+ * ページ全体の構造とボックスモデルの設定
+ ***************************************/
+html {
+    text-align: center;
+    width: 100%;
+    height: 100%; /* 高さを100%に設定 */
+    margin: 0;
+    padding: 0;
+    font-size: 16px; /* ベースフォントサイズを設定 */
+    overflow-y: auto; /* スクロールを許可 */
+}
+
+body {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto !important;
+    padding: 0.3% 0.5%; /* パディングを小さくして空間を確保 */
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    position: relative;
+    left: 0 !important;
+    right: 0 !important;
+    font-size: 1rem; /* レスポンシブフォントサイズ */
+    overflow-y: auto; /* スクロールを許可 */
+    height: auto; /* 自動高さに変更 */
+    max-height: none; /* 最大高さ制限を解除 */
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: auto; /* 自動高さに変更 */
+    overflow-y: auto; /* スクロールを許可 */
+    justify-content: space-between; /* 要素間のスペースを均等に */
+}
+
+/***************************************
+ * テキスト要素のスタイル
+ * 段落、リスト、タイトルのフォーマット
+ ***************************************/
+p {
+    display: inline-block;
+    margin: 0.3em 0;
+    font-size: 1rem;
+    line-height: 1.3;
+}
+
+ul {
+    font-size: 0.95rem;
+    line-height: 1.2;
+    padding-left: 1.2rem;
+    margin: 0.5rem 0;
+}
+
+.title {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+}
+
+#scenario_title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    width: 100%;
+    display: block;
+    white-space: nowrap; /* 改行を防止 */
+    overflow: visible; /* はみ出した内容も表示 */
+    text-overflow: clip; /* テキストがはみ出す場合の処理 */
+    min-width: 200px; /* 最小幅を設定 */
+    padding: 0 10px; /* 左右に余白を追加 */
+}
+
+/***************************************
+ * ヘッダーエリア
+ * タイトルと進捗表示のスタイル
+ ***************************************/
+#header_area {
+    width: 100%;
+    margin: 0 auto;
+    padding-top: 0;
+    padding-bottom: 0;
+    text-align: center;
+    overflow: visible; /* ヘッダーエリアからのはみ出しを許可 */
+}
+
+#header_area h3,
+#header_area h5 {
+    margin: 0.3%;
+    padding: 0.3%;
+}
+
+/***************************************
+ * コンテンツエリアのレイアウト
+ * 共通コンテナとフレックスボックス設定
+ ***************************************/
+.area {
+    width: 92%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    max-height: calc(100vh - 80px);
+}
+
+#show_area {
+    display: inline-block;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    margin: 0.5% auto;
+}
+
+#preload_image, 
+#description_area, 
+#show_sample_area, 
+#estimate_input_area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: auto;
+    width: 95%;
+    margin: 1% auto;
+}
+
+#description_area {
+    margin-top: 1%;
+}
+
+/***************************************
+ * シナリオ説明エリア
+ * 実験シナリオの説明文とチェックボックス
+ ***************************************/
+#scenario_descriptions {
+    background: #f3f9fc;
+    border: 1px skyblue dashed;
+    padding: 1.5%;
+    border-radius: 10px;
+    text-align: left !important;
+    width: 90%;
+    margin: 0 auto 1% auto;
+    box-sizing: border-box;
+}
+
+#scenario_descriptions form {
+    width: 100%;
+    display: block;
+    margin: 0 auto;
+    text-align: left !important;
+}
+
+#scenario_descriptions p {
+    display: flex !important;
+    align-items: flex-start !important;
+    margin: 1% 0;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    width: 100%;
+}
+
+#scenario_descriptions .checkbox {
+    margin-right: 2%;
+    margin-top: 0.3%;
+    flex-shrink: 0;
+}
+
+#scenario_descriptions label {
+    flex-grow: 1;
+    text-align: left !important;
+    width: calc(100% - 25px);
+    font-size: 0.95rem;
+}
+
+#scenario_descriptions br {
+    display: none;
+}
+
+/***************************************
+ * サンプル表示エリア
+ * 実験結果を表示するコンテナの設定
+ ***************************************/
+#show_sample_area {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 90%;
+    max-height: none; /* スクロールを無効化するために高さ制限を解除 */
+    overflow-y: visible; /* スクロールバーを非表示にし、すべてのコンテンツを表示 */
+    padding: 0.3% 0;
+}
+
+/***************************************
+ * フォーム要素
+ * 入力フィールドとフォームレイアウト
+ ***************************************/
+#description_area form, 
+#estimate_input_area form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0.5% 0;
+}
+
+#estimate_input_area form {
+    display: grid;
+    gap: 0.5rem;
+}
+
+/***************************************
+ * ボタンスタイル
+ * ボタンと送信要素のデザイン
+ ***************************************/
+button,
+input[type="submit"],
+.btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin: 6px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 140px;
+    min-height: 36px;
+    text-align: center;
+    transition: background-color 0.3s;
+    line-height: 1.2;
+}
+
+button:hover:not([disabled]),
+input[type="submit"]:hover:not([disabled]),
+.btn:hover:not([disabled]) {
+    background-color: #45a049;
+}
+
+button:disabled,
+input[type="submit"]:disabled,
+.btn:disabled {
+    background-color: #cccccc;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.next_button {
+    background-color: #4CAF50;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/***************************************
+ * スライダーコンポーネント
+ * レンジ入力とスライダー要素の設定
+ ***************************************/
+.slider-container {
+    width: 92%;
+    margin: 1% auto;
+    padding: 1%;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5% 0;
+    font-size: 0.85rem;
+}
+
+.slider-value-container {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 1% 0;
+}
+
+.slider-input-container {
+    width: 96%;
+    margin: 0 auto;
+}
+
+#response_slider,
+#instant_slider {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d3d3d3;
+    outline: none;
+    border-radius: 10px;
+}
+
+/* スライダーのつまみ部分のスタイル - Webkit */
+#response_slider::-webkit-slider-thumb,
+#instant_slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+/* スライダーのつまみ部分のスタイル - Firefox */
+#response_slider::-moz-range-thumb,
+#instant_slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+/* 無効化されたスライダーのスタイル */
+#response_slider:disabled,
+#instant_slider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 待機メッセージのアニメーション */
+.wait-message {
+    color: #ff5722;
+    font-weight: bold;
+    margin: 3px 0; /* マージンを最小化 */
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/***************************************
+ * サンプル画像スタイル
+ * 実験で使用する画像の表示設定
+ ***************************************/
+.sample {
+    display: inline-block;
+    height: auto;
+    width: auto;
+    max-width: 92%;
+    max-height: 18vh;
+    vertical-align: middle;
+    object-fit: contain;
+    margin: 0 auto;
+}
+
+/***************************************
+ * 分割表示レイアウト
+ * 実験結果を上下に分けて表示する設定
+ ***************************************/
+#split_display {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5%;
+    width: 92%;
+    margin: 1% auto;
+    align-self: center;
+    max-height: none; /* スクロールを無効化するために高さ制限を解除 */
+    overflow-y: visible; /* スクロールバーを非表示にし、すべてのコンテンツを表示 */
+}
+
+.display-frame {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1.5%;
+    margin-bottom: 1.5%;
+    background-color: #f9f9f9;
+}
+
+.display-frame h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 1.5%;
+    font-size: 1rem;
+}
+
+.frame-content {
+    padding: 0.5% 0;
+}
+
+/***************************************
+ * 水平レイアウト
+ * サンプル表示の横並びデザイン
+ ***************************************/
+#horizontal_display {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    margin: 0.5% auto;
+    gap: 10px;
+}
+
+/* 左カラム: フレーム説明 */
+.frame-description-column {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.description-box {
+    padding: 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+.control-description {
+    background-color: #f0f8ff;
+    border: 1px solid #b3e0ff;
+    color: #0066cc;
+}
+
+.experimental-description {
+    background-color: #fff5f5;
+    border: 1px solid #ffcccc;
+    color: #cc0000;
+}
+
+/* 中央カラム: アイコン表示 */
+.icons-column {
+    width: 60%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+#split_display {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+/* 右カラム: アイコン意味の説明 */
+.icon-legend-column {
+    width: 20%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 4px;
+}
+
+.legend-icon {
+    font-size: 1.3rem;
+    margin-right: 8px;
+    display: inline-block;
+}
+
+.legend-text {
+    font-size: 0.85rem;
+}
+
+/* グループコンテナの最適化 */
+.group-container {
+    margin: 5px 0;
+}
+
+/* モバイル対応: 画面が小さい場合は縦に積み重ねる */
+@media screen and (max-width: 768px) {
+    #horizontal_display {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .frame-description-column,
+    .icons-column,
+    .icon-legend-column {
+        width: 95%;
+    }
+
+    .description-box {
+        margin-bottom: 5px;
+    }
+
+    .icon-legend-column {
+        flex-direction: row;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        margin: 0 5px;
+    }
+}
+
+/* 画面高さが特に小さい場合の最適化 */
+@media screen and (max-height: 600px) {
+    .description-box {
+        min-height: 40px;
+        padding: 4px;
+    }
+
+    .group-container {
+        padding: 0.5%;
+        margin: 0.4% 0;
+    }
+
+    .legend-item {
+        padding: 3px;
+    }
+}
+
+/***************************************
+ * セクション表示スタイル
+ * 実験の各セクションを表示するコンテナ
+ ***************************************/
+.display-section {
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px;
+    background-color: #fdfdfd;
+    margin-bottom: 0.8rem;
+}
+
+/***************************************
+ * グループコンテナスタイル
+ * 統制群と実験群を表示するボックス設定
+ ***************************************/
+.group-container {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 0.8%; /* パディングを小さくして空間を確保 */
+    margin: 0.8% 0; /* マージンを小さくして空間を確保 */
+    background-color: #f9f9f9;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.group-header {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #333;
+    padding-bottom: 0.8%;
+    margin-bottom: 1.2%;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.group-row {
+    margin: 0.8% 0; /* マージンを小さくして空間を確保 */
+}
+
+.group-label {
+    font-weight: bold;
+    margin-bottom: 0.6%; /* マージンを小さくして空間を確保 */
+    color: #444;
+    font-size: 0.9rem;
+}
+
+/***************************************
+ * 統制群・実験群カラースキーム
+ * 2つのグループを視覚的に区別するための色設定
+ ***************************************/
+.control-group {
+    border-color: #b3e0ff;
+    background-color: #f0f8ff;
+}
+
+.control-group .group-header {
+    color: #0066cc;
+    border-bottom-color: #b3e0ff;
+}
+
+.experimental-group {
+    border-color: #ffcccc;
+    background-color: #fff5f5;
+}
+
+.experimental-group .group-header {
+    color: #cc0000;
+    border-bottom-color: #ffcccc;
+}
+
+/***************************************
+ * アイコン表示スタイル
+ * 結果を示すアイコンの配置と表示設定
+ ***************************************/
+.group-icons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.8%;
+    padding: 0.8%; /* パディングを小さくして空間を確保 */
+    background-color: #fff;
+    border-radius: 4px;
+    min-height: 3vh; /* 最小の高さを小さくして空間を確保 */
+}
+
+.icon-row {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 0.8% 0;
+}
+
+.group-icon {
+    font-size: 1.3rem;
+    margin: 0.4%;
+}
+
+/***************************************
+ * 補足情報表示
+ * 注意書きや追加情報の表示設定
+ ***************************************/
+#notes {
+    width: 100%;
+    display: none;
+}
+
+#notes > b {
+    color: red;
+}
+
+/***************************************
+ * レスポンシブデザイン
+ * モバイルデバイスやタブレット向けの調整
+ ***************************************/
+/* スマートフォン全般向け */
+@media screen and (max-width: 576px) {
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        padding: 0.3% 0.5%;
+    }
+
+    .area {
+        width: 98%;
+    }
+
+    /* ボタンサイズの最適化 */
+    button, input[type="submit"], .btn {
+        min-width: 110px;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        margin: 8px auto;
+    }
+
+    /* 説明エリアの最適化 */
+    #scenario_descriptions {
+        width: 96%;
+        padding: 1.2%;
+    }
+
+    #scenario_descriptions label {
+        font-size: 0.9rem;
+    }
+
+    /* スライダーの最適化 */
+    .slider-container {
+        width: 96%;
+        padding: 1.2%;
+        margin: 1.5% auto;
+    }
+
+    .slider-labels {
+        font-size: 0.8rem;
+    }
+
+    .slider-value-container {
+        font-size: 1.1rem;
+        margin: 0.8% 0;
+    }
+
+    /* サンプル表示の最適化 */
+    .sample {
+        max-height: 16vh;
+    }
+
+    /* グループ表示の最適化 */
+    .group-header {
+        font-size: 0.9rem;
+    }
+
+    .group-icon {
+        font-size: 1.2rem;
+    }
+
+    #split_display {
+        max-height: none; /* スマホ表示でもスクロールしないように */
+    }
+}
+
+/* 小型タブレット向け */
+@media screen and (min-width: 577px) and (max-width: 768px) {
+    html {
+        font-size: 15px;
+    }
+
+    .area {
+        width: 96%;
+    }
+
+    .sample {
+        max-height: 17vh;
+    }
+
+    #split_display {
+        max-height: none; /* タブレット表示でもスクロールしないように */
+    }
+}
+
+/* 大型タブレット・小型デスクトップ向け */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    html {
+        font-size: 16px;
+    }
+
+    .area {
+        width: 92%;
+    }
+
+    .sample {
+        max-height: 19vh;
+    }
+}
+
+/* デスクトップ向け */
+@media screen and (min-width: 1025px) {
+    html {
+        font-size: 16px;
+    }
+
+    .area {
+        width: 85%;
+        max-width: 1100px;
+    }
+
+    .sample {
+        max-height: 22vh;
+    }
+
+    /* デスクトップでは少し余裕を持たせる */
+    body {
+        padding: 0.8% 1.5%;
+    }
+
+    button, input[type="submit"], .btn {
+        font-size: 1rem;
+    }
+}
+
+/***************************************
+ * 動的表示切替
+ * 画面サイズに応じて要素の表示/非表示を切り替える
+ ***************************************/
+@media screen and (max-height: 600px) {
+    /* 画面高さが低い場合の調整 */
+    br {
+        display: none; /* 改行を削除してスペースを節約 */
+    }
+
+    .slider-container p {
+        margin: 0.1em 0; /* マージンを最小化 */
+    }
+
+    .wait-message {
+        margin: 3px 0; /* マージンを最小化 */
+    }
+
+    button,
+    input[type="submit"],
+    .btn {
+        padding: 4px 8px; /* パディングを最小化 */
+        margin: 4px auto; /* マージンを最小化 */
+    }
+}
+
+/***************************************
+ * アルタナティブ表示モード
+ * 画面高さが非常に低い場合のフォールバック
+ ***************************************/
+@media screen and (max-height: 500px) {
+    body {
+        overflow-y: auto; /* 高さが足りない場合はスクロール許可 */
+    }
+
+    html {
+        overflow-y: auto; /* 高さが足りない場合はスクロール許可 */
+    }
+}
+
+/***************************************
+ * フレーム説明と画像表示を統合
+ ***************************************/
+/* メインコンテンツカラム - フレーム説明と画像表示を統合 */
+.main-content-column {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* 統合グループコンテナ - フレーム説明と画像表示を統合 */
+.integrated-group-container {
+    display: flex;
+    align-items: stretch;
+    margin: 0.8% 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* フレーム説明部分のスタイル */
+.frame-description {
+    width: 30%;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+    line-height: 1.3;
+}
+
+/* 画像表示部分のスタイル */
+.group-icons {
+    width: 70%;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.8%;
+    padding: 0.8%;
+    background-color: #fff;
+    border-radius: 0 4px 4px 0;
+}
+
+/* 統制群のフレーム説明と画像表示の統合スタイル */
+.control-group .frame-description {
+    background-color: #f0f8ff;
+    border-right: 1px solid #b3e0ff;
+    color: #0066cc;
+}
+
+/* 実験群のフレーム説明と画像表示の統合スタイル */
+.experimental-group .frame-description {
+    background-color: #fff5f5;
+    border-right: 1px solid #ffcccc;
+    color: #cc0000;
+}
+
+/* 水平レイアウトの調整 */
+#horizontal_display {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: stretch;
+    width: 100%;
+    margin: 0.5% auto;
+}
+
+/* レスポンシブデザイン対応 */
+@media screen and (max-width: 768px) {
+    .main-content-column {
+        width: 95%;
+    }
+    
+    .integrated-group-container {
+        flex-direction: column;
+    }
+    
+    .frame-description {
+        width: 100%;
+        border-right: none !important;
+        border-bottom: 1px solid;
+    }
+    
+    .control-group .frame-description {
+        border-bottom-color: #b3e0ff;
+    }
+    
+    .experimental-group .frame-description {
+        border-bottom-color: #ffcccc;
+    }
+    
+    .group-icons {
+        width: 100%;
+    }
+    
+    #horizontal_display {
+        flex-direction: column;
+    }
+    
+    .icon-legend-column {
+        flex-direction: row;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

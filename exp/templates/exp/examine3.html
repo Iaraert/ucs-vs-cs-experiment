@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>認知反射テスト</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine3.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/examine3.js') }}"></script>
+    <style>
+        /* 入力欄を確実に中央に配置するためのカスタムスタイル */
+        .question-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .question {
+            width: 100%;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .question p {
+            width: 100%;
+            text-align: center;
+        }
+        
+        .question input[type="number"] {
+            display: block;
+            width: 150px;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .next-btn, .submit-btn {
+            display: block;
+            margin: 20px auto;
+        }
+        
+        .question-section p {
+            text-align: center;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="error-message" style="display: none;"></div>
+
+    <div class="question-container">
+        <form id="crt_form">
+            <!-- 問題1 -->
+            <div id="q1-section" class="question-section">
+                <h2 class="instructions">
+                    <p>以下は、日常的な状況に関する問題です。</p>
+                </h2>
+                <p>次のいくつかの質問にお答えください。
+                    それぞれの設問に、空欄にあなたの回答を記入してください。</p>
+
+                <div class="question">
+                    <p><b>問題 1</b><br>バットとボールは合わせて1100円です。バットはボールより1000円高いです。<br>では、ボールはいくらでしょうか？</p>
+                    <input type="number" name="q1" required min="0" placeholder="円">
+                    <span class="error-text"></span>
+                </div>
+                <button type="button" class="next-btn btn" onclick="showNext('q1')">次の問題へ</button>
+            </div>
+
+            <!-- 問題2 -->
+            <div id="q2-section" class="question-section" style="display: none;">
+                <div class="question">
+                    <p><b>問題 2</b><br>5台の機械は、5分間で5個のおもちゃを作ります。<br>では、100台の機械が100個のおもちゃを作るのには、何分かかりますか？</p>
+                    <input type="number" name="q2" required min="0" placeholder="分">
+                    <span class="error-text"></span>
+                </div>
+                <button type="button" class="next-btn btn" onclick="showNext('q2')">次の問題へ</button>
+            </div>
+
+            <!-- 問題3 -->
+            <div id="q3-section" class="question-section" style="display: none;">
+                <div class="question">
+                    <p><b>問題 3</b><br>池にスイレンの葉が浮かんでいます。葉の面積は毎日倍になります。葉が池を覆いつくすのに48日掛かりました。<br>では、湖の半分を覆うまでには何日かかったでしょうか？</p>
+                    <input type="number" name="q3" required min="0" placeholder="日目">
+                    <span class="error-text"></span>
+                </div>
+                <button type="submit" class="submit-btn btn">回答を送信</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

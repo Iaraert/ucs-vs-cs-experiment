@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>回答ページ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/examine1.js') }}"></script>
+
+    <style>
+        body {
+            margin: 0 auto !important;
+            left: 0 !important;
+            right: 0 !important;
+            text-align: center;
+            height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            overflow: hidden;
+        }
+        #scenario_descriptions {
+            text-align: left !important;
+        }
+        #scenario_descriptions p {
+            text-align: left !important;
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: flex-start !important;
+            width: 100%;
+        }
+        #scenario_descriptions label {
+            text-align: left !important;
+            display: inline-block !important;
+            width: calc(100% - 30px);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- ヘッダーエリア -->
+        <div id="header_area" style="width: 100%; overflow: visible;">
+            <div id="scenario_title" class="title" style="white-space: nowrap; overflow: visible;"></div>
+            <div id="page"></div>
+            <progress id="progress_bar"></progress>
+        </div>
+
+        <!-- プリロード表示 -->
+        <div id="preload_image">
+            <p>ページを読み込んでいます。</p>
+            <p>しばらくお待ちください。</p>
+        </div>
+
+        <!-- シナリオ説明エリア -->
+        <div id="description_area" class="area" style="display:none;">
+            <p id="check_sentence" style="display:none;">それぞれの項目を読んだら左側のチェックボックスをチェックし、回答ページに進んでください。</p>
+            <br>
+            <div id="scenario_descriptions">
+                <form action="cgi-bin/abc.cgi" method="post">
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox1" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox1" id="scenario_description1"></label>
+                    </p>
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox2" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox2" id="scenario_description2"></label>
+                    </p>
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox3" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox3" id="scenario_description3"></label>
+                    </p>
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox4" id="scenario_description4"></label>
+                    </p>
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox5" id="scenario_description5"></label>
+                    </p>
+                    <p>
+                        <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
+                            onclick="check_description()" />
+                        <label for="checkbox6" id="scenario_description6"></label>
+                    </p>
+                </form>
+            </div>
+            <div style="padding: 20px 20px;">
+                <button id="start_scenario_button" class="btn" style="cursor:pointer;" onclick="to_next_new_sample_page()"
+                    disabled>このシナリオを<br>開始する</button>
+            </div>
+        </div>
+
+        <br>
+
+        <!-- サンプル表示エリア -->
+        <div id="show_sample_area" class="area" style="display:none">
+            <div id="current_page"></div>
+
+            <div id="horizontal_display">
+                <!-- メインコンテンツ: フレーム説明と画像表示を統合 -->
+                <div class="main-content-column">
+                    <div id="split_display">
+                        <!-- 統制群：フレーム説明と画像表示を統合 -->
+                        <div class="integrated-group-container control-group">
+                            <div class="frame-description control-description" id="non_treated_description"></div>
+                            <div class="group-icons" id="non_treated_icons"></div>
+                        </div>
+
+                        <!-- 実験群：フレーム説明と画像表示を統合 -->
+                        <div class="integrated-group-container experimental-group">
+                            <div class="frame-description experimental-description" id="treated_description"></div>
+                            <div class="group-icons" id="treated_icons"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 右側: アイコン意味の説明 -->
+                <div class="icon-legend-column">
+                    <div class="legend-item">
+                        <span class="legend-icon" id="positive_icon"></span>
+                        <span class="legend-text" id="positive_meaning">症状あり</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon" id="negative_icon"></span>
+                        <span class="legend-text" id="negative_meaning">症状なし</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- スライダーエリア -->
+            <div id="response_slider_area" class="slider-container">
+                <div id="slider_description">
+                    <p>この事例を見て、<span id="slider_scenario_result"></span>と思いますか？</p>
+                    <div class="slider-labels">
+                        <span id="slider_min_result" class="slider-min-label"></span>
+                        <span id="slider_max_result" class="slider-max-label"></span>
+                    </div>
+                </div>
+                <form oninput="slider_value.value = Number(response_slider.value);">
+                    <div class="slider-value-container">
+                        <output id="slider_value">50</output>
+                    </div>
+                    <div class="slider-input-container">
+                        <input id="response_slider" type="range" min="0" max="100" step="1" value="50" disabled>
+                        <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
+                        <p>次へ進む前に、最低一度スライダーを操作してください</p>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 送信ボタン - スライダー操作後に有効化 -->
+            <button id="submit_response" class="btn" onclick="submitResponseAndContinue();" disabled>回答を送信</button>
+        </div>
+        <br>
+
+        <!-- 評価入力エリア -->
+        <div id="estimate_input_area" class="area" style="display:none">
+            <div id="estimate_description"></div><br>
+            <form oninput="estimate.value = Number(estimate_slider.value);">
+                <p>
+                    <b><output id="estimate">0</output></b>
+                </p>
+                <p>
+                    <input id="estimate_slider" type="range" min="-0" max="100" step="1" value="0" onclick="check_estimate()">
+                </p>
+            </form>
+            <br>
+            <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled onclick="check_estimate()" />
+            <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）<br></label>
+            <div id="notes">
+                <b>ボタンは1回押していただくだけで結構です。</b>
+                <b>送信に時間がかかる場合がありますので、最低30秒お待ちください。</b>
+            </div>
+            <button id="next_scenario" class="btn" style="display:none; cursor:pointer;" disabled
+                onclick="get_value();to_next_scenario_description()">次のシナリオへ進む</button>
+            <button id="finish_all_scenarios" class="btn" style="display:none; cursor:pointer;" disabled
+                onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>
+            <button id="continue_scenario" class="btn" style="display:inline-grid; cursor:pointer;" disabled 
+                onclick="get_value();showStimulation()">シナリオを続ける</button>
+        </div>
+    </div>
+
+    <script>
+        $('button').on('click', function() {
+            $('body').css("display","none");
+            $('body').fadeIn(300);
+        });
+
+        // ページ読み込み時の設定
+        $(document).ready(function() {
+            $('body').css({
+                'margin': '0 auto',
+                'left': '0',
+                'right': '0',
+                'overflow': 'auto', // 常にスクロールを許可
+                'height': 'auto' // 自動高さに設定
+            });
+            
+            // すべての要素でスクロールを許可
+            $('html, body').css('overflow-y', 'auto');
+            $('.container').css('overflow-y', 'auto');
+            $('#show_sample_area').css('overflow-y', 'auto');
+            $('#split_display').css('overflow-y', 'auto');
+        });
+    </script>
+</body>
+</html>

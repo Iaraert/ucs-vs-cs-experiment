@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
+    <script>
+        function check_agreement2() {
+            let checks = document.getElementsByClassName("checks");
+            let count = 0;
+            for (let i = 0; i < checks.length; i++) {
+                if (checks[i].checked) count++;
+            }
+            if (count == checks.length) {
+                document.getElementById("button").removeAttribute("disabled");
+            } else {
+                document.getElementById("button").setAttribute("disabled", true);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="start_area">
+        <h2 id="start_message">実験開始ページ</h2>
+    </div>
+
+    <div id="when_agreeing" style="margin: 20px auto; width: 90%; max-width: 800px;">
+        <h3>ありがとうございます。</h3>
+        <p>以下の文章を読んで、回答ページに進んで下さい。</p>
+        <p>それぞれの項目を読んだら左側のチェックボックスをチェックしてください。</p>
+
+        <div id="scenario_descriptions" style="margin: 20px auto; text-align: left; padding: 10px;">
+            <form action="cgi-bin/abc.cgi" method="post">
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox1" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label for="checkbox1">これから、ある製薬会社の研究者を演じていただきます。
+                    </label>
+                </p>
+                <br>
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox2" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label
+                        for="checkbox2">あなたが勤めている製薬会社が新種の成分を8つ発見しました。
+                    </label>
+                </p>
+                <br>
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox3" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label
+                        for="checkbox3">これらの成分の効果を検証するために、実験参加者に成分を投与する実験が行われました。
+                    </label>
+                </p>
+                <br>
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label
+                        for="checkbox4">これから実験の内容とその結果が提示されるので、あなたには成分の効果を推定してもらいます。
+                    </label>
+                </p>
+                <br>
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox5" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label
+                        for="checkbox5">また、これから提示される結果は架空のものであり、実在の人物や物事などと関係ありません。
+                    </label>
+                </p>
+                <br>
+                <p>
+                    <input class="checks" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
+                        onclick="check_agreement2()" />
+                    <label
+                        for="checkbox6">回答中のメモなどはお控えください。
+                    </label>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <div style="margin: 30px auto; text-align: center;">
+        <form action="/examine1" style="display: inline-block;">
+            <input type="submit" id='button' value="回答を開始する" disabled class="btn">
+        </form>
+    </div>
+
+    <div style="margin-bottom: 30px;"></div>
+</body>
+</html>
