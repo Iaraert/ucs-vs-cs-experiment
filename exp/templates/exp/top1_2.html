@@ -5,7 +5,112 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
+        // ページ読み込み時に実行
+        window.onload = async function() {
+            // ユーザーID生成/取得関数
+            function generateUniqueId() {
+                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+            }
+            
+            function saveUserId(userId, persistent = false) {
+                sessionStorage.setItem('exp_user_id', userId);
+                
+                if (persistent) {
+                    localStorage.setItem('exp_user_id_persistent', userId);
+                }
+                
+                return userId;
+            }
+            
+            function getOrCreateUserId(options = {}) {
+                const { 
+                    urlParam = true, 
+                    persistent = false 
+                } = options;
+                
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlId = urlParams.get('id');
+                if (urlParam && urlId) {
+                    return saveUserId(urlId, persistent);
+                }
+                
+                const sessionId = sessionStorage.getItem('exp_user_id');
+                if (sessionId) {
+                    return sessionId;
+                }
+                
+                if (persistent) {
+                    const localId = localStorage.getItem('exp_user_id_persistent');
+                    if (localId) {
+                        return saveUserId(localId, true);
+                    }
+                }
+                
+                const newId = generateUniqueId();
+                return saveUserId(newId, persistent);
+            }
+            
+            // サーバーから実験経路を取得する関数
+            async function fetchExperimentPath(userId) {
+                try {
+                    console.log(`実験経路を取得中: ユーザーID=${userId}`);
+                    const response = await fetch(`/getExperimentPath?user_id=${encodeURIComponent(userId)}`);
+                    
+                    if (!response.ok) {
+                        throw new Error(`サーバーエラー: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    console.log('実験経路取得結果:', data);
+                    
+                    return data.pathType || 'order1';
+                } catch (error) {
+                    console.error('実験経路の取得に失敗しました:', error);
+                    alert('実験経路の取得中にエラーが発生しました。ページをリロードして再試行してください。');
+                    // エラー時はデフォルトの順序を返す
+                    return 'order1';
+                }
+            }
+            
+            try {
+                // ユーザーIDを取得または生成
+                const userId = getOrCreateUserId({ persistent: true });
+                console.log('ユーザーID:', userId);
+                
+                // 実験経路を取得
+                const experimentPath = await fetchExperimentPath(userId);
+                console.log('実験経路:', experimentPath);
+                
+                // 経路に基づいて最初の実験ページを決定
+                let firstExperimentPage;
+                if (experimentPath === 'order1') {
+                    // order1: examine1 → examine1_2 → examine2
+                    firstExperimentPage = '/examine1';
+                    console.log('経路order1を適用: 最初のページは /examine1');
+                } else {
+                    // order2: examine1_2 → examine1 → examine2
+                    firstExperimentPage = '/examine1_2';
+                    console.log('経路order2を適用: 最初のページは /examine1_2');
+                }
+                
+                // フォームにイベントリスナーを追加（送信前に遷移先変更）
+                document.getElementById('experiment-form').addEventListener('submit', function(e) {
+                    e.preventDefault(); // デフォルトの送信をキャンセル
+                    
+                    // 実験ページに遷移（ユーザーIDをURLパラメータに付与）
+                    const url = `${firstExperimentPage}?id=${encodeURIComponent(userId)}`;
+                    console.log(`遷移先: ${url}`);
+                    window.location.href = url;
+                });
+            } catch (err) {
+                console.error('初期化エラー:', err);
+                alert('初期化中にエラーが発生しました。ページをリロードして再試行してください。');
+            }
+        };
+        
+        // チェックボックスの確認
         function check_agreement2() {
             let checks = document.getElementsByClassName("checks");
             let count = 0;
@@ -84,7 +189,7 @@
     </div>
 
     <div style="margin: 30px auto; text-align: center;">
-        <form action="/examine1" style="display: inline-block;">
+        <form id="experiment-form" style="display: inline-block;">
             <input type="submit" id='button' value="回答を開始する" disabled class="btn">
         </form>
     </div>

@@ -46,11 +46,35 @@ class Database:
         )
         ''')
 
+        # 実験経路カウンターのテーブルを作成
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS experiment_path_counters (
+            path_type TEXT PRIMARY KEY,
+            count INTEGER NOT NULL DEFAULT 0
+        )
+        ''')
+
+        # 経路割り当て履歴のテーブルを作成
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS experiment_path_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL UNIQUE,
+            path_type TEXT NOT NULL,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
         # 初期データが存在しない場合は挿入
         cursor.execute("SELECT count(*) FROM condition_counters WHERE condition_name = 'asymmetric'")
         if cursor.fetchone()[0] == 0:
             cursor.execute("INSERT INTO condition_counters (condition_name, count) VALUES ('asymmetric', 0)")
             cursor.execute("INSERT INTO condition_counters (condition_name, count) VALUES ('symmetric', 0)")
+
+        # 実験経路カウンターの初期データが存在しない場合は挿入
+        cursor.execute("SELECT count(*) FROM experiment_path_counters WHERE path_type = 'order1'")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute("INSERT INTO experiment_path_counters (path_type, count) VALUES ('order1', 0)")
+            cursor.execute("INSERT INTO experiment_path_counters (path_type, count) VALUES ('order2', 0)")
 
         conn.commit()
         conn.close()
@@ -216,3 +240,122 @@ class Database:
         except Exception as e:
             print(f"データベース情報取得エラー: {e}")
             return {"error": str(e)}
+
+    def get_experiment_path_assignment(self, user_id, reallocate=True):
+        """
+        ユーザーIDに基づいて実験経路を割り当てる
+        order1: examine1 → examine1_2 → examine2
+        order2: examine1_2 → examine1 → examine2
+
+        Args:
+            user_id (str): ユーザーID
+            reallocate (bool): Trueの場合、既存の割り当てがあっても再割り当てを行う
+
+        Returns:
+            dict: 割り当てられた経路と関連情報を含む辞書
+        """
+        try:
+            with self.db_lock:  # スレッドセーフに処理
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+
+                # トランザクション開始
+                conn.execute("BEGIN TRANSACTION")
+
+                # まず、このユーザーIDに既存の経路割り当てがあるか確認
+                cursor.execute(
+                    "SELECT path_type FROM experiment_path_history WHERE user_id = ?",
+                    (user_id,)
+                )
+                existing_path = cursor.fetchone()
+
+                if existing_path and not reallocate:
+                    # 既存の割り当てがある場合はそれを使用（カウンターは更新しない）
+                    selected_path = existing_path[0]
+                    print(f"既存の経路を使用: ユーザーID {user_id} -> {selected_path}")
+                else:
+                    # 新規ユーザーまたは再割り当ての場合
+                    # 現在の各経路の参加者数を取得
+                    cursor.execute("SELECT path_type, count FROM experiment_path_counters")
+                    counters = {row[0]: row[1] for row in cursor.fetchall()}
+
+                    # 少ない方の経路を選択、同じ場合はorder1を優先
+                    if counters.get('order1', 0) <= counters.get('order2', 0):
+                        selected_path = 'order1'
+                    else:
+                        selected_path = 'order2'
+
+                    # カウンターを更新
+                    cursor.execute(
+                        "UPDATE experiment_path_counters SET count = count + 1 WHERE path_type = ?",
+                        (selected_path,)
+                    )
+
+                    # 既存ユーザーの場合は履歴を更新、新規ユーザーの場合は挿入
+                    if existing_path:
+                        print(f"経路再割り当て: ユーザーID {user_id} -> {selected_path}")
+                        cursor.execute(
+                            "UPDATE experiment_path_history SET path_type = ? WHERE user_id = ?",
+                            (selected_path, user_id)
+                        )
+                    else:
+                        print(f"新規経路割り当て: ユーザーID {user_id} -> {selected_path}")
+                        cursor.execute(
+                            "INSERT OR REPLACE INTO experiment_path_history (user_id, path_type) VALUES (?, ?)",
+                            (user_id, selected_path)
+                        )
+
+                # トランザクションをコミット
+                conn.commit()
+                conn.close()
+
+                return {"pathType": selected_path, "userId": user_id}
+
+        except Exception as e:
+            print(f"経路割り当てエラー: {e}")
+            if 'conn' in locals() and conn:
+                conn.rollback()  # エラー時はロールバック
+                conn.close()
+            # エラー時のデフォルト経路
+            return {"pathType": "order1", "error": str(e), "userId": user_id}
+
+    def get_experiment_path_stats(self):
+        """
+        実験経路割り当ての統計情報を取得
+
+        Returns:
+            dict: 各経路の割り当て数と割合
+        """
+        try:
+            with self.db_lock:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+
+                cursor.execute("SELECT path_type, count FROM experiment_path_counters")
+                counters = {row[0]: row[1] for row in cursor.fetchall()}
+
+                # 総参加者数
+                total = sum(counters.values())
+
+                # 割合を計算
+                percentages = {
+                    path_type: (count / total * 100 if total > 0 else 0)
+                    for path_type, count in counters.items()
+                }
+
+                conn.close()
+
+                return {
+                    "counts": counters,
+                    "percentages": percentages,
+                    "total": total
+                }
+
+        except Exception as e:
+            print(f"経路統計情報取得エラー: {e}")
+            return {
+                "counts": {"order1": 0, "order2": 0},
+                "percentages": {"order1": 0, "order2": 0},
+                "total": 0,
+                "error": str(e)
+            }

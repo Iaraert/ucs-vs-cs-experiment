@@ -201,3 +201,65 @@ export function loadStylesheets(hrefs) {
 export function loadPageStyles(pageName) {
   return loadStylesheet(`../static/css/${pageName}.css`);
 }
+
+/**
+ * ユーザーIDに基づいて実験順序を決定する
+ * 「examine1 → examine1_2」と「examine1_2 → examine1」の2パターンを均等に割り振る
+ * @param {string} userId - ユーザーID
+ * @returns {Promise<string>} - 'order1'（examine1 → examine1_2）または'order2'（examine1_2 → examine1）
+ */
+export async function getExperimentOrder(userId) {
+  if (!userId) {
+    console.warn('ユーザーIDが指定されていないため、デフォルトの順序（order1）を使用します');
+    return Promise.resolve('order1');
+  }
+  
+  try {
+    // サーバーから実験経路を取得
+    const response = await fetch(`/getExperimentPath?user_id=${encodeURIComponent(userId)}`);
+    
+    if (!response.ok) {
+      throw new Error(`サーバーエラー: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    console.log('実験経路取得結果:', data);
+    
+    return data.pathType || 'order1';
+  } catch (error) {
+    console.error('実験経路の取得に失敗しました:', error);
+    // エラー時はデフォルトの順序を返す
+    return 'order1';
+  }
+}
+
+/**
+ * 実験順序に基づいて次のページURLを取得
+ * @param {string} currentPage - 現在のページ名（'examine1'または'examine1_2'）
+ * @param {string} userId - ユーザーID
+ * @returns {Promise<string>} - 次のページへのURLを含むPromise
+ */
+export async function getNextPageUrl(currentPage, userId) {
+  const experimentOrder = await getExperimentOrder(userId);
+  
+  if (currentPage === 'examine1') {
+    if (experimentOrder === 'order1') {
+      // examine1 → examine1_2 → examine2の順序
+      return `../examine1_2?id=${encodeURIComponent(userId)}`;
+    } else {
+      // examine1_2 → examine1 → examine2の順序（examine1が最後）
+      return `../examine2?id=${encodeURIComponent(userId)}`;
+    }
+  } else if (currentPage === 'examine1_2') {
+    if (experimentOrder === 'order1') {
+      // examine1 → examine1_2 → examine2の順序（examine1_2が最後）
+      return `../examine2?id=${encodeURIComponent(userId)}`;
+    } else {
+      // examine1_2 → examine1 → examine2の順序
+      return `../examine1?id=${encodeURIComponent(userId)}`;
+    }
+  }
+  
+  // デフォルトはexamine2
+  return `../examine2?id=${encodeURIComponent(userId)}`;
+}

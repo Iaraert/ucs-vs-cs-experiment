@@ -211,3 +211,47 @@ def set_sample_type():
             "error_code": "SAMPLE_TYPE_ERROR",
             "status_code": 500
         }), 500
+
+@app.route('/getExperimentPath', methods=['GET'])
+def get_experiment_path():
+    try:
+        user_id = request.args.get('user_id', str(datetime.datetime.now().timestamp()))
+        reallocate = request.args.get('reallocate', 'false').lower() == 'true'
+        logger.info(f"実験経路割り当てリクエスト: user_id={user_id}, reallocate={reallocate}")
+        
+        if not user_id:
+            raise UserFriendlyError(
+                message="ユーザーIDが指定されていません",
+                user_message="ユーザー識別情報が不足しています。もう一度最初からお試しください。",
+                status_code=400,
+                error_code="MISSING_USER_ID",
+                recovery_path="/"
+            )
+        
+        result = db.get_experiment_path_assignment(user_id, True)
+        logger.info(f"実験経路割り当て結果: {result}")
+        
+        if not result:
+            raise UserFriendlyError(
+                message=f"実験経路割り当てに失敗しました: user_id={user_id}",
+                user_message="実験経路の割り当てに失敗しました。もう一度お試しください。",
+                status_code=500,
+                error_code="PATH_ASSIGNMENT_FAILED",
+                recovery_path="/"
+            )
+        
+        return jsonify(result)
+    
+    except UserFriendlyError as e:
+        error_logger.log_api_error(request, e, e.status_code)
+        return jsonify(e.to_dict()), e.status_code
+    
+    except Exception as e:
+        error_info = error_logger.log_api_error(request, e)
+        return jsonify({
+            "error": True,
+            "message": current_app.config.get('DEFAULT_ERROR_MESSAGE', "エラーが発生しました。もう一度お試しください。"),
+            "error_code": "SYSTEM_ERROR",
+            "status_code": 500,
+            "recovery_path": "/"
+        }), 500

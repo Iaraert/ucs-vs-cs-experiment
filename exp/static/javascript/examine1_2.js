@@ -1,7 +1,7 @@
 /**
  * examine1_2.js - 因果関係の強さを推定する実験
  */
-import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles } from './utilities.js';
+import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl } from './utilities.js';
 import { fetchJson, postData } from './ajax-utils.js';
 import eventBus from './event-bus.js';
 
@@ -427,7 +427,9 @@ class Experiment12Manager {
         timeout: 50000
       });
       
-      location.href = `../examine2?id=${this.userId}`;
+      // 現在のページがexamine1_2であることを指定し、ユーザーIDに基づいて次のページを決定
+      const nextUrl = await getNextPageUrl('examine1_2', this.userId);
+      location.href = nextUrl;
     } catch (error) {
       console.error("回答送信中にエラーが発生しました", error);
       alert("回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。");

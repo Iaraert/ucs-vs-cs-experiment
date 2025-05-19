@@ -1,7 +1,7 @@
 /**
  * ユーザーイベント処理
  */
-import { preventBrowserBack, setupPageLeaveWarning } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl } from './utilities.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 
@@ -66,13 +66,26 @@ export class EventHandler {
     if (dataManager.isExperimentComplete()) {
       setupPageLeaveWarning(false);
       
-      const nextUrl = `../examine1_2?id=${encodeURIComponent(dataManager.userId)}`;
-      
-      dataManager.exportResults(nextUrl)
+      // 現在のページがexamine1であることを指定し、ユーザーIDに基づいて次のページを決定（非同期）
+      getNextPageUrl('examine1', dataManager.userId)
+        .then(nextUrl => {
+          dataManager.exportResults(nextUrl)
+            .catch(error => {
+              console.error('結果の送信に失敗しました:', error);
+              uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+              document.getElementById('submit_response').removeAttribute("disabled");
+            });
+        })
         .catch(error => {
-          console.error('結果の送信に失敗しました:', error);
-          uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
-          document.getElementById('submit_response').removeAttribute("disabled");
+          console.error('次のページURLの取得に失敗しました:', error);
+          // エラー時はデフォルト値を使用
+          const defaultNextUrl = `../examine1_2?id=${encodeURIComponent(dataManager.userId)}`;
+          dataManager.exportResults(defaultNextUrl)
+            .catch(exportError => {
+              console.error('結果の送信に失敗しました:', exportError);
+              uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+              document.getElementById('submit_response').removeAttribute("disabled");
+            });
         });
     } else {
       uiManager.displayScenarioDescription();
