@@ -1,11 +1,11 @@
 # UCS vs CS 実験アプリケーション
 
-このプロジェクトは、実験参加者を条件間（matched条件とunmatched条件）にバランス良く割り当て、実験刺激を表示し、回答データを収集するためのWebアプリケーションです。クラウドワークスを通じた実験参加者の募集と謝金支払いに対応しています。
+このプロジェクトは、実験参加者を条件間（asymmetric条件とsymmetric条件）にバランス良く割り当て、実験刺激を表示し、回答データを収集するためのWebアプリケーションです。クラウドワークスを通じた実験参加者の募集と謝金支払いに対応しています。
 
 ## 機能概要
 
 - **参加者管理**: ユーザーIDに基づいて参加者を追跡し、実験条件を割り当て
-- **条件割り当て**: matched/unmatched条件に参加者を均等に振り分け
+- **条件割り当て**: asymmetric/symmetric条件に参加者を均等に振り分け
 - **実験プロセス**: 複数ステップの実験画面を順に提示
   - 注意事項確認（top1.html）
   - 実験条件説明（top1_2.html）
@@ -143,7 +143,7 @@ python server.py
 1. **参加者の訪問**: 参加者がトップページにアクセス（/）
 2. **注意事項確認**: 実験の注意事項を説明（top1.html）
 3. **実験説明**: 実験内容の詳細説明（top1_2.html）
-4. **条件割り当て**: ユーザーIDに基づいてmatched/unmatched条件を割り当て
+4. **条件割り当て**: ユーザーIDに基づいてasymmetric/symmetric条件を割り当て
 5. **実験課題1**: 最初の実験課題を実施（examine1.html/examine1_2.html）
    - 画像のプリロード機能によるスムーズな表示
    - Intersection Observerによる遅延読み込み対応
@@ -320,5 +320,5 @@ Nginxとの連携設定は `config/nginx.conf` を参照してください。
 
 ## 使用された画像
 
-- examine1: ICOOON MONO(https://icooon-mono.com/)
-- 薬剤画像: いらすと屋
+- examine1:   ICOOON MONO(https://icooon-mono.com/)
+- examine1_2: いらすとや
