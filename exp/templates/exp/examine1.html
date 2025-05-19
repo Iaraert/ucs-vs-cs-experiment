@@ -157,13 +157,50 @@
                     <div class="slider-input-container">
                         <input id="response_slider" type="range" min="0" max="100" step="1" value="50" disabled>
                         <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
-                        <p>次へ進む前に、最低一度スライダーを操作してください</p>
+                        <div style="margin-top: 10px;">
+                            <input type="checkbox" id="response_checkbox" style="transform:scale(1.5)" disabled />
+                            <label for="response_checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
+                        </div>
                     </div>
                 </form>
             </div>
 
-            <!-- 送信ボタン - スライダー操作後に有効化 -->
+            <!-- 送信ボタン - スライダー操作後とチェックボックス選択後に有効化 -->
             <button id="submit_response" class="btn" onclick="submitResponseAndContinue();" disabled>回答を送信</button>
+            
+            <script>
+                // スライダー操作とチェックボックスの状態を追跡する変数
+                let sliderMoved = false;
+                
+                // スライダーが操作されたらチェックボックスを有効化
+                document.getElementById('response_slider').addEventListener('input', function() {
+                    sliderMoved = true;
+                    document.getElementById('response_checkbox').disabled = false;
+                    updateSubmitButtonState();
+                });
+                
+                // チェックボックスがチェックされたら送信ボタンの状態を更新
+                document.getElementById('response_checkbox').addEventListener('change', function() {
+                    updateSubmitButtonState();
+                });
+                
+                // スライダー操作とチェックボックスの状態に基づいて送信ボタンの有効/無効を設定
+                function updateSubmitButtonState() {
+                    const isChecked = document.getElementById('response_checkbox').checked;
+                    document.getElementById('submit_response').disabled = !(sliderMoved && isChecked);
+                }
+                
+                // リセット関数：シナリオ切り替え時に呼び出し
+                window.resetResponseFlow = function() {
+                    sliderMoved = false;
+                    const cb = document.getElementById('response_checkbox');
+                    if (cb) {
+                        cb.checked = false;
+                        cb.disabled = true;
+                    }
+                    updateSubmitButtonState();
+                };
+            </script>
         </div>
         <br>
 
@@ -174,13 +211,21 @@
                 <p>
                     <b><output id="estimate">0</output></b>
                 </p>
-                <p>
-                    <input id="estimate_slider" type="range" min="-0" max="100" step="1" value="0" onclick="check_estimate()">
-                </p>
+                <div class="slider-container">
+                    <div class="slider-input-container">
+                        <input id="estimate_slider" type="range" min="0" max="100" step="1" value="0" onclick="check_estimate()">
+                    </div>
+                </div>
             </form>
             <br>
             <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled onclick="check_estimate()" />
             <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）<br></label>
+            <script>
+                // スライダーが操作されたらチェックボックスを有効化
+                document.getElementById('estimate_slider').addEventListener('input', function() {
+                    document.getElementById('checkbox').disabled = false;
+                });
+            </script>
             <div id="notes">
                 <b>ボタンは1回押していただくだけで結構です。</b>
                 <b>送信に時間がかかる場合がありますので、最低30秒お待ちください。</b>

@@ -121,6 +121,26 @@ export class UIManager {
     document.getElementById('show_sample_area').style.display = "inline";
     this.changeBackGround();
 
+    // 前のシナリオのレスポンスチェックボックスとボタンをリセット
+    const respCheckbox = document.getElementById('response_checkbox');
+    if (respCheckbox) {
+      respCheckbox.checked = false;
+      respCheckbox.disabled = true;
+    }
+    const submitBtn = document.getElementById('submit_response');
+    if (submitBtn) submitBtn.disabled = true;
+    // 次へボタン類もリセット (for experiment1_2)
+    ['next_scenario','continue_scenario','finish_all_scenarios'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = true;
+    });
+    // スライダー操作フラグをリセット
+    window.sliderMoved = false;
+    
+    // スライダー操作フローをHTML側スクリプトでリセット
+    if (window.resetResponseFlow) {
+      window.resetResponseFlow();
+    }
     // サンプルデータを準備
     dataManager.prepareSampleData();
     
@@ -164,8 +184,6 @@ export class UIManager {
       
       // スライダー操作イベントを追加
       slider.addEventListener('input', function() {
-        // スライダーが操作されたら送信ボタンを有効化
-        document.getElementById('submit_response').removeAttribute('disabled');
         // 値を表示
         document.getElementById('slider_value').textContent = slider.value;
       }, { once: true }); // 一度だけ実行

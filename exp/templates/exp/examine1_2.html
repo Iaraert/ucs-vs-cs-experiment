@@ -98,17 +98,50 @@
     <br>
     <div id="estimate_input_area" class="area" style="display:none">
         <div id="estimate_description"></div><br>
-        <form oninput="estimate.value = Number(estimate_slider.value);">
+        <form oninput="estimate.value = Number(estimate_slider.value); enableEstimateCheckbox();">
             <p>
                 <b><output id="estimate">0</output></b>
             </p>
             <p>
-                <input id="estimate_slider" type="range" min="-0" max="100" step="1" value="0">
+                <input id="estimate_slider" type="range" min="0" max="100" step="1" value="0" oninput="enableEstimateCheckbox()">
             </p>
         </form>
         <br>
-        <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled />
+        <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled onclick="checkEstimate()" />
         <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）<br></label>
+        <script>
+            // スライダー操作とチェックボックスの状態を追跡する変数
+            let sliderMoved = false;
+            
+            // スライダーが操作されたらチェックボックスを有効化する関数
+            function enableEstimateCheckbox() {
+                sliderMoved = true;
+                document.getElementById('checkbox').disabled = false;
+            }
+            
+            // チェックボックスがクリックされたときの処理
+            function checkEstimate() {
+                const isChecked = document.getElementById('checkbox').checked;
+                
+                // スライダーを操作しており、チェックボックスにチェックが入っている場合のみボタンを有効化
+                if (sliderMoved && isChecked) {
+                    document.getElementById('next_scenario').removeAttribute("disabled");
+                    document.getElementById('continue_scenario').removeAttribute("disabled");
+                    document.getElementById('finish_all_scenarios').removeAttribute("disabled");
+                } else {
+                    document.getElementById('next_scenario').setAttribute("disabled", true);
+                    document.getElementById('continue_scenario').setAttribute("disabled", true);
+                    document.getElementById('finish_all_scenarios').setAttribute("disabled", true);
+                }
+            }
+            
+            // ページ読み込み時にスライダーにイベントリスナーを追加
+            document.addEventListener('DOMContentLoaded', function() {
+                var slider = document.getElementById('estimate_slider');
+                slider.addEventListener('input', enableEstimateCheckbox);
+                slider.addEventListener('change', enableEstimateCheckbox);
+            });
+        </script>
         <div id="notes">
             <b>ボタンは1回押していただくだけで結構です。</b>
             <b>送信に時間がかかる場合がありますので、最低30秒お待ちください。</b>

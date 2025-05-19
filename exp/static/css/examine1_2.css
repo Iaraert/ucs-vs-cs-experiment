@@ -73,10 +73,94 @@ ul {
 .sample{
     margin: 0 auto;
 }
-#estimate_slider{
-    width: 50%;
-    height: 10%;
-    margin: 1em;
+/***************************************
+ * スライダーコンポーネント
+ * レンジ入力とスライダー要素の設定
+ ***************************************/
+.slider-container {
+    width: 92%;
+    margin: 1% auto;
+    padding: 1%;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.slider-labels {
+    display: flex;
+    justify-content: space-between;
+    margin: 0.5% 0;
+    font-size: 0.85rem;
+}
+
+.slider-value-container {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 1% 0;
+}
+
+.slider-input-container {
+    width: 96%;
+    margin: 0 auto;
+}
+
+#estimate_slider,
+#response_slider,
+#instant_slider {
+    width: 100%;
+    height: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d3d3d3;
+    outline: none;
+    border-radius: 10px;
+}
+
+/* スライダーのつまみ部分のスタイル - Webkit */
+#estimate_slider::-webkit-slider-thumb,
+#response_slider::-webkit-slider-thumb,
+#instant_slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+/* スライダーのつまみ部分のスタイル - Firefox */
+#estimate_slider::-moz-range-thumb,
+#response_slider::-moz-range-thumb,
+#instant_slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4CAF50;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+/* 無効化されたスライダーのスタイル */
+#estimate_slider:disabled,
+#response_slider:disabled,
+#instant_slider:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 待機メッセージのアニメーション */
+.wait-message {
+    color: #ff5722;
+    font-weight: bold;
+    margin: 3px 0; /* マージンを最小化 */
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
 
 
