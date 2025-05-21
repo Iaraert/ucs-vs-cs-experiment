@@ -163,9 +163,35 @@ export class UIManager {
   initializeSlider() {
     const scenarioData = dataManager.getCurrentScenarioData();
     
-    document.getElementById('slider_scenario_result').textContent = scenarioData['result'];
-    document.getElementById('slider_min_result').textContent = '0：' + scenarioData['min_result'];
-    document.getElementById('slider_max_result').textContent = '100：' + scenarioData['max_result'];
+    // 条件に応じて評価文を選択
+    let resultText;
+    if (dataManager.sampleType === 'symmetric' && scenarioData['result_symmetric']) {
+      resultText = scenarioData['result_symmetric'];
+      console.log('対称条件の評価文を使用:', resultText);
+    } else {
+      resultText = scenarioData['result'];
+      console.log('非対称条件の評価文を使用:', resultText);
+    }
+    
+    // DOM要素の存在確認と更新を明示的に行う
+    const sliderResultElement = document.getElementById('slider_scenario_result');
+    if (sliderResultElement) {
+      sliderResultElement.textContent = resultText;
+      console.log('評価文をDOM要素に設定しました:', resultText);
+    } else {
+      console.error('slider_scenario_result要素が見つかりません');
+    }
+    
+    // 最小値と最大値も同様に確認しながら設定
+    const minResultElement = document.getElementById('slider_min_result');
+    if (minResultElement) {
+      minResultElement.textContent = '0：' + scenarioData['min_result'];
+    }
+    
+    const maxResultElement = document.getElementById('slider_max_result');
+    if (maxResultElement) {
+      maxResultElement.textContent = '100：' + scenarioData['max_result'];
+    }
     
     // スライダーの初期値設定
     const slider = document.getElementById('response_slider');

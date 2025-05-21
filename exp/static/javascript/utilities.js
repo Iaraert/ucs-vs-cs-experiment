@@ -206,9 +206,10 @@ export function loadPageStyles(pageName) {
  * ユーザーIDに基づいて実験順序を決定する
  * 「examine1 → examine1_2」と「examine1_2 → examine1」の2パターンを均等に割り振る
  * @param {string} userId - ユーザーID
+ * @param {boolean} reallocate - 既存の割り当てを無視して再割り当てするかどうか
  * @returns {Promise<string>} - 'order1'（examine1 → examine1_2）または'order2'（examine1_2 → examine1）
  */
-export async function getExperimentOrder(userId) {
+export async function getExperimentOrder(userId, reallocate = false) {
   if (!userId) {
     console.warn('ユーザーIDが指定されていないため、デフォルトの順序（order1）を使用します');
     return Promise.resolve('order1');
@@ -216,7 +217,10 @@ export async function getExperimentOrder(userId) {
   
   try {
     // サーバーから実験経路を取得
-    const response = await fetch(`/getExperimentPath?user_id=${encodeURIComponent(userId)}`);
+    // reallocateパラメータを明示的に設定
+    const url = `/getExperimentPath?user_id=${encodeURIComponent(userId)}&reallocate=${reallocate}`;
+    console.log(`実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`サーバーエラー: ${response.status}`);
@@ -240,7 +244,8 @@ export async function getExperimentOrder(userId) {
  * @returns {Promise<string>} - 次のページへのURLを含むPromise
  */
 export async function getNextPageUrl(currentPage, userId) {
-  const experimentOrder = await getExperimentOrder(userId);
+  // reallocate=falseを明示的に設定して既存の経路を尊重するようにする
+  const experimentOrder = await getExperimentOrder(userId, false);
   
   if (currentPage === 'examine1') {
     if (experimentOrder === 'order1') {

@@ -228,7 +228,8 @@ def get_experiment_path():
                 recovery_path="/"
             )
         
-        result = db.get_experiment_path_assignment(user_id, True)
+        # クライアントからのreallocateパラメータを使用
+        result = db.get_experiment_path_assignment(user_id, reallocate)
         logger.info(f"実験経路割り当て結果: {result}")
         
         if not result:

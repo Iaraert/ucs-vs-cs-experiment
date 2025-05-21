@@ -1,4 +1,4 @@
-/**
+  /**
  * examine1_2.js - 因果関係の強さを推定する実験
  */
 import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl } from './utilities.js';
@@ -27,6 +27,7 @@ class Experiment12Manager {
     this.userId = 0;
     this.startTime = null;
     this.estimationIndex = 0;
+    this.sampleType = 'asymmetric'; // デフォルトは非対称条件
     
     // 刺激設定
     this.scenarios = shuffle(['one','two','three','four','five','six']);
@@ -98,6 +99,7 @@ class Experiment12Manager {
       
       await loadPageStyles('examine1_2');
       await this.loadExperimentData();
+      await this.fetchSampleType(); // 実験条件を取得
       await this.preloadImages();
       
       this.setupLazyLoading();
@@ -116,6 +118,29 @@ class Experiment12Manager {
       console.error('実験データの読み込みに失敗しました', error);
       alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
       throw error;
+    }
+  }
+  
+  /**
+   * サーバーから実験条件を取得
+   */
+  async fetchSampleType() {
+    try {
+      const response = await fetch(`/getSampleType?user_id=${encodeURIComponent(this.userId)}`);
+      
+      if (!response.ok) {
+        throw new Error(`サーバーエラー: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      this.sampleType = data.sampleType || 'asymmetric';
+      console.log(`実験条件を取得: ${this.sampleType}`);
+      
+      return this.sampleType;
+    } catch (error) {
+      console.error('実験条件の取得に失敗しました。デフォルトで非対称条件を使用します。', error);
+      this.sampleType = 'asymmetric';
+      return this.sampleType;
     }
   }
 
@@ -231,10 +256,19 @@ class Experiment12Manager {
     document.getElementById('description_area').style.display = "inline-block";
     document.getElementById('start_scenario_button').setAttribute("disabled", true);
     
-    const descLen = this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions'].length;
+    // 条件に応じた説明文を選択
+    let descriptions;
+    if (this.sampleType === 'symmetric' && this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions_symmetric']) {
+      descriptions = this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions_symmetric'];
+      console.log('対称条件の説明文を使用');
+    } else {
+      descriptions = this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions'];
+      console.log('非対称条件の説明文を使用');
+    }
+    
+    const descLen = descriptions.length;
     for (let i = 0; i < descLen; i++) {
-      document.getElementById('scenario_description' + String(i + 1)).innerHTML = 
-        this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions'][i];
+      document.getElementById('scenario_description' + String(i + 1)).innerHTML = descriptions[i];
     }
   }
 
@@ -370,8 +404,18 @@ class Experiment12Manager {
 
     const currentScenario = this.experimentData[this.scenarios[this.scenarioIndex]];
     
+    // 実験条件に応じて結果テキストを選択
+    let resultText;
+    if (this.sampleType === 'symmetric' && currentScenario['result_symmetric']) {
+      resultText = currentScenario['result_symmetric'];
+      console.log('対称条件の評価文を使用:', resultText);
+    } else {
+      resultText = currentScenario['result'];
+      console.log('非対称条件の評価文を使用:', resultText);
+    }
+    
     document.getElementById('estimate_description').innerHTML = 
-      '<h3>' + currentScenario['result'] + 'と思いますか？</h3>' + 
+      '<h3>' + resultText + 'と思いますか？</h3>' + 
       '<ul>0：' + currentScenario['min_result'] + '</ul>' + 
       '<ul>100：' + currentScenario['max_result'] + '</ul>' +
       '<ul>として、0から100の値で<b>直感的に</b>回答してください。</ul>' +

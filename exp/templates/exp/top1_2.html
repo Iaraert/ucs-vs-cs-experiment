@@ -53,10 +53,11 @@
             }
             
             // サーバーから実験経路を取得する関数
-            async function fetchExperimentPath(userId) {
+            async function fetchExperimentPath(userId, reallocate = false) {
                 try {
-                    console.log(`実験経路を取得中: ユーザーID=${userId}`);
-                    const response = await fetch(`/getExperimentPath?user_id=${encodeURIComponent(userId)}`);
+                    console.log(`実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
+                    // reallocateパラメータを明示的に設定
+                    const response = await fetch(`/getExperimentPath?user_id=${encodeURIComponent(userId)}&reallocate=${reallocate}`);
                     
                     if (!response.ok) {
                         throw new Error(`サーバーエラー: ${response.status}`);
@@ -141,7 +142,7 @@
                 <p>
                     <input class="checks" type="checkbox" id="checkbox1" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
-                    <label for="checkbox1">これから、ある製薬会社の研究者を演じていただきます。
+                    <label for="checkbox1">これから行う実験では、ある要因と結果の関係性について判断していただきます。
                     </label>
                 </p>
                 <br>
@@ -149,7 +150,7 @@
                     <input class="checks" type="checkbox" id="checkbox2" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
                     <label
-                        for="checkbox2">あなたが勤めている製薬会社が新種の成分を8つ発見しました。
+                        for="checkbox2">画面には複数の事例が提示されます。それらを見て、要因と結果の間の関係性の強さを評価していただきます。
                     </label>
                 </p>
                 <br>
@@ -157,7 +158,7 @@
                     <input class="checks" type="checkbox" id="checkbox3" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
                     <label
-                        for="checkbox3">これらの成分の効果を検証するために、実験参加者に成分を投与する実験が行われました。
+                        for="checkbox3">実験はいくつかのシナリオに分かれており、各シナリオでは異なる状況での関係性を評価します。
                     </label>
                 </p>
                 <br>
@@ -165,7 +166,7 @@
                     <input class="checks" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
                     <label
-                        for="checkbox4">これから実験の内容とその結果が提示されるので、あなたには成分の効果を推定してもらいます。
+                        for="checkbox4">各シナリオの内容をよく読んだ上で、提示される事例を観察し、最後に0から100の数値で評価を行ってください。
                     </label>
                 </p>
                 <br>
@@ -181,7 +182,7 @@
                     <input class="checks" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
                     <label
-                        for="checkbox6">回答中のメモなどはお控えください。
+                        for="checkbox6">回答中のメモなどはお控えください。また、実験中はブラウザの「戻る」ボタンを使用しないでください。
                     </label>
                 </p>
             </form>

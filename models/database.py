@@ -241,7 +241,7 @@ class Database:
             print(f"データベース情報取得エラー: {e}")
             return {"error": str(e)}
 
-    def get_experiment_path_assignment(self, user_id, reallocate=True):
+    def get_experiment_path_assignment(self, user_id, reallocate=False):
         """
         ユーザーIDに基づいて実験経路を割り当てる
         order1: examine1 → examine1_2 → examine2
@@ -258,7 +258,10 @@ class Database:
             with self.db_lock:  # スレッドセーフに処理
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-
+                
+                # デバッグ情報追加
+                print(f"DEBUG: パラメータ - user_id={user_id}, reallocate={reallocate}, type={type(reallocate)}")
+                
                 # トランザクション開始
                 conn.execute("BEGIN TRANSACTION")
 
@@ -268,6 +271,10 @@ class Database:
                     (user_id,)
                 )
                 existing_path = cursor.fetchone()
+                print(f"DEBUG: existing_path={existing_path}")
+
+                # 検証: ユーザーIDが正しく使用されているか確認
+                print(f"DEBUG: SQLクエリに使用されたユーザーID={user_id}")
 
                 if existing_path and not reallocate:
                     # 既存の割り当てがある場合はそれを使用（カウンターは更新しない）
@@ -294,16 +301,22 @@ class Database:
                     # 既存ユーザーの場合は履歴を更新、新規ユーザーの場合は挿入
                     if existing_path:
                         print(f"経路再割り当て: ユーザーID {user_id} -> {selected_path}")
-                        cursor.execute(
-                            "UPDATE experiment_path_history SET path_type = ? WHERE user_id = ?",
-                            (selected_path, user_id)
-                        )
+                        # timestampも明示的に更新
+                        update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?"
+                        cursor.execute(update_query, (selected_path, user_id))
+                        print(f"DEBUG: UPDATEクエリ実行結果 - 影響行数={cursor.rowcount}")
                     else:
                         print(f"新規経路割り当て: ユーザーID {user_id} -> {selected_path}")
-                        cursor.execute(
-                            "INSERT OR REPLACE INTO experiment_path_history (user_id, path_type) VALUES (?, ?)",
-                            (user_id, selected_path)
-                        )
+                        # INSERTに失敗した場合に備えて、基本的なINSERTを使用
+                        insert_query = "INSERT INTO experiment_path_history (user_id, path_type) VALUES (?, ?)"
+                        try:
+                            cursor.execute(insert_query, (user_id, selected_path))
+                            print(f"DEBUG: INSERTクエリ実行結果 - 影響行数={cursor.rowcount}")
+                        except sqlite3.IntegrityError as e:
+                            print(f"DEBUG: ユニーク制約違反エラー: {e}")
+                            # ユニーク制約違反の場合は更新を試みる
+                            cursor.execute(update_query, (selected_path, user_id))
+                            print(f"DEBUG: フォールバックUPDATE実行結果 - 影響行数={cursor.rowcount}")
 
                 # トランザクションをコミット
                 conn.commit()
