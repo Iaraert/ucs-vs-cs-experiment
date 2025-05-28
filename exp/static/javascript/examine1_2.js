@@ -1,4 +1,4 @@
-  /**
+/**
  * examine1_2.js - 因果関係の強さを推定する実験
  */
 import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl } from './utilities.js';
@@ -152,12 +152,20 @@ class Experiment12Manager {
     const basePath = '..';
     
     for (const scenario of this.scenarios) {
-      // 矢印画像
-      imageUrls.push(`${basePath}/${this.experimentData[scenario]['images']['arrow']}`);
+      const scenarioData = this.experimentData[scenario];
       
-      // cause/effect画像
+      // 非対称条件の画像
+      imageUrls.push(`${basePath}/${scenarioData['images']['arrow']}`);
       for (const type of this.imageType) {
-        imageUrls.push(`${basePath}/${this.experimentData[scenario]['images'][type]}`);
+        imageUrls.push(`${basePath}/${scenarioData['images'][type]}`);
+      }
+      
+      // 対称条件の画像（存在する場合）
+      if (scenarioData['images_symmetric']) {
+        imageUrls.push(`${basePath}/${scenarioData['images_symmetric']['arrow']}`);
+        for (const type of this.imageType) {
+          imageUrls.push(`${basePath}/${scenarioData['images_symmetric'][type]}`);
+        }
       }
     }
     
@@ -344,11 +352,22 @@ class Experiment12Manager {
 
   showStimulation() {
     const sample = this.currentSampleSelection[this.currentTestPage];
-    const desc = this.experimentData[this.scenarios[this.scenarioIndex]]['sentences'][sample];
+    const currentScenario = this.scenarios[this.scenarioIndex];
     
-    const sentences = desc.split('、');
-    document.getElementById('first_sentence').innerHTML = "<h4>" + sentences[0] + "</h4>";
-    document.getElementById('last_sentence').innerHTML = "<h4>" + sentences[1] + "</h4>";
+    // 条件に応じて適切な文章を選択
+    let sentences;
+    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['sentences_symmetric']) {
+      sentences = this.experimentData[currentScenario]['sentences_symmetric'];
+      console.log('対称条件の文章を使用');
+    } else {
+      sentences = this.experimentData[currentScenario]['sentences'];
+      console.log('非対称条件の文章を使用');
+    }
+    
+    const desc = sentences[sample];
+    const sentenceParts = desc.split('、');
+    document.getElementById('first_sentence').innerHTML = "<h4>" + sentenceParts[0] + "</h4>";
+    document.getElementById('last_sentence').innerHTML = "<h4>" + sentenceParts[1] + "</h4>";
     
     document.getElementById('show_sample_area').style.display = "inline";
     document.getElementById('first_sentence').style.display = 'inline-block';
@@ -357,15 +376,24 @@ class Experiment12Manager {
     document.getElementById('estimate_input_area').style.display = 'none';
     document.getElementById('next_sample').style.display = 'inline';
     
-    const currentScenario = this.scenarios[this.scenarioIndex];
     const combination = this.imgCombination[sample];
     
+    // 条件に応じて適切な画像セットを選択
+    let imageSet;
+    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['images_symmetric']) {
+      imageSet = this.experimentData[currentScenario]['images_symmetric'];
+      console.log('対称条件の画像を使用');
+    } else {
+      imageSet = this.experimentData[currentScenario]['images'];
+      console.log('非対称条件の画像を使用');
+    }
+    
     document.getElementById('sample_before').src = 
-      `../${this.experimentData[currentScenario]['images'][combination['cause']]}`;
+      `../${imageSet[combination['cause']]}`;
     document.getElementById('arrow').src = 
-      `../${this.experimentData[currentScenario]['images']['arrow']}`;
+      `../${imageSet['arrow']}`;
     document.getElementById('sample_after').src = 
-      `../${this.experimentData[currentScenario]['images'][combination['effect']]}`;
+      `../${imageSet[combination['effect']]}`;
     
     this.updateProgressBar();
     
