@@ -1,9 +1,13 @@
 /**
  * examine1_2.js - 因果関係の強さを推定する実験
+ * モジュラーアーキテクチャに対応
  */
-import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl } from './utilities.js';
+import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl, setupPageLeaveWarning } from './utilities.js';
 import { fetchJson, postData } from './ajax-utils.js';
 import eventBus from './event-bus.js';
+import dataManager from './data-manager.js';
+import eventHandler from './event-handler.js';
+import uiManager from './ui-manager.js';
 
 // shuffleArrayのエイリアス
 const shuffle = shuffleArray;
@@ -15,8 +19,6 @@ class Experiment12Manager {
   constructor() {
     // 実験データ
     this.experimentData = null;
-    this.userData = [];
-    this.estimations = [];
     
     // 実験の状態
     this.currentTestPage = 0;
@@ -24,8 +26,6 @@ class Experiment12Manager {
     this.scenarioIndex = 0;
     this.currentSampleSelection = [];
     this.cellSize = 0;
-    this.userId = 0;
-    this.startTime = null;
     this.estimationIndex = 0;
     this.sampleType = 'asymmetric'; // デフォルトは非対称条件
     
@@ -44,58 +44,36 @@ class Experiment12Manager {
       'd': {'cause': 'notp', 'effect': 'notq'}
     };
     
+    // DataManagerとの連携設定
+    this.initializeDataManager();
     this.setupEventListeners();
+  }
+
+  /**
+   * DataManagerとの連携を初期化
+   */
+  initializeDataManager() {
+    // DataManagerのカスタム設定
+    dataManager.experimentType = 'examine1_2';
+    
+    // 実験固有のデータ構造を初期化
+    dataManager.customData.estimations = [];
+    dataManager.customData.sampleType = 'asymmetric';
   }
 
   setupEventListeners() {
     // ページ読み込み時の処理
     window.addEventListener('load', () => this.initialize());
     
-    // ブラウザのバック防止
-    preventBrowserBack();
-    
-    // ページを離れる前の確認
-    window.addEventListener('beforeunload', (e) => {
-      e.returnValue = "ページを離れると、これまで入力した内容は全て破棄されます。ページを離れてもよろしいですか？";
-    });
-    
-    // イベント委譲によるクリックハンドリング
-    document.addEventListener('click', (e) => {
-      if (!e.target || !e.target.id) return;
-      
-      switch (e.target.id) {
-        case 'finish_all_scenarios':
-          this.handleExportResults();
-          break;
-        case 'next_scenario':
-          this.handleNextScenario();
-          break;
-        case 'continue_scenario':
-          this.handleContinueScenario();
-          break;
-        case 'next_sample':
-          this.toNextSample();
-          break;
-        case 'start_scenario_button':
-          this.toNextNewSamplePage();
-          break;
-      }
-    });
-    
-    // チェックボックスの監視
-    document.addEventListener('change', (e) => {
-      if (e.target && e.target.classList.contains('checkbox')) {
-        this.checkDescription();
-      } else if (e.target && e.target.id === 'checkbox') {
-        this.checkEstimate();
-      }
-    });
+    // 共有EventHandlerを使用してexamine1_2固有のイベントを設定
+    eventHandler.setupExamine12Events(this);
   }
 
   async initialize() {
     try {
-      this.userId = getOrCreateUserId({ persistent: true });
-      this.startTime = getNow();
+      // DataManagerを使用してユーザーIDと開始時刻を設定
+      dataManager.userId = getOrCreateUserId({ persistent: true });
+      dataManager.startTime = getNow();
       
       await loadPageStyles('examine1_2');
       await this.loadExperimentData();
@@ -106,7 +84,7 @@ class Experiment12Manager {
       this.toNextScenarioDescription(true);
     } catch (error) {
       console.error('実験の初期化に失敗しました', error);
-      alert('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
+      uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
     }
   }
 
@@ -116,7 +94,7 @@ class Experiment12Manager {
       return this.experimentData;
     } catch (error) {
       console.error('実験データの読み込みに失敗しました', error);
-      alert('データの読み込みに失敗しました。ページを再読み込みしてください。');
+      uiManager.showErrorMessage('データの読み込みに失敗しました。ページを再読み込みしてください。');
       throw error;
     }
   }
@@ -126,7 +104,7 @@ class Experiment12Manager {
    */
   async fetchSampleType() {
     try {
-      const response = await fetch(`/getSampleType?user_id=${encodeURIComponent(this.userId)}`);
+      const response = await fetch(`/getSampleType?user_id=${encodeURIComponent(dataManager.userId)}`);
       
       if (!response.ok) {
         throw new Error(`サーバーエラー: ${response.status}`);
@@ -134,12 +112,14 @@ class Experiment12Manager {
       
       const data = await response.json();
       this.sampleType = data.sampleType || 'asymmetric';
+      dataManager.customData.sampleType = this.sampleType;
       console.log(`実験条件を取得: ${this.sampleType}`);
       
       return this.sampleType;
     } catch (error) {
       console.error('実験条件の取得に失敗しました。デフォルトで非対称条件を使用します。', error);
       this.sampleType = 'asymmetric';
+      dataManager.customData.sampleType = this.sampleType;
       return this.sampleType;
     }
   }
@@ -337,7 +317,7 @@ class Experiment12Manager {
     button.disabled = true;
     
     if (this.currentTestPage >= this.sampleSize) {
-      alert('結果は以上になります。');
+      uiManager.showErrorMessage('結果は以上になります。');
       this.drawEstimate('fin');
       return;
     }
@@ -474,8 +454,8 @@ class Experiment12Manager {
   recordEstimation() {
     const estimation = document.getElementById('estimate_slider').value;
     
-    this.estimations.push({
-      'user_id': this.userId,
+    dataManager.customData.estimations.push({
+      'user_id': dataManager.userId,
       'number': this.scenarios[this.scenarioIndex],
       'stimuli': this.stimuli[this.scenarioIndex],
       'estimation': estimation
@@ -483,28 +463,17 @@ class Experiment12Manager {
   }
 
   async exportResults() {
-    this.userData.push({
-      'user_id': this.userId,
-      'start_time': this.startTime,
-      'end_time': getNow(),
-      'user_agent': window.navigator.userAgent
-    });
-
     try {
-      await postData('/send', {
-        'user_data': JSON.stringify(this.userData),
-        'estimations': JSON.stringify(this.estimations),
-        'file_name_suffix': 'exp1'
-      }, {
-        timeout: 50000
-      });
+      // ページ離脱警告を無効化
+      setupPageLeaveWarning(false);
       
-      // 現在のページがexamine1_2であることを指定し、ユーザーIDに基づいて次のページを決定
-      const nextUrl = await getNextPageUrl('examine1_2', this.userId);
-      location.href = nextUrl;
+      // DataManagerから推定データを取得し、次のページURLを決定
+      const nextUrl = await getNextPageUrl('examine1_2', dataManager.userId);
+      
+      // DataManagerの送信メソッドを使用してデータを送信
+      await dataManager.sendExamine12Results(dataManager.customData.estimations, nextUrl);
     } catch (error) {
       console.error("回答送信中にエラーが発生しました", error);
-      alert("回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。");
       document.getElementById('finish_all_scenarios').removeAttribute("disabled");
       throw error;
     }
@@ -533,7 +502,4 @@ class Experiment12Manager {
 // 実験マネージャーのインスタンスを作成
 const experimentManager = new Experiment12Manager();
 
-// スライダーの値変更時のイベントハンドラー
-document.getElementById('estimate_slider').addEventListener('input', function() {
-  document.getElementById('estimate').innerHTML = this.value;
-});
+// スライダーイベントハンドラーは共有EventHandlerで処理

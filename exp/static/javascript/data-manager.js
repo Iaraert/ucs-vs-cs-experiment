@@ -22,6 +22,7 @@ export class DataManager {
     this.userId = null;            // ユーザーID
     this.sampleType = null;        // 実験条件（対称/非対称）
     this.startTime = '';           // 実験開始時間
+    this.customData = {};          // カスタムデータストレージ
   }
 
   /**
@@ -318,6 +319,61 @@ export class DataManager {
       eventBus.emit('testResults:error', { 
         testType: suffix === 'exp3' ? 'CRT' : 'IMC',
         error: error 
+      });
+      
+      throw error;
+    }
+  }
+  
+  /**
+   * examine1_2実験の結果を送信
+   * @param {Array} estimations - 推定値データ
+   * @param {string} nextUrl - 送信成功時のリダイレクト先URL
+   * @returns {Promise} 送信処理のPromise
+   */
+  async sendExamine12Results(estimations, nextUrl) {
+    // 実験結果送信開始イベントを通知
+    eventBus.emit('examine12Results:sending', { 
+      userId: this.userId,
+      dataCount: estimations.length
+    });
+    
+    try {
+      // ユーザーデータを準備
+      const userData = [{
+        'user_id': this.userId,
+        'start_time': this.startTime,
+        'end_time': getNow(),
+        'user_agent': window.navigator.userAgent
+      }];
+      
+      const response = await postData('/send', {
+        'user_data': JSON.stringify(userData),
+        'estimations': JSON.stringify(estimations),
+        'file_name_suffix': 'exp1'
+      }, {
+        timeout: 50000
+      });
+      
+      // 実験結果送信成功イベントを通知
+      eventBus.emit('examine12Results:sent', { 
+        userId: this.userId,
+        response: response,
+        nextUrl: nextUrl
+      });
+      
+      if (nextUrl) {
+        location.href = nextUrl;
+      }
+      
+      return response;
+    } catch (error) {
+      handleAjaxError(error, '回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。');
+      
+      // エラーイベントを通知
+      eventBus.emit('examine12Results:error', { 
+        error: error,
+        userId: this.userId
       });
       
       throw error;

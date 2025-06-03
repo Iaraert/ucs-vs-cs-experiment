@@ -199,6 +199,57 @@ export class EventHandler {
       }
     }
   }
+  
+  /**
+   * examine1_2実験専用のイベント処理
+   */
+  setupExamine12Events(experimentManager) {
+    // 基本イベントセットアップ
+    this.setupEventHandlers();
+    
+    // examine1_2固有のスライダーイベント
+    const estimateSlider = document.getElementById('estimate_slider');
+    if (estimateSlider) {
+      estimateSlider.addEventListener('input', function() {
+        const estimateElement = document.getElementById('estimate');
+        if (estimateElement) {
+          estimateElement.innerHTML = this.value;
+        }
+      });
+    }
+    
+    // examine1_2固有のイベント委譲
+    document.addEventListener('click', (e) => {
+      if (!e.target || !e.target.id) return;
+      
+      switch (e.target.id) {
+        case 'finish_all_scenarios':
+          experimentManager.handleExportResults();
+          break;
+        case 'next_scenario':
+          experimentManager.handleNextScenario();
+          break;
+        case 'continue_scenario':
+          experimentManager.handleContinueScenario();
+          break;
+        case 'next_sample':
+          experimentManager.toNextSample();
+          break;
+        case 'start_scenario_button':
+          experimentManager.toNextNewSamplePage();
+          break;
+      }
+    });
+    
+    // チェックボックスの監視
+    document.addEventListener('change', (e) => {
+      if (e.target && e.target.classList.contains('checkbox')) {
+        experimentManager.checkDescription();
+      } else if (e.target && e.target.id === 'checkbox') {
+        experimentManager.checkEstimate();
+      }
+    });
+  }
 }
 
 export default new EventHandler();
