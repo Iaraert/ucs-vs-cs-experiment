@@ -84,15 +84,15 @@
             "negative": "static/images/scenarios/sonar/failure.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/sonar/success.png",
-            "notp": "static/images/scenarios/sonar/failure.png",
+            "p": "static/images/scenarios/sonar/sonar.png",
+            "notp": "static/images/scenarios/sonar/no_sonar.png",
             "q": "static/images/scenarios/sonar/success.png",
             "notq": "static/images/scenarios/sonar/failure.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/sonar/success.png",
-            "notp": "static/images/scenarios/sonar/failure.png",
+            "p": "static/images/scenarios/sonar/x_sonar.png",
+            "notp": "static/images/scenarios/sonar/y_no_sonar.png",
             "q": "static/images/scenarios/sonar/success.png",
             "notq": "static/images/scenarios/sonar/failure.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -146,15 +146,15 @@
             "negative": "static/images/scenarios/flower/nobloom.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/flower/bloom.png",
-            "notp": "static/images/scenarios/flower/nobloom.png",
+            "p": "static/images/scenarios/flower/fertilizer.png",
+            "notp": "static/images/scenarios/flower/no_fertilizer.png",
             "q": "static/images/scenarios/flower/bloom.png",
             "notq": "static/images/scenarios/flower/nobloom.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/flower/bloom.png",
-            "notp": "static/images/scenarios/flower/nobloom.png",
+            "p": "static/images/scenarios/flower/red_fertilizer.png",
+            "notp": "static/images/scenarios/flower/blue_fertilizer.png",
             "q": "static/images/scenarios/flower/bloom.png",
             "notq": "static/images/scenarios/flower/nobloom.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -332,15 +332,15 @@
             "negative": "static/images/scenarios/bread/flat.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/bread/fluffy.png",
-            "notp": "static/images/scenarios/bread/flat.png",
+            "p": "static/images/scenarios/bread/foaming.png",
+            "notp": "static/images/scenarios/bread/no_foaming.png",
             "q": "static/images/scenarios/bread/fluffy.png",
             "notq": "static/images/scenarios/bread/flat.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/bread/fluffy.png",
-            "notp": "static/images/scenarios/bread/flat.png",
+            "p": "static/images/scenarios/bread/fast_foaming.png",
+            "notp": "static/images/scenarios/bread/slow_foaming.png",
             "q": "static/images/scenarios/bread/fluffy.png",
             "notq": "static/images/scenarios/bread/flat.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -372,58 +372,58 @@
         }
     },
     "seven": {
-        "title": "「イヤホン使用」と読解テストの正答率に関わる観察報告",
+        "title": "「ホワイトノイズ使用」と読解テストの正答率に関わる観察報告",
         "descriptions": [
-            "読解テスト中のイヤホン使用が正答率を向上させる可能性があると考えられています。",
-            "複数の参加者にイヤホンを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
-            "正答率の向上はイヤホンと関係なく起こりうるため、イヤホンを使用しなかった参加者も観察されました。",
+            "読解テスト中のホワイトノイズ使用が正答率を向上させる可能性があると考えられています。",
+            "複数の参加者にホワイトノイズを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
+            "正答率の向上はホワイトノイズと関係なく起こりうるため、ホワイトノイズを使用しなかった参加者も観察されました。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、イヤホン使用と正答率の関係について評価をお願いします。",
-            "イヤホン使用が読解テストの正答率をどの程度向上させるかを判定してください。"
+            "結果が確認できましたら、「次の事例へ」を押して次の結果を確認するという操作を繰り返してください。",
+            "全ての結果が表示されたら、ホワイトノイズ使用が読解テストの正答率をどの程度向上させるかを評価してもらいます。"
         ],
         "descriptions_symmetric": [
-            "「有線イヤホン」と「ワイヤレスイヤホン」のどちらが読解テストの正答率を向上させるのか比較する研究が進められています。",
-            "複数の参加者に有線イヤホンかワイヤレスイヤホンのいずれかを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
-            "各参加者は有線イヤホンかワイヤレスイヤホンのどちらか一方だけを使用し、両方を使用した参加者やイヤホンを使用しなかった参加者はいません。",
+            "「低周波ホワイトノイズ」と「高周波ホワイトノイズ」のどちらが読解テストの正答率を向上させるのか比較する研究が進められています。",
+            "複数の参加者に低周波ホワイトノイズか高周波ホワイトノイズのいずれかを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
+            "各参加者は低周波ホワイトノイズか高周波ホワイトノイズのどちらか一方だけを使用し、両方を使用した参加者やホワイトノイズを使用しなかった参加者はいません。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、有線イヤホンとワイヤレスイヤホンの効果について評価をお願いします。",
-            "有線イヤホンがワイヤレスイヤホンと比べて正答率をどの程度向上させるかを判定してください。"
+            "結果が確認できましたら、「次の事例へ」を押して次の結果を確認するという操作を繰り返してください。",
+            "全ての結果が表示されたら、低周波ホワイトノイズが高周波ホワイトノイズと比べて正答率をどの程度向上させるか評価してもらいます。"
         ],
         "images": {
             "positive": "static/images/scenarios/test/high_score.png",
             "negative": "static/images/scenarios/test/low_score.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/headphone/wearing.png",
-            "notp": "static/images/scenarios/headphone/not_wearing.png",
-            "q": "static/images/scenarios/test/high_score.png",
-            "notq": "static/images/scenarios/test/low_score.png",
+            "p": "static/images/cause/whitenoise/using.png",
+            "notp": "static/images/cause/whitenoise/not_using.png",
+            "q": "static/images/effect/test/high_score.png",
+            "notq": "static/images/effect/test/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/headphone/wired.png",
-            "notp": "static/images/scenarios/headphone/wireless.png",
-            "q": "static/images/scenarios/test/high_score.png",
-            "notq": "static/images/scenarios/test/low_score.png",
+            "p": "static/images/cause/whitenoise/lowfreq.png",
+            "notp": "static/images/cause/whitenoise/highfreq.png",
+            "q": "static/images/effect/test/high_score.png",
+            "notq": "static/images/effect/test/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
-            "a": "イヤホンを使用した、正答率が向上した",
-            "b": "イヤホンを使用した、正答率は変化なかった",
-            "c": "イヤホンを使用しなかった、正答率が向上した",
-            "d": "イヤホンを使用しなかった、正答率は変化なかった"
+            "a": "ホワイトノイズを使用した、正答率が向上した",
+            "b": "ホワイトノイズを使用した、正答率は変化なかった",
+            "c": "ホワイトノイズを使用しなかった、正答率が向上した",
+            "d": "ホワイトノイズを使用しなかった、正答率は変化なかった"
         },
         "sentences_symmetric": {
-            "a": "有線イヤホンを使用した、正答率が向上した",
-            "b": "有線イヤホンを使用した、正答率は変化なかった",
-            "c": "ワイヤレスイヤホンを使用した、正答率が向上した",
-            "d": "ワイヤレスイヤホンを使用した、正答率は変化なかった"
+            "a": "低周波ホワイトノイズを使用した、正答率が向上した",
+            "b": "低周波ホワイトノイズを使用した、正答率は変化なかった",
+            "c": "高周波ホワイトノイズを使用した、正答率が向上した",
+            "d": "高周波ホワイトノイズを使用した、正答率は変化なかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "イヤホンを使用することは、読解テストの正答率をどの程度向上させる",
-        "result_symmetric": "有線イヤホンの使用は、ワイヤレスイヤホンと比べて正答率をどの程度向上させる",
+        "result": "ホワイトノイズを使用することは、読解テストの正答率をどの程度向上させる",
+        "result_symmetric": "低周波ホワイトノイズの使用は、高周波ホワイトノイズと比べて正答率をどの程度向上させる",
         "frame_descriptions": {
             "top": "イヤホンを使用しなかった場合の読解テスト正答率",
             "bottom": "イヤホンを使用した場合の読解テスト正答率"
