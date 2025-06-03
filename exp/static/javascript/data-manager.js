@@ -23,6 +23,7 @@ export class DataManager {
     this.sampleType = null;        // 実験条件（対称/非対称）
     this.startTime = '';           // 実験開始時間
     this.customData = {};          // カスタムデータストレージ
+    this.experimentType = '';      // 実験タイプ（examine1, examine1_2など）
   }
 
   /**
@@ -35,6 +36,93 @@ export class DataManager {
       await this.loadExperimentData();
       this.estimations = [];
       this.loadOrGenerateUserId();
+      
+      // 実験タイプが設定されている場合、シナリオを設定
+      if (this.experimentType && this.userId) {
+        this.setupExperimentScenarios();
+      }
+      
+      return this;
+    } catch (error) {
+      handleAjaxError(error, '実験データの読み込みに失敗しました');
+      return this;
+    }
+  }
+
+  /**
+   * 実験タイプに基づいてシナリオを設定
+   */
+  setupExperimentScenarios() {
+    if (!this.experimentType || !this.userId) {
+      console.warn('実験タイプまたはユーザーIDが設定されていません');
+      return;
+    }
+    
+    // シナリオ配布の永続化チェック
+    const storageKey = `scenario_assignment_${this.experimentType}_${this.userId}`;
+    let assignedScenarios = null;
+    
+    try {
+      assignedScenarios = JSON.parse(localStorage.getItem(storageKey));
+    } catch (e) {
+      console.warn('保存されたシナリオ配布の読み込みに失敗:', e);
+    }
+    
+    if (assignedScenarios && Array.isArray(assignedScenarios) && assignedScenarios.length === 6) {
+      // 既存の配布を使用
+      config.scenarios = assignedScenarios;
+      console.log(`既存のシナリオ配布を復元: ${assignedScenarios.join(', ')}`);
+    } else {
+      // 新しい配布を生成
+      const scenarios = config.setExperimentScenarios(this.experimentType, this.userId);
+      
+      // 配布を永続化
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(scenarios));
+        console.log(`シナリオ配布を保存: ${scenarios.join(', ')}`);
+      } catch (e) {
+        console.warn('シナリオ配布の保存に失敗:', e);
+      }
+    }
+    
+    // シナリオ配布情報をイベントで通知
+    eventBus.emit('scenarios:assigned', { 
+      experimentType: this.experimentType,
+      userId: this.userId,
+      scenarios: config.scenarios
+    });
+  }
+
+  /**
+   * 実験タイプを設定
+   * @param {string} experimentType - 実験タイプ
+   */
+  setExperimentType(experimentType) {
+    this.experimentType = experimentType;
+    console.log(`実験タイプを設定: ${experimentType}`);
+    
+    // 既にユーザーIDが設定されている場合、シナリオを設定
+    if (this.userId) {
+      this.setupExperimentScenarios();
+    }
+  }
+
+  /**
+   * データマネージャーの初期化
+   * @returns {Promise} 初期化処理のPromise
+   */
+  async init() {
+    this.startTime = getNow();
+    try {
+      await this.loadExperimentData();
+      this.estimations = [];
+      this.loadOrGenerateUserId();
+      
+      // 実験タイプが設定されている場合、シナリオを設定
+      if (this.experimentType && this.userId) {
+        this.setupExperimentScenarios();
+      }
+      
       return this;
     } catch (error) {
       handleAjaxError(error, '実験データの読み込みに失敗しました');
@@ -50,10 +138,38 @@ export class DataManager {
     try {
       this.experimentData = await fetchJson(config.jsonFilePath);
       console.log('実験データを読み込みました');
+      
+      // 共通サンプルデータを読み込み、samples_refを解決
+      await this.resolveCommonSamples();
+      
       return this.experimentData;
     } catch (error) {
       console.error('実験データの読み込みに失敗しました', error);
       throw error;
+    }
+  }
+
+  /**
+   * 共通サンプルデータを読み込み、samples_refを解決する
+   * @returns {Promise} 共通サンプル読み込みのPromise
+   */
+  async resolveCommonSamples() {
+    try {
+      // 共通サンプルデータを読み込み
+      const commonSamplesData = await fetchJson('../static/samples_common.json');
+      console.log('共通サンプルデータを読み込みました');
+      
+      // 各シナリオのsamples_refを解決
+      Object.keys(this.experimentData).forEach(scenarioKey => {
+        const scenario = this.experimentData[scenarioKey];
+        if (scenario.samples_ref && commonSamplesData[scenario.samples_ref]) {
+          // samples_refが指定されている場合、共通データで置き換え
+          scenario.samples = commonSamplesData[scenario.samples_ref];
+          console.log(`シナリオ ${scenarioKey} のsamples_refを解決しました: ${scenario.samples_ref}`);
+        }
+      });
+    } catch (error) {
+      console.warn('共通サンプルデータの読み込みに失敗しました。既存のsamplesデータを使用します。', error);
     }
   }
   
@@ -63,6 +179,11 @@ export class DataManager {
   loadOrGenerateUserId() {
     this.userId = getOrCreateUserId();
     console.log(`ユーザーID: ${this.userId}`);
+    
+    // 実験タイプが設定されている場合、シナリオを設定
+    if (this.experimentType) {
+      this.setupExperimentScenarios();
+    }
     
     // ユーザーID取得イベントを通知（Observerパターン）
     eventBus.emit('user:idLoaded', { userId: this.userId });
@@ -226,7 +347,21 @@ export class DataManager {
   isExperimentComplete() {
     return this.currentScenarioIndex >= config.scenarios.length - 1;
   }
-  
+
+  /**
+   * 配布されたシナリオ情報を取得
+   * @returns {Object} シナリオ配布情報
+   */
+  getScenarioAssignment() {
+    return {
+      experimentType: this.experimentType,
+      userId: this.userId,
+      scenarios: config.scenarios,
+      currentIndex: this.currentScenarioIndex,
+      totalCount: config.scenarios.length
+    };
+  }
+
   /**
    * 実験結果をサーバーに送信
    * @param {string} nextUrl - 送信成功時のリダイレクト先URL

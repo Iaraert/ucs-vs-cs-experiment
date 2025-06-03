@@ -62,9 +62,30 @@ export class UIManager {
       descriptions = scenarioData['descriptions'];
     }
     
-    // 説明文を表示
-    for (let i = 0; i < descriptions.length; i++) {
-      document.getElementById(`scenario_description${i + 1}`).innerHTML = descriptions[i];
+    // 説明文のHTML要素を動的に生成
+    const scenarioDescriptionsContainer = document.getElementById('scenario_descriptions');
+    if (scenarioDescriptionsContainer) {
+      let html = '<form action="cgi-bin/abc.cgi" method="post">';
+      for (let i = 0; i < descriptions.length; i++) {
+        html += `
+          <p>
+            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" style="transform:scale(1.5)" onclick="check_description()" />
+            <label for="checkbox${i + 1}" id="scenario_description${i + 1}">${descriptions[i]}</label>
+          </p>`;
+        if (i < descriptions.length - 1) {
+          html += '<br>';
+        }
+      }
+      html += '</form>';
+      scenarioDescriptionsContainer.innerHTML = html;
+    } else {
+      // 既存のラベル要素を使用（フォールバック）
+      for (let i = 0; i < descriptions.length; i++) {
+        const element = document.getElementById(`scenario_description${i + 1}`);
+        if (element) {
+          element.innerHTML = descriptions[i];
+        }
+      }
     }
     
     // チェックボックスをリセット
@@ -88,8 +109,13 @@ export class UIManager {
    * 画像をプリロード
    */
   preloadImages() {
-    // 各シナリオの各タイプの画像をプリロード
-    for (let scenario of config.scenarios) {
+    // 全12シナリオの各タイプの画像をプリロード
+    const allScenarios = [
+      'one', 'two', 'three', 'four', 'five', 'six', 
+      'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'
+    ];
+    
+    for (let scenario of allScenarios) {
       // シナリオデータを取得
       let scenarioData = dataManager.experimentData ? dataManager.experimentData[scenario] : null;
       if (!scenarioData) {
@@ -104,7 +130,30 @@ export class UIManager {
           img.src = `../${scenarioData['images'][type]}`;
         }
       }
+      
+      // examine1_2用の画像もプリロード
+      if (scenarioData['images1_2']) {
+        const imageTypes12 = ["p", "notp", "q", "notq", "arrow"];
+        for (let type of imageTypes12) {
+          if (scenarioData['images1_2'][type]) {
+            var img = document.createElement('img');
+            img.src = `../${scenarioData['images1_2'][type]}`;
+          }
+        }
+      }
+      
+      // 対称条件の画像もプリロード
+      if (scenarioData['images_symmetric1_2']) {
+        const imageTypes12 = ["p", "notp", "q", "notq", "arrow"];
+        for (let type of imageTypes12) {
+          if (scenarioData['images_symmetric1_2'][type]) {
+            var img = document.createElement('img');
+            img.src = `../${scenarioData['images_symmetric1_2'][type]}`;
+          }
+        }
+      }
     }
+    
     // プリロード表示を非表示
     const preloadElement = document.getElementById('preload_image');
     if (preloadElement) {

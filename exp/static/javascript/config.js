@@ -28,6 +28,12 @@ export class ExperimentConfig {
     ];
     this.sliderWaitTime = options.sliderWaitTime || 3000;
     
+    // 全12シナリオの定義
+    this.allScenarios = [
+      'one', 'two', 'three', 'four', 'five', 'six', 
+      'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'
+    ];
+    
     // エラー処理とロギングの設定
     this.errorHandling = {
       // エラーレポートエンドポイント
@@ -62,8 +68,76 @@ export class ExperimentConfig {
    */
   init() {
     this.bgColors = shuffleArray(['#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0','#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8']);
-    this.scenarios = shuffleArray(['one','two','three','four','five','six']);
+    
+    // デフォルトでは全シナリオをシャッフル（後で実験タイプに応じて分割）
+    this.scenarios = shuffleArray([...this.allScenarios]);
     return this;
+  }
+
+  /**
+   * 実験タイプに基づいてシナリオを設定
+   * @param {string} experimentType - 'examine1' または 'examine1_2'
+   * @param {string} userId - ユーザーID
+   */
+  setExperimentScenarios(experimentType, userId) {
+    // ユーザーIDベースでシード値を生成（同じユーザーは同じシナリオセット）
+    const userSeed = this.generateSeed(userId);
+    const shuffledScenarios = this.shuffleWithSeed([...this.allScenarios], userSeed);
+    
+    if (experimentType === 'examine1') {
+      // examine1: 最初の6シナリオ
+      this.scenarios = shuffledScenarios.slice(0, 6);
+      console.log(`examine1: シナリオセット ${this.scenarios.join(', ')} を使用`);
+    } else if (experimentType === 'examine1_2') {
+      // examine1_2: 残りの6シナリオ
+      this.scenarios = shuffledScenarios.slice(6, 12);
+      console.log(`examine1_2: シナリオセット ${this.scenarios.join(', ')} を使用`);
+    } else {
+      // その他の実験は全シナリオを使用
+      this.scenarios = shuffledScenarios.slice(0, 6);
+      console.log(`${experimentType}: デフォルトシナリオセットを使用`);
+    }
+    
+    return this.scenarios;
+  }
+
+  /**
+   * 文字列からシード値を生成
+   * @param {string} str - 入力文字列
+   * @returns {number} シード値
+   */
+  generateSeed(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32bit整数に変換
+    }
+    return Math.abs(hash);
+  }
+
+  /**
+   * シード値に基づく決定論的シャッフル
+   * @param {Array} array - シャッフルする配列
+   * @param {number} seed - シード値
+   * @returns {Array} シャッフルされた配列
+   */
+  shuffleWithSeed(array, seed) {
+    const shuffled = [...array];
+    let currentSeed = seed;
+    
+    // シンプルな線形合同法でランダム値生成
+    const random = () => {
+      currentSeed = (currentSeed * 1103515245 + 12345) & 0x7fffffff;
+      return currentSeed / 0x7fffffff;
+    };
+    
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    
+    return shuffled;
   }
 
   /**

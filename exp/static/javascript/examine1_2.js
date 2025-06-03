@@ -8,6 +8,7 @@ import eventBus from './event-bus.js';
 import dataManager from './data-manager.js';
 import eventHandler from './event-handler.js';
 import uiManager from './ui-manager.js';
+import config from './config.js';
 
 // shuffleArrayのエイリアス
 const shuffle = shuffleArray;
@@ -17,10 +18,13 @@ const shuffle = shuffleArray;
  */
 class Experiment12Manager {
   constructor() {
+    // 実験タイプを設定
+    dataManager.setExperimentType('examine1_2');
+    
     // 実験データ
     this.experimentData = null;
     
-    // 実験の状態
+    // examine1_2固有の状態
     this.currentTestPage = 0;
     this.sampleSize = 0;
     this.scenarioIndex = 0;
@@ -29,9 +33,7 @@ class Experiment12Manager {
     this.estimationIndex = 0;
     this.sampleType = 'asymmetric'; // デフォルトは非対称条件
     
-    // 刺激設定
-    this.scenarios = shuffle(['one','two','three','four','five','six']);
-    this.stimuli = shuffle(['1','2','3','4','5','6']);
+    // examine1_2固有の設定
     this.bgcolors = shuffle([
       '#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0',
       '#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8'
@@ -53,20 +55,29 @@ class Experiment12Manager {
    * DataManagerとの連携を初期化
    */
   initializeDataManager() {
-    // DataManagerのカスタム設定
-    dataManager.experimentType = 'examine1_2';
-    
     // 実験固有のデータ構造を初期化
     dataManager.customData.estimations = [];
     dataManager.customData.sampleType = 'asymmetric';
   }
 
   setupEventListeners() {
-    // ページ読み込み時の処理
-    window.addEventListener('load', () => this.initialize());
-    
     // 共有EventHandlerを使用してexamine1_2固有のイベントを設定
     eventHandler.setupExamine12Events(this);
+    
+    // シナリオ配布完了イベントを監視
+    eventBus.on('scenarios:assigned', (data) => {
+      console.log('examine1_2: シナリオ配布完了', data);
+      this.scenarios = data.scenarios;
+      this.stimuli = shuffle(['1','2','3','4','5','6']);
+    });
+    
+    // ページ読み込み完了の確認と初期化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => this.initialize());
+    } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
+      // すでに読み込み完了している場合は即座に初期化
+      this.initialize();
+    }
   }
 
   async initialize() {
@@ -81,7 +92,27 @@ class Experiment12Manager {
       await this.preloadImages();
       
       this.setupLazyLoading();
+      
+      // シナリオが設定されるまで待機
+      if (!this.scenarios) {
+        console.log('examine1_2: シナリオ配布を待機中...');
+        await new Promise(resolve => {
+          const checkScenarios = () => {
+            if (config.scenarios && config.scenarios.length === 6) {
+              this.scenarios = config.scenarios;
+              this.stimuli = shuffle(['1','2','3','4','5','6']);
+              resolve();
+            } else {
+              setTimeout(checkScenarios, 100);
+            }
+          };
+          checkScenarios();
+        });
+      }
+      
+      console.log('examine1_2: 使用シナリオ', this.scenarios);
       this.toNextScenarioDescription(true);
+      
     } catch (error) {
       console.error('実験の初期化に失敗しました', error);
       uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
@@ -90,12 +121,39 @@ class Experiment12Manager {
 
   async loadExperimentData() {
     try {
-      this.experimentData = await fetchJson('../static/material1_2.json');
+      this.experimentData = await fetchJson('../static/material1.json');
+      
+      // 共通サンプルデータを読み込み、samples_refを解決
+      await this.resolveCommonSamples();
+      
       return this.experimentData;
     } catch (error) {
       console.error('実験データの読み込みに失敗しました', error);
       uiManager.showErrorMessage('データの読み込みに失敗しました。ページを再読み込みしてください。');
       throw error;
+    }
+  }
+
+  /**
+   * 共通サンプルデータを読み込み、samples_refを解決する
+   */
+  async resolveCommonSamples() {
+    try {
+      // 共通サンプルデータを読み込み
+      const commonSamplesData = await fetchJson('../static/samples_common.json');
+      console.log('共通サンプルデータを読み込みました');
+      
+      // 各シナリオのsamples_refを解決
+      Object.keys(this.experimentData).forEach(scenarioKey => {
+        const scenario = this.experimentData[scenarioKey];
+        if (scenario.samples_ref && commonSamplesData[scenario.samples_ref]) {
+          // samples_refが指定されている場合、共通データで置き換え
+          scenario.samples = commonSamplesData[scenario.samples_ref];
+          console.log(`シナリオ ${scenarioKey} のsamples_refを解決しました: ${scenario.samples_ref}`);
+        }
+      });
+    } catch (error) {
+      console.warn('共通サンプルデータの読み込みに失敗しました。既存のsamplesデータを使用します。', error);
     }
   }
   
@@ -135,16 +193,16 @@ class Experiment12Manager {
       const scenarioData = this.experimentData[scenario];
       
       // 非対称条件の画像
-      imageUrls.push(`${basePath}/${scenarioData['images']['arrow']}`);
+      imageUrls.push(`${basePath}/${scenarioData['images1_2']['arrow']}`);
       for (const type of this.imageType) {
-        imageUrls.push(`${basePath}/${scenarioData['images'][type]}`);
+        imageUrls.push(`${basePath}/${scenarioData['images1_2'][type]}`);
       }
       
       // 対称条件の画像（存在する場合）
-      if (scenarioData['images_symmetric']) {
-        imageUrls.push(`${basePath}/${scenarioData['images_symmetric']['arrow']}`);
+      if (scenarioData['images_symmetric1_2']) {
+        imageUrls.push(`${basePath}/${scenarioData['images_symmetric1_2']['arrow']}`);
         for (const type of this.imageType) {
-          imageUrls.push(`${basePath}/${scenarioData['images_symmetric'][type]}`);
+          imageUrls.push(`${basePath}/${scenarioData['images_symmetric1_2'][type]}`);
         }
       }
     }
@@ -238,19 +296,22 @@ class Experiment12Manager {
     }
     
     this.resetBackGround();
-    document.getElementById('page').innerHTML = "<h4>" + (this.scenarioIndex + 1) + '/' + this.scenarios.length + "種類目</h4>";
-    document.getElementById('scenario_title').innerHTML = "<h2>" + this.experimentData[this.scenarios[this.scenarioIndex]]['title'] + "</h2>";
+    
+    // 配布されたシナリオを使用
+    const scenarios = this.scenarios || config.scenarios;
+    document.getElementById('page').innerHTML = "<h4>" + (this.scenarioIndex + 1) + '/' + scenarios.length + "種類目</h4>";
+    document.getElementById('scenario_title').innerHTML = "<h2>" + this.experimentData[scenarios[this.scenarioIndex]]['title'] + "</h2>";
     document.getElementById('check_sentence').style.display = "inline-block";
     document.getElementById('description_area').style.display = "inline-block";
     document.getElementById('start_scenario_button').setAttribute("disabled", true);
     
     // 条件に応じた説明文を選択
     let descriptions;
-    if (this.sampleType === 'symmetric' && this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions_symmetric']) {
-      descriptions = this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions_symmetric'];
+    if (this.sampleType === 'symmetric' && this.experimentData[scenarios[this.scenarioIndex]]['descriptions_symmetric']) {
+      descriptions = this.experimentData[scenarios[this.scenarioIndex]]['descriptions_symmetric'];
       console.log('対称条件の説明文を使用');
     } else {
-      descriptions = this.experimentData[this.scenarios[this.scenarioIndex]]['descriptions'];
+      descriptions = this.experimentData[scenarios[this.scenarioIndex]]['descriptions'];
       console.log('非対称条件の説明文を使用');
     }
     
@@ -293,7 +354,8 @@ class Experiment12Manager {
     this.currentSampleSelection = [];
     this.sampleSize = 0;
     
-    const currentScenario = this.scenarios[this.scenarioIndex];
+    const scenarios = this.scenarios || config.scenarios;
+    const currentScenario = scenarios[this.scenarioIndex];
     const currentStimulus = this.stimuli[this.scenarioIndex];
     const samples = this.experimentData[currentScenario]['samples'][currentStimulus];
     
@@ -332,7 +394,8 @@ class Experiment12Manager {
 
   showStimulation() {
     const sample = this.currentSampleSelection[this.currentTestPage];
-    const currentScenario = this.scenarios[this.scenarioIndex];
+    const scenarios = this.scenarios || config.scenarios;
+    const currentScenario = scenarios[this.scenarioIndex];
     
     // 条件に応じて適切な文章を選択
     let sentences;
@@ -360,11 +423,11 @@ class Experiment12Manager {
     
     // 条件に応じて適切な画像セットを選択
     let imageSet;
-    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['images_symmetric']) {
-      imageSet = this.experimentData[currentScenario]['images_symmetric'];
+    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['images_symmetric1_2']) {
+      imageSet = this.experimentData[currentScenario]['images_symmetric1_2'];
       console.log('対称条件の画像を使用');
     } else {
-      imageSet = this.experimentData[currentScenario]['images'];
+      imageSet = this.experimentData[currentScenario]['images1_2'];
       console.log('非対称条件の画像を使用');
     }
     
@@ -403,14 +466,16 @@ class Experiment12Manager {
     if (condition === 'fin') {
       document.getElementById('continue_scenario').style.display = 'none';
       
-      if (this.scenarioIndex === this.scenarios.length - 1) {
+      const scenarios = this.scenarios || config.scenarios;
+      if (this.scenarioIndex === scenarios.length - 1) {
         document.getElementById('finish_all_scenarios').style.display = 'inline';
       } else {
         document.getElementById('next_scenario').style.display = 'inline';
       }
     }
 
-    const currentScenario = this.experimentData[this.scenarios[this.scenarioIndex]];
+    const scenarios = this.scenarios || config.scenarios;
+    const currentScenario = this.experimentData[scenarios[this.scenarioIndex]];
     
     // 実験条件に応じて結果テキストを選択
     let resultText;
@@ -430,33 +495,13 @@ class Experiment12Manager {
       '<p>※スライダーの挙動に不具合が生じた場合、スライダーを直接クリックして値を選択してください。</p>';
   }
 
-  handleNextScenario() {
-    this.recordEstimation();
-    this.toNextScenarioDescription();
-  }
-
-  handleContinueScenario() {
-    this.recordEstimation();
-    this.toNextNewSamplePage();
-  }
-
-  async handleExportResults() {
-    document.getElementById('finish_all_scenarios').disabled = true;
-    this.recordEstimation();
-    
-    try {
-      await this.exportResults();
-    } catch (error) {
-      // エラーはexportResults内で処理済み
-    }
-  }
-
   recordEstimation() {
     const estimation = document.getElementById('estimate_slider').value;
+    const scenarios = this.scenarios || config.scenarios;
     
     dataManager.customData.estimations.push({
       'user_id': dataManager.userId,
-      'number': this.scenarios[this.scenarioIndex],
+      'number': scenarios[this.scenarioIndex],
       'stimuli': this.stimuli[this.scenarioIndex],
       'estimation': estimation
     });
@@ -502,4 +547,29 @@ class Experiment12Manager {
 // 実験マネージャーのインスタンスを作成
 const experimentManager = new Experiment12Manager();
 
-// スライダーイベントハンドラーは共有EventHandlerで処理
+// グローバルスコープに公開する必要がある関数（HTMLから呼び出し可能）
+window.experiment12Manager = null;
+
+// ページ読み込み時に実験マネージャーを初期化
+window.addEventListener('DOMContentLoaded', () => {
+  window.experiment12Manager = new Experiment12Manager();
+});
+
+// HTMLのonclick属性から呼び出し可能なグローバル関数
+window.checkDescription = function() {
+  if (window.experiment12Manager) {
+    window.experiment12Manager.checkDescription();
+  }
+};
+
+window.to_next_new_sample_page = function() {
+  if (window.experiment12Manager) {
+    window.experiment12Manager.toNextNewSamplePage();
+  }
+};
+
+window.checkEstimate = function() {
+  if (window.experiment12Manager) {
+    window.experiment12Manager.checkEstimate();
+  }
+};

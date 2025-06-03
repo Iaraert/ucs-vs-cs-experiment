@@ -9,32 +9,43 @@ import eventHandler from './event-handler.js';
 import { preventBrowserBack, setupPageLeaveWarning } from './utilities.js';
 
 /**
- * アプリケーションの初期化と実行を管理するクラス
+ * 実験1の管理クラス
  */
 class ExperimentApp {
+  constructor() {
+    // 実験タイプを設定
+    dataManager.setExperimentType('examine1');
+    
+    // 初期化
+    this.initialize();
+  }
+
   /**
-   * アプリケーションを初期化
+   * 実験を初期化
    */
-  async init() {
+  async initialize() {
     try {
-      // 各モジュールを初期化
-      config.init();
-      dataManager.init();
+      // DataManagerを初期化
+      await dataManager.init();
+      
+      // UIManagerを初期化
       uiManager.init();
+      
+      // EventHandlerを初期化
       eventHandler.init();
       
-      // ユーザーIDを取得または生成
-      dataManager.loadOrGenerateUserId();
+      // ページ離脱警告を設定
+      setupPageLeaveWarning(true);
       
-      // 実験条件を取得
-      await dataManager.fetchSampleType();
-      
-      // 最初のシナリオを表示
+      // 最初のシナリオ説明を表示
       uiManager.displayScenarioDescription(true);
       
-      console.log('実験アプリケーションを初期化しました');
+      console.log('examine1: 初期化完了');
+      console.log('使用シナリオ:', config.scenarios);
+      
     } catch (error) {
-      console.error('初期化エラー:', error);
+      console.error('examine1の初期化に失敗しました', error);
+      uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
     }
   }
   
@@ -53,14 +64,17 @@ class ExperimentApp {
   }
 }
 
-// アプリケーションインスタンスを作成
-const app = new ExperimentApp();
+// 実験アプリケーションのインスタンスを作成
+const experimentApp = new ExperimentApp();
+
+// グローバル関数をウィンドウに公開
+window.experimentApp = experimentApp;
 
 // グローバルスコープに公開する関数（HTMLから呼び出し可能）
 
 // ページ読み込み時の初期化
 window.onload = function() {
-  app.init();
+  experimentApp.initialize();
 };
 
 // チェックボックスの確認
@@ -70,7 +84,7 @@ window.check_description = function() {
 
 // シナリオスタートボタン
 window.to_next_new_sample_page = function() {
-  app.startScenario();
+  experimentApp.startScenario();
 };
 
 // 次のシナリオ説明へ
@@ -80,7 +94,7 @@ window.to_next_scenario_description = function(is_first_time = false) {
 
 // 回答送信
 window.submitResponseAndContinue = function() {
-  app.submitResponse();
+  experimentApp.submitResponse();
 };
 
 // ブラウザバックの禁止

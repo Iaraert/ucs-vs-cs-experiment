@@ -25,39 +25,39 @@
         <div id="scenario_descriptions" style="text-align: left;">
             <form action="cgi-bin/abc.cgi" method="post">
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox1" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox1" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox1" id="scenario_description1"></label>
                 </p>
                 <br>
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox2" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox2" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox2" id="scenario_description2"></label>
                 </p>
                 <br>
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox3" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox3" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox3" id="scenario_description3"></label>
                 </p>
                 <br>
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox4" id="scenario_description4"></label>
                 </p>
                 <br>
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox5" id="scenario_description5"></label>
                 </p>
                 <br>
                 <p>
-                    <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)" />
+                    <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)" onclick="checkDescription()" />
                     <label for="checkbox6" id="scenario_description6"></label>
                 </p>
                 <br>
             </form>
         </div>
         <div style="padding: 20px 20px;">
-            <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" disabled>このシナリオを<br>開始する</button>
+            <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" onclick="to_next_new_sample_page()" disabled>このシナリオを<br>開始する</button>
         </div>
     </div>
 

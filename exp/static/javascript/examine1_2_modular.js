@@ -49,7 +49,7 @@ class Experiment12ModularManager {
    */
   initializeExperiment12Config() {
     // material1_2.jsonを使用するように設定を上書き
-    config.jsonFilePath = '../static/material1_2.json';
+    config.jsonFilePath = '../static/material1.json';
     
     // examine1_2用のアイコン設定を維持
     config.icons = {
@@ -359,11 +359,11 @@ class Experiment12ModularManager {
     
     // 条件に応じて適切な画像セットを選択
     let imageSet;
-    if (this.dataManager.sampleType === 'symmetric' && experimentData[scenarioKey]['images_symmetric']) {
-      imageSet = experimentData[scenarioKey]['images_symmetric'];
+    if (this.dataManager.sampleType === 'symmetric' && experimentData[scenarioKey]['images_symmetric1_2']) {
+      imageSet = experimentData[scenarioKey]['images_symmetric1_2'];
       console.log('対称条件の画像を使用');
     } else {
-      imageSet = experimentData[scenarioKey]['images'];
+      imageSet = experimentData[scenarioKey]['images1_2'];
       console.log('非対称条件の画像を使用');
     }
     
@@ -530,3 +530,12 @@ if (document.readyState === 'loading') {
 } else {
   experimentManager.initialize();
 }
+
+// HTMLから呼び出し可能なグローバル関数を定義
+window.to_next_new_sample_page = function() {
+  experimentManager.toNextNewSamplePage();
+};
+
+window.check_description = function() {
+  experimentManager.eventHandler.checkDescription();
+};
