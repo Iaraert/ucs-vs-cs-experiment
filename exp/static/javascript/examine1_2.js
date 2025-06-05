@@ -495,15 +495,74 @@ class Experiment12Manager {
       '<p>※スライダーの挙動に不具合が生じた場合、スライダーを直接クリックして値を選択してください。</p>';
   }
 
+  // EventHandlerから呼び出されるメソッド
+  /**
+   * 次のシナリオへ進む処理（EventHandler用）
+   */
+  handleNextScenario() {
+    console.log('次のシナリオへ進みます');
+    // 推定値を記録
+    this.recordEstimation();
+    // 次のシナリオ説明に進む
+    this.toNextScenarioDescription();
+  }
+
+  /**
+   * シナリオを継続する処理（EventHandler用）
+   */
+  handleContinueScenario() {
+    console.log('シナリオを継続します');
+    // 推定値を記録
+    this.recordEstimation();
+    // 新しいサンプルページに進む
+    this.toNextNewSamplePage();
+  }
+
+  /**
+   * 結果をエクスポートする処理（EventHandler用）
+   */
+  async handleExportResults() {
+    console.log('結果をエクスポートします');
+    
+    // ボタンを無効化（連打防止）
+    document.getElementById('finish_all_scenarios').disabled = true;
+    
+    try {
+      // 最後の推定値を記録
+      this.recordEstimation();
+      // 結果をエクスポート
+      await this.exportResults();
+    } catch (error) {
+      console.error('結果エクスポート処理でエラーが発生しました:', error);
+      // エラー時はボタンを再有効化
+      document.getElementById('finish_all_scenarios').disabled = false;
+    }
+  }
+
+  /**
+   * 推定値を記録
+   */
   recordEstimation() {
     const estimation = document.getElementById('estimate_slider').value;
     const scenarios = this.scenarios || config.scenarios;
+    const currentScenario = scenarios[this.scenarioIndex];
+    
+    // DataManagerのカスタムデータに推定結果を追加
+    if (!dataManager.customData.estimations) {
+      dataManager.customData.estimations = [];
+    }
     
     dataManager.customData.estimations.push({
       'user_id': dataManager.userId,
-      'number': scenarios[this.scenarioIndex],
+      'number': currentScenario,
       'stimuli': this.stimuli[this.scenarioIndex],
-      'estimation': estimation
+      'estimation': parseInt(estimation)
+    });
+    
+    console.log('推定結果を記録しました:', {
+      scenario: currentScenario,
+      estimation: estimation,
+      stimulus: this.stimuli[this.scenarioIndex]
     });
   }
 

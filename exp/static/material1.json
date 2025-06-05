@@ -270,15 +270,15 @@
             "negative": "static/images/scenarios/chat/slow_response.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/chat/quick_response.png",
-            "notp": "static/images/scenarios/chat/slow_response.png",
+            "p": "static/images/scenarios/chat/read.png",
+            "notp": "static/images/scenarios/chat/no_read.png",
             "q": "static/images/scenarios/chat/quick_response.png",
             "notq": "static/images/scenarios/chat/slow_response.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/chat/quick_response.png",
-            "notp": "static/images/scenarios/chat/slow_response.png",
+            "p": "static/images/scenarios/chat/read.png",
+            "notp": "static/images/scenarios/chat/sound.png",
             "q": "static/images/scenarios/chat/quick_response.png",
             "notq": "static/images/scenarios/chat/slow_response.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -372,39 +372,39 @@
         }
     },
     "seven": {
-        "title": "「ホワイトノイズ使用」と読解テストの正答率に関わる観察報告",
+        "title": "「ホワイトノイズ使用」と暗記テストの正答率に関わる観察報告",
         "descriptions": [
-            "読解テスト中のホワイトノイズ使用が正答率を向上させる可能性があると考えられています。",
-            "複数の参加者にホワイトノイズを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
-            "正答率の向上はホワイトノイズと関係なく起こりうるため、ホワイトノイズを使用しなかった参加者も観察されました。",
+            "学習室での暗記テスト中にホワイトノイズを流すことで正答率を向上させる可能性があると考えられています。",
+            "複数の学習者に学習室でホワイトノイズを流しながら単語暗記テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
+            "正答率の向上はホワイトノイズと関係なく起こりうるため、様々な音響環境でテストを受けた学習者も観察されました。",
             "これから、実験の結果が提示されます。",
             "結果が確認できましたら、「次の事例へ」を押して次の結果を確認するという操作を繰り返してください。",
-            "全ての結果が表示されたら、ホワイトノイズ使用が読解テストの正答率をどの程度向上させるかを評価してもらいます。"
+            "全ての結果が表示されたら、ホワイトノイズ使用が暗記テストの正答率をどの程度向上させるかを評価してもらいます。"
         ],
         "descriptions_symmetric": [
-            "「低周波ホワイトノイズ」と「高周波ホワイトノイズ」のどちらが読解テストの正答率を向上させるのか比較する研究が進められています。",
-            "複数の参加者に低周波ホワイトノイズか高周波ホワイトノイズのいずれかを使用して読解テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
-            "各参加者は低周波ホワイトノイズか高周波ホワイトノイズのどちらか一方だけを使用し、両方を使用した参加者やホワイトノイズを使用しなかった参加者はいません。",
+            "「Aの周波数ホワイトノイズ」と「Bの周波数ホワイトノイズ」のどちらが暗記テストの正答率を向上させるのか比較する研究が進められています。",
+            "複数の学習者にAの周波数ホワイトノイズかBの周波数ホワイトノイズのいずれかを流した学習室で単語暗記テストを受けてもらい、その正答率を個別に観察する実験が行われました。",
+            "各学習者はAの周波数ホワイトノイズかBの周波数ホワイトノイズのどちらか一方だけが流れる学習室でテストを受け、両方が流れた学習室やホワイトノイズが流れなかった学習室でテストを受けた学習者はいません。",
             "これから、実験の結果が提示されます。",
             "結果が確認できましたら、「次の事例へ」を押して次の結果を確認するという操作を繰り返してください。",
-            "全ての結果が表示されたら、低周波ホワイトノイズが高周波ホワイトノイズと比べて正答率をどの程度向上させるか評価してもらいます。"
+            "全ての結果が表示されたら、Aの周波数ホワイトノイズがBの周波数ホワイトノイズと比べて正答率をどの程度向上させるか評価してもらいます。"
         ],
         "images": {
             "positive": "static/images/scenarios/test/high_score.png",
             "negative": "static/images/scenarios/test/low_score.png"
         },
         "images1_2": {
-            "p": "static/images/cause/whitenoise/using.png",
-            "notp": "static/images/cause/whitenoise/not_using.png",
-            "q": "static/images/effect/test/high_score.png",
-            "notq": "static/images/effect/test/low_score.png",
+            "p": "static/images/scenarios/whitenoise/using.png",
+            "notp": "static/images/scenarios/whitenoise/not_using.png",
+            "q": "static/images/scenarios/test/high_score.png",
+            "notq": "static/images/scenarios/test/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/cause/whitenoise/lowfreq.png",
-            "notp": "static/images/cause/whitenoise/highfreq.png",
-            "q": "static/images/effect/test/high_score.png",
-            "notq": "static/images/effect/test/low_score.png",
+            "p": "static/images/scenarios/whitenoise/freq_a.png",
+            "notp": "static/images/scenarios/whitenoise/freq_b.png",
+            "q": "static/images/scenarios/test/high_score.png",
+            "notq": "static/images/scenarios/test/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -414,23 +414,23 @@
             "d": "ホワイトノイズを使用しなかった、正答率は変化なかった"
         },
         "sentences_symmetric": {
-            "a": "低周波ホワイトノイズを使用した、正答率が向上した",
-            "b": "低周波ホワイトノイズを使用した、正答率は変化なかった",
-            "c": "高周波ホワイトノイズを使用した、正答率が向上した",
-            "d": "高周波ホワイトノイズを使用した、正答率は変化なかった"
+            "a": "Aの周波数ホワイトノイズを使用した、正答率が向上した",
+            "b": "Aの周波数ホワイトノイズを使用した、正答率は変化なかった",
+            "c": "Bの周波数ホワイトノイズを使用した、正答率が向上した",
+            "d": "Bの周波数ホワイトノイズを使用した、正答率は変化なかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "ホワイトノイズを使用することは、読解テストの正答率をどの程度向上させる",
-        "result_symmetric": "低周波ホワイトノイズの使用は、高周波ホワイトノイズと比べて正答率をどの程度向上させる",
+        "result": "ホワイトノイズを使用することは、暗記テストの正答率をどの程度向上させる",
+        "result_symmetric": "Aの周波数ホワイトノイズの使用は、Bの周波数ホワイトノイズと比べて正答率をどの程度向上させる",
         "frame_descriptions": {
-            "top": "イヤホンを使用しなかった場合の読解テスト正答率",
-            "bottom": "イヤホンを使用した場合の読解テスト正答率"
+            "top": "ホワイトノイズを使用しなかった場合の暗記テスト正答率",
+            "bottom": "ホワイトノイズを使用した場合の暗記テスト正答率"
         },
         "frame_descriptions_symmetric": {
-            "top": "ワイヤレスイヤホンを使用した場合の読解テスト正答率",
-            "bottom": "有線イヤホンを使用した場合の読解テスト正答率"
+            "top": "Bの周波数ホワイトノイズを使用した場合の暗記テスト正答率",
+            "bottom": "Aの周波数ホワイトノイズを使用した場合の暗記テスト正答率"
         }
     },
     "eight": {
@@ -484,7 +484,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "清掃ロボットの導入は、感染症発生件数の減少をどの程度引き起こす",
+        "result": "清掃ロボットの導入は、感染症発生件数の減少をどの程度引き起こすか",
         "result_symmetric": "自律清掃ロボットの導入は、遠隔操作清掃ロボットと比べて感染症発生件数をどの程度減少させる",
         "frame_descriptions": {
             "top": "清掃ロボットを導入していない病院の感染症発生状況",
@@ -496,239 +496,251 @@
         }
     },
     "nine": {
-        "title": "「スタンディングデスク使用」と会議中の注意力に関わる観察報告",
+        "title": "「新型トレーニング器具」と運動後の筋肉疲労に関わる観察報告",
         "descriptions": [
-            "スタンディングデスクの使用が会議中の注意力を高める可能性があると考えられています。",
-            "複数の参加者にスタンディングデスクを使用してもらい、会議中の注意力を個別に観察する実験が行われました。",
-            "注意力の向上はデスクの種類と関係なく現れることもあるため、通常の座り机を使用した参加者も観察されました。",
+            "新型のトレーニング器具が運動後の筋肉疲労を軽減する可能性があると考えられています。",
+            "複数の参加者に新型トレーニング器具を使用してもらい、運動後の筋肉疲労の発生を個別に観察する実験が行われました。",
+            "筋肉疲労は器具と関係なく起こることもあるため、従来型トレーニング器具を使用した参加者も観察されました。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、スタンディングデスクと注意力の関係について評価をお願いします。",
-            "スタンディングデスクの使用が会議中の注意力をどの程度高めるかを判定してください。"
+            "実験結果をご確認いただき、新型トレーニング器具と筋肉疲労の関係について評価をお願いします。",
+            "新型トレーニング器具が筋肉疲労の軽減をどの程度引き起こすかを判定してください。"
         ],
         "descriptions_symmetric": [
-            "「立位デスク」と「アジャスタブルデスク」のどちらが会議中の注意力を高めるのか比較する研究が進められています。",
-            "複数の参加者に立位デスクかアジャスタブルデスクのいずれかを使用させ、会議中の注意力を個別に観察する実験が行われました。",
-            "各参加者は立位かアジャスタブルのどちらか一方のデスクだけを使用し、両方を使用した参加者や何も使用しなかった参加者はいません。",
+            "「軽量型器具」と「重量型器具」のどちらが運動後の筋肉疲労を軽減するのか比較する研究が進められています。",
+            "複数の参加者に軽量型器具か重量型器具のいずれかを使用してもらい、運動後の筋肉疲労の発生を個別に観察する実験が行われました。",
+            "各参加者は軽量型か重量型のどちらか一方の器具だけを使用し、両方を使用した参加者や器具を使用しなかった参加者はいません。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、立位デスクとアジャスタブルデスクの効果について評価をお願いします。",
-            "立位デスクがアジャスタブルデスクと比べて注意力をどの程度高めるかを判定してください。"
+            "実験結果をご確認いただき、軽量型器具と重量型器具の効果について評価をお願いします。",
+            "軽量型器具が重量型器具と比べて筋肉疲労をどの程度軽減するかを判定してください。"
         ],
         "images": {
-            "p": "static/images/cause/desk/standing_desk.png",
-            "notp": "static/images/cause/desk/sitting_desk.png",
-            "q": "static/images/effect/attention/high_attention.png",
-            "notq": "static/images/effect/attention/low_attention.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "images_symmetric": {
-            "p": "static/images/cause/desk/standing_desk.png",
-            "notp": "static/images/cause/desk/adjustable_desk.png",
-            "q": "static/images/effect/attention/high_attention.png",
-            "notq": "static/images/effect/attention/low_attention.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "sentences": {
-            "a": "スタンディングデスクを使用した、注意力が高まった",
-            "b": "スタンディングデスクを使用した、注意力は変化なかった",
-            "c": "スタンディングデスクを使用しなかった、注意力が高まった",
-            "d": "スタンディングデスクを使用しなかった、注意力は変化なかった"
-        },
-        "sentences_symmetric": {
-            "a": "立位デスクを使用した、注意力が高まった",
-            "b": "立位デスクを使用した、注意力は変化なかった",
-            "c": "アジャスタブルデスクを使用した、注意力が高まった",
-            "d": "アジャスタブルデスクを使用した、注意力は変化なかった"
-        },
-        "samples_ref": "common_samples",
-        "min_result": "全く引き起こさない",
-        "max_result": "確実に引き起こす",
-        "result": "スタンディングデスクの使用は、会議中の注意力をどの程度高める",
-        "result_symmetric": "立位デスクの使用は、アジャスタブルデスクと比べて注意力をどの程度高める",
-        "frame_descriptions": {
-            "top": "通常の座り机を使用した場合の注意力の状況",
-            "bottom": "スタンディングデスクを使用した場合の注意力の状況"
-        },
-        "frame_descriptions_symmetric": {
-            "top": "アジャスタブルデスクを使用した場合の注意力の状況",
-            "bottom": "立位デスクを使用した場合の注意力の状況"
-        }
-    },
-    "ten": {
-        "title": "「スライド背景色」と聴衆理解度に関わる観察報告",
-        "descriptions": [
-            "プレゼンテーションスライドの背景色が聴衆の理解度に影響を与える可能性があると考えられています。",
-            "複数のプレゼンターに特定の背景色のスライドを使用してもらい、聴衆の理解度を個別に観察する実験が行われました。",
-            "理解度の向上は背景色と関係なく起こりうるため、従来の背景色を使用したプレゼンターも観察されました。",
-            "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、スライド背景色と聴衆理解度の関係について評価をお願いします。",
-            "特定のスライド背景色が聴衆の理解度をどの程度高めるかを判定してください。"
-        ],
-        "descriptions_symmetric": [
-            "「青系背景色」と「暖色系背景色」のどちらがプレゼンテーションでの聴衆理解度を高めるのか比較する研究が進められています。",
-            "複数のプレゼンターに青系背景色か暖色系背景色のいずれかを使用してもらい、聴衆の理解度を個別に観察する実験が行われました。",
-            "各プレゼンターは青系か暖色系のどちらか一方の背景色だけを使用し、両方を使用したプレゼンターや何も使用しなかったプレゼンターはいません。",
-            "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、青系背景色と暖色系背景色の効果について評価をお願いします。",
-            "青系背景色が暖色系背景色と比べて聴衆の理解度をどの程度高めるかを判定してください。"
-        ],
-        "images": {
-            "p": "static/images/cause/slide/special_color.png",
-            "notp": "static/images/cause/slide/standard_color.png",
-            "q": "static/images/effect/understanding/high_understanding.png",
-            "notq": "static/images/effect/understanding/low_understanding.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "images_symmetric": {
-            "p": "static/images/cause/slide/blue_background.png",
-            "notp": "static/images/cause/slide/warm_background.png",
-            "q": "static/images/effect/understanding/high_understanding.png",
-            "notq": "static/images/effect/understanding/low_understanding.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "sentences": {
-            "a": "特定の背景色を使用した、聴衆の理解度が高かった",
-            "b": "特定の背景色を使用した、聴衆の理解度は変化なかった",
-            "c": "特定の背景色を使用しなかった、聴衆の理解度が高かった",
-            "d": "特定の背景色を使用しなかった、聴衆の理解度は変化なかった"
-        },
-        "sentences_symmetric": {
-            "a": "青系背景色を使用した、聴衆の理解度が高かった",
-            "b": "青系背景色を使用した、聴衆の理解度は変化なかった",
-            "c": "暖色系背景色を使用した、聴衆の理解度が高かった",
-            "d": "暖色系背景色を使用した、聴衆の理解度は変化なかった"
-        },
-        "samples_ref": "common_samples",
-        "min_result": "全く引き起こさない",
-        "max_result": "確実に引き起こす",
-        "result": "特定のスライド背景色の使用は、聴衆の理解度をどの程度高める",
-        "result_symmetric": "青系背景色の使用は、暖色系背景色と比べて聴衆の理解度をどの程度高める",
-        "frame_descriptions": {
-            "top": "従来の背景色を使用した場合の聴衆の理解度",
-            "bottom": "特定の背景色を使用した場合の聴衆の理解度"
-        },
-        "frame_descriptions_symmetric": {
-            "top": "暖色系背景色を使用した場合の聴衆の理解度",
-            "bottom": "青系背景色を使用した場合の聴衆の理解度"
-        }
-    },
-    "eleven": {
-        "title": "「就寝前の室内照明」と睡眠の質に関わる観察報告",
-        "descriptions": [
-            "就寝前の室内照明を暗くすることが睡眠の質に影響を与える可能性があると考えられています。",
-            "複数の参加者に就寝前の照明を暗くして過ごしてもらい、その後の睡眠の質を個別に観察する実験が行われました。",
-            "睡眠の質は照明を暗くすることと関係なく改善することもあるため、照明を暗くしなかった参加者も観察されました。",
-            "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、就寝前の照明と睡眠の質の関係について評価をお願いします。",
-            "就寝前の照明を暗くすることが睡眠の質をどの程度改善するかを判定してください。"
-        ],
-        "descriptions_symmetric": [
-            "「暖色系照明」と「寒色系照明」のどちらが就寝前の睡眠の質を改善するのか比較する研究が進められています。",
-            "複数の参加者に暖色系照明か寒色系照明のいずれかの部屋で就寝前の時間を過ごしてもらい、睡眠の質を個別に観察する実験が行われました。",
-            "各参加者は暖色系か寒色系のどちらか一方の照明だけを使用し、両方を使用した参加者や何も使用しなかった参加者はいません。",
-            "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、暖色系照明と寒色系照明の効果について評価をお願いします。",
-            "暖色系照明が寒色系照明と比べて睡眠の質をどの程度改善するかを判定してください。"
-        ],
-        "images": {
-            "p": "static/images/cause/lighting/dim_light.png",
-            "notp": "static/images/cause/lighting/bright_light.png",
-            "q": "static/images/effect/sleep/good_sleep.png",
-            "notq": "static/images/effect/sleep/poor_sleep.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "images_symmetric": {
-            "p": "static/images/cause/lighting/warm_light.png",
-            "notp": "static/images/cause/lighting/cool_light.png",
-            "q": "static/images/effect/sleep/good_sleep.png",
-            "notq": "static/images/effect/sleep/poor_sleep.png",
-            "arrow": "static/images/yajirushi_right.png"
-        },
-        "sentences": {
-            "a": "照明を暗くした、睡眠の質が改善した",
-            "b": "照明を暗くした、睡眠の質は変化なかった",
-            "c": "照明を暗くしなかった、睡眠の質が改善した",
-            "d": "照明を暗くしなかった、睡眠の質は変化なかった"
-        },
-        "sentences_symmetric": {
-            "a": "暖色系照明を使用した、睡眠の質が改善した",
-            "b": "暖色系照明を使用した、睡眠の質は変化なかった",
-            "c": "寒色系照明を使用した、睡眠の質が改善した",
-            "d": "寒色系照明を使用した、睡眠の質は変化なかった"
-        },
-        "samples_ref": "common_samples",
-        "min_result": "全く引き起こさない",
-        "max_result": "確実に引き起こす",
-        "result": "就寝前に照明を暗くすることは、睡眠の質をどの程度改善する",
-        "result_symmetric": "暖色系照明の使用は、寒色系照明と比べて睡眠の質をどの程度改善する",
-        "frame_descriptions": {
-            "top": "通常の明るさの照明を使用した場合の睡眠の質",
-            "bottom": "照明を暗くした場合の睡眠の質"
-        },
-        "frame_descriptions_symmetric": {
-            "top": "寒色系照明を使用した場合の睡眠の質",
-            "bottom": "暖色系照明を使用した場合の睡眠の質"
-        }
-    },
-    "twelve": {
-        "title": "「通学手段」と授業中の集中力に関わる観察報告",
-        "descriptions": [
-            "通学手段の違いが授業中の集中力に影響を与える可能性があると考えられています。",
-            "複数の学生の通学手段を記録し、授業中の集中力を個別に観察する調査が行われました。",
-            "集中力は通学手段と関係なく高まる場合もあるため、異なる通学手段を利用している学生も観察されました。",
-            "これから、調査の結果が提示されます。",
-            "調査結果をご確認いただき、通学手段と集中力の関係について評価をお願いします。",
-            "自転車通学が授業中の集中力をどの程度高めるかを判定してください。"
-        ],
-        "descriptions_symmetric": [
-            "「自転車通学」と「徒歩通学」のどちらが授業中の集中力を高めるのか比較する研究が進められています。",
-            "複数の学生に自転車通学か徒歩通学のいずれかで通学してもらい、授業中の集中力を個別に観察する調査が行われました。",
-            "各学生は自転車か徒歩のどちらか一方の通学手段だけを使用し、両方を使用した学生や他の通学手段を使用した学生はいません。",
-            "これから、調査の結果が提示されます。",
-            "調査結果をご確認いただき、自転車通学と徒歩通学の効果について評価をお願いします。",
-            "自転車通学が徒歩通学と比べて集中力をどの程度高めるかを判定してください。"
-        ],
-        "images": {
-            "positive": "static/images/scenarios/concentration/high.png",
-            "negative": "static/images/scenarios/concentration/low.png"
+            "positive": "static/images/scenarios/training/no_fatigue.png",
+            "negative": "static/images/scenarios/training/fatigue.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/commute/bicycle.png",
-            "notp": "static/images/scenarios/commute/train.png",
-            "q": "static/images/scenarios/concentration/high.png",
-            "notq": "static/images/scenarios/concentration/low.png",
+            "p": "static/images/scenarios/equipment/new_equipment.png",
+            "notp": "static/images/scenarios/equipment/old_equipment.png",
+            "q": "static/images/scenarios/training/no_fatigue.png",
+            "notq": "static/images/scenarios/training/fatigue.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/commute/bicycle.png",
-            "notp": "static/images/scenarios/commute/walking.png",
-            "q": "static/images/scenarios/concentration/high.png",
-            "notq": "static/images/scenarios/concentration/low.png",
+            "p": "static/images/scenarios/equipment/light_equipment.png",
+            "notp": "static/images/scenarios/equipment/heavy_equipment.png",
+            "q": "static/images/scenarios/training/no_fatigue.png",
+            "notq": "static/images/scenarios/training/fatigue.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
-            "a": "自転車で通学した、集中力が高まった",
-            "b": "自転車で通学した、集中力は変化なかった",
-            "c": "電車で通学した、集中力が高まった",
-            "d": "電車で通学した、集中力は変化なかった"
+            "a": "新型器具を使用した、筋肉疲労が起こらなかった",
+            "b": "新型器具を使用した、筋肉疲労が起こった",
+            "c": "新型器具は使用しなかった、筋肉疲労が起こらなかった",
+            "d": "新型器具は使用しなかった、筋肉疲労が起こった"
         },
         "sentences_symmetric": {
-            "a": "自転車で通学した、集中力が高まった",
-            "b": "自転車で通学した、集中力は変化なかった",
-            "c": "徒歩で通学した、集中力が高まった",
-            "d": "徒歩で通学した、集中力は変化なかった"
+            "a": "軽量型器具を使用した、筋肉疲労が起こらなかった",
+            "b": "軽量型器具を使用した、筋肉疲労が起こった",
+            "c": "重量型器具を使用した、筋肉疲労が起こらなかった",
+            "d": "重量型器具を使用した、筋肉疲労が起こった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "自転車通学は、授業中の集中力をどの程度高める",
-        "result_symmetric": "自転車通学は、徒歩通学と比べて集中力をどの程度高める",
+        "result": "新型トレーニング器具の使用は、筋肉疲労の軽減をどの程度引き起こすか",
+        "result_symmetric": "軽量型器具の使用は、重量型器具と比べて筋肉疲労をどの程度軽減するか",
         "frame_descriptions": {
-            "top": "電車で通学した場合の授業中の集中力",
-            "bottom": "自転車で通学した場合の授業中の集中力"
+            "top": "新型器具を使用しなかった場合の筋肉疲労発生状況",
+            "bottom": "新型器具を使用した場合の筋肉疲労発生状況"
         },
         "frame_descriptions_symmetric": {
-            "top": "徒歩で通学した場合の授業中の集中力",
-            "bottom": "自転車で通学した場合の授業中の集中力"
+            "top": "重量型器具を使用した場合の筋肉疲労発生状況",
+            "bottom": "軽量型器具を使用した場合の筋肉疲労発生状況"
+        }
+    },
+    "ten": {
+        "title": "「スライド背景色」とプレゼンテーション時間延長に関わる観察報告",
+        "descriptions": [
+            "プレゼンテーションスライドの背景色が聴衆からの質問数に影響を与える可能性があると考えられています。",
+            "複数のプレゼンターに特定の背景色のスライドを使用してもらい、質問による時間延長を個別に観察する実験が行われました。",
+            "質問による時間延長は背景色と関係なく起こりうるため、従来の背景色を使用したプレゼンターも観察されました。",
+            "これから、実験の結果が提示されます。",
+            "実験結果をご確認いただき、スライド背景色と質問による時間延長の関係について評価をお願いします。",
+            "特定のスライド背景色が質問による時間延長をどの程度引き起こすかを判定してください。"
+        ],
+        "descriptions_symmetric": [
+            "「青系背景色」と「暖色系背景色」のどちらがプレゼンテーションでの質問による時間延長を引き起こすのか比較する研究が進められています。",
+            "複数のプレゼンターに青系背景色か暖色系背景色のいずれかを使用してもらい、質問による時間延長を個別に観察する実験が行われました。",
+            "各プレゼンターは青系か暖色系のどちらか一方の背景色だけを使用し、両方を使用したプレゼンターや何も使用しなかったプレゼンターはいません。",
+            "これから、実験の結果が提示されます。",
+            "実験結果をご確認いただき、青系背景色と暖色系背景色の効果について評価をお願いします。",
+            "青系背景色が暖色系背景色と比べて質問による時間延長をどの程度引き起こすかを判定してください。"
+        ],
+        "images": {
+            "positive": "static/images/scenarios/presentation/extended.png",
+            "negative": "static/images/scenarios/presentation/on_time.png"
+        },
+        "images1_2": {
+            "p": "static/images/scenarios/slide/special_color.png",
+            "notp": "static/images/scenarios/slide/standard_color.png",
+            "q": "static/images/scenarios/presentation/extended.png",
+            "notq": "static/images/scenarios/presentation/on_time.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "images_symmetric1_2": {
+            "p": "static/images/scenarios/slide/blue_background.png",
+            "notp": "static/images/scenarios/slide/warm_background.png",
+            "q": "static/images/scenarios/presentation/extended.png",
+            "notq": "static/images/scenarios/presentation/on_time.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "sentences": {
+            "a": "特定の背景色を使用した、質問により時間が延長した",
+            "b": "特定の背景色を使用した、予定時間内に終了した",
+            "c": "特定の背景色を使用しなかった、質問により時間が延長した",
+            "d": "特定の背景色を使用しなかった、予定時間内に終了した"
+        },
+        "sentences_symmetric": {
+            "a": "青系背景色を使用した、質問により時間が延長した",
+            "b": "青系背景色を使用した、予定時間内に終了した",
+            "c": "暖色系背景色を使用した、質問により時間が延長した",
+            "d": "暖色系背景色を使用した、予定時間内に終了した"
+        },
+        "samples_ref": "common_samples",
+        "min_result": "全く引き起こさない",
+        "max_result": "確実に引き起こす",
+        "result": "特定のスライド背景色の使用は、質問による時間延長をどの程度引き起こす",
+        "result_symmetric": "青系背景色の使用は、暖色系背景色と比べて質問による時間延長をどの程度引き起こす",
+        "frame_descriptions": {
+            "top": "従来の背景色を使用した場合の時間延長状況",
+            "bottom": "特定の背景色を使用した場合の時間延長状況"
+        },
+        "frame_descriptions_symmetric": {
+            "top": "暖色系背景色を使用した場合の時間延長状況",
+            "bottom": "青系背景色を使用した場合の時間延長状況"
+        }
+    },
+    "eleven": {
+        "title": "「就寝前の室内照明」と夜間覚醒に関わる観察報告",
+        "descriptions": [
+            "就寝前の室内照明の明るさが夜間覚醒の発生に影響を与える可能性があると考えられています。",
+            "複数の参加者に就寝前の照明を調整して過ごしてもらい、その後の夜間覚醒を個別に観察する実験が行われました。",
+            "夜間覚醒は照明の明るさと関係なく起こりうるため、通常の明るさの照明を使用した参加者も観察されました。",
+            "これから、実験の結果が提示されます。",
+            "実験結果をご確認いただき、就寝前の照明と夜間覚醒の関係について評価をお願いします。",
+            "就寝前の照明を暗くすることが夜間覚醒の発生をどの程度抑制するかを判定してください。"
+        ],
+        "descriptions_symmetric": [
+            "「特定の色温度照明A」と「特定の色温度照明B」のどちらが就寝前の夜間覚醒を抑制するのか比較する研究が進められています。",
+            "複数の参加者に色温度Aか色温度Bのいずれかの照明の部屋で就寝前の時間を過ごしてもらい、夜間覚醒を個別に観察する実験が行われました。",
+            "色温度による効果は個人の生理的特性や慣れによって異なるため、どちらの照明でも夜間覚醒が抑制される可能性があります。",
+            "これから、実験の結果が提示されます。",
+            "実験結果をご確認いただき、色温度Aの照明と色温度Bの照明の効果について評価をお願いします。",
+            "色温度Aの照明が色温度Bの照明と比べて夜間覚醒をどの程度抑制するかを判定してください。"
+        ],
+        "images": {
+            "positive": "static/images/scenarios/sleep/no_awakening.png",
+            "negative": "static/images/scenarios/sleep/awakening.png"
+        },
+        "images1_2": {
+            "p": "static/images/scenarios/lighting/dim_light.png",
+            "notp": "static/images/scenarios/lighting/bright_light.png",
+            "q": "static/images/scenarios/sleep/no_awakening.png",
+            "notq": "static/images/scenarios/sleep/awakening.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "images_symmetric1_2": {
+            "p": "static/images/scenarios/lighting/warm_light.png",
+            "notp": "static/images/scenarios/lighting/cool_light.png",
+            "q": "static/images/scenarios/sleep/no_awakening.png",
+            "notq": "static/images/scenarios/sleep/awakening.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "sentences": {
+            "a": "照明を暗くした、夜間覚醒しなかった",
+            "b": "照明を暗くした、夜間覚醒した",
+            "c": "照明を暗くしなかった、夜間覚醒しなかった",
+            "d": "照明を暗くしなかった、夜間覚醒した"
+        },
+        "sentences_symmetric": {
+            "a": "色温度Aの照明を使用した、夜間覚醒しなかった",
+            "b": "色温度Aの照明を使用した、夜間覚醒した",
+            "c": "色温度Bの照明を使用した、夜間覚醒しなかった",
+            "d": "色温度Bの照明を使用した、夜間覚醒した"
+        },
+        "samples_ref": "common_samples",
+        "min_result": "全く引き起こさない",
+        "max_result": "確実に引き起こす",
+        "result": "就寝前に照明を暗くすることは、夜間覚醒の抑制をどの程度引き起こす",
+        "result_symmetric": "色温度Aの照明の使用は、色温度Bの照明と比べて夜間覚醒をどの程度抑制する",
+        "frame_descriptions": {
+            "top": "通常の明るさの照明を使用した場合の夜間覚醒状況",
+            "bottom": "照明を暗くした場合の夜間覚醒状況"
+        },
+        "frame_descriptions_symmetric": {
+            "top": "色温度Bの照明を使用した場合の夜間覚醒状況",
+            "bottom": "色温度Aの照明を使用した場合の夜間覚醒状況"
+        }
+    },
+    "twelve": {
+        "title": "「音楽聴取」と授業中の居眠りに関わる観察報告",
+        "descriptions": [
+            "通学時に音楽を聞くことが授業中の居眠りの発生に影響を与える可能性があると考えられています。",
+            "複数の学生に音楽を聞いて通学してもらい、授業中の居眠りを個別に観察する実験が行われました。",
+            "居眠りの抑制は音楽聴取と関係なく現れることもあるため、音楽を聞かずに通学した学生も観察されました。",
+            "これから、実験の結果が提示されます。",
+            "実験結果をご確認いただき、音楽聴取と居眠りの関係について評価をお願いします。",
+            "音楽を聞くことが授業中の居眠り抑制をどの程度引き起こすかを判定してください。"
+        ],
+        "descriptions_symmetric": [
+            "「クラシック音楽」と「ジャズ音楽」のどちらが授業中の居眠りを抑制するのか比較する研究が進められています。",
+            "複数の学生にクラシック音楽かジャズ音楽のいずれかを聞いて通学してもらい、授業中の居眠りを個別に観察する調査が行われました。",
+            "音楽の種類による効果は個人の好みや生活リズムによって異なるため、どちらの音楽でも居眠りが抑制される可能性があります。",
+            "これから、調査の結果が提示されます。",
+            "調査結果をご確認いただき、クラシック音楽とジャズ音楽の効果について評価をお願いします。",
+            "クラシック音楽がジャズ音楽と比べて居眠り抑制をどの程度引き起こすかを判定してください。"
+        ],
+        "images": {
+            "positive": "static/images/scenarios/class/no_dozing.png",
+            "negative": "static/images/scenarios/class/dozing.png"
+        },
+        "images1_2": {
+            "p": "static/images/scenarios/music/listening.png",
+            "notp": "static/images/scenarios/music/not_listening.png",
+            "q": "static/images/scenarios/class/no_dozing.png",
+            "notq": "static/images/scenarios/class/dozing.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "images_symmetric1_2": {
+            "p": "static/images/scenarios/music/classical_music.png",
+            "notp": "static/images/scenarios/music/jazz_music.png",
+            "q": "static/images/scenarios/class/no_dozing.png",
+            "notq": "static/images/scenarios/class/dozing.png",
+            "arrow": "static/images/yajirushi_right.png"
+        },
+        "sentences": {
+            "a": "音楽を聞いた、授業中に居眠りしなかった",
+            "b": "音楽を聞いた、授業中に居眠りした",
+            "c": "音楽を聞かなかった、授業中に居眠りしなかった",
+            "d": "音楽を聞かなかった、授業中に居眠りした"
+        },
+        "sentences_symmetric": {
+            "a": "クラシック音楽を聞いた、授業中に居眠りしなかった",
+            "b": "クラシック音楽を聞いた、授業中に居眠りした",
+            "c": "ジャズ音楽を聞いた、授業中に居眠りしなかった",
+            "d": "ジャズ音楽を聞いた、授業中に居眠りした"
+        },
+        "samples_ref": "common_samples",
+        "min_result": "全く引き起こさない",
+        "max_result": "確実に引き起こす",
+        "result": "音楽を聞くことは、授業中の居眠りの抑制をどの程度引き起こす",
+        "result_symmetric": "クラシック音楽を聞くことは、ジャズ音楽と比べて居眠りの抑制をどの程度引き起こす",
+        "frame_descriptions": {
+            "top": "音楽を聞かなかった場合の授業中の居眠り状況",
+            "bottom": "音楽を聞いた場合の授業中の居眠り状況"
+        },
+        "frame_descriptions_symmetric": {
+            "top": "ジャズ音楽を聞いた場合の授業中の居眠り状況",
+            "bottom": "クラシック音楽を聞いた場合の授業中の居眠り状況"
         }
     }
 }
