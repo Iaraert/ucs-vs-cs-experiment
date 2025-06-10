@@ -2,6 +2,7 @@
  * ユーザーイベント処理
  */
 import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl } from './utilities.js';
+import { validateCheckboxes } from './common-utils.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 
@@ -40,16 +41,8 @@ export class EventHandler {
   }
   
   checkDescription() {
-    let checkbox = document.getElementsByClassName("checkbox");
-    let count = 0;
-    for (let i = 0 ; i < checkbox.length ; i++) {
-      if (checkbox[i].checked) count++;
-    }
-    if (count == checkbox.length) {
-      document.getElementById('start_scenario_button').removeAttribute("disabled");
-    } else {
-      document.getElementById("start_scenario_button").setAttribute("disabled", true);
-    }
+    // 共通ユーティリティ関数を使用してチェックボックス確認ロジックを統一化
+    validateCheckboxes("checkbox", "start_scenario_button");
   }
   
   submitResponseAndContinue() {

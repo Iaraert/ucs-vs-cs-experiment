@@ -3,70 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1_2.css') }}"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1_2.css') }}"/>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/examine1_2.js') }}"></script>
-    <title>回答ページ</title>
+    <title>回答ページ</title>    <style>
+        #scenario_descriptions {
+            text-align: left !important;
+        }
+        #scenario_descriptions p {
+            text-align: left !important;
+            display: flex !important;
+            justify-content: flex-start !important;
+            align-items: flex-start !important;
+            width: 100%;
+        }
+        #scenario_descriptions label {
+            text-align: left !important;
+            display: inline-block !important;
+            width: calc(100% - 30px);
+        }
+        #scenario_descriptions .checkbox {
+            margin-right: 2%;
+            margin-top: 0.3%;
+            flex-shrink: 0;
+        }
+    </style>
 </head>
 
 <body>
-    <div id="header_area">
-        <div id="scenario_title" class="title"></div>
-        <div id="page"></div>
-    </div>
-    <div id="preload_image">
-        <p>ページを読み込んでいます。</p>
-        <p>しばらくお待ちください。</p>
-    </div>
-    <div id="description_area" class="area" style="display:none;">
-        <p id="check_sentence" style="display:none;">それぞれの項目を読んだら左側のチェックボックスをチェックし、回答ページに進んでください。</p>
-        <br>
-        <div id="scenario_descriptions" style="text-align: left;">
-            <form action="cgi-bin/abc.cgi" method="post">
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox1" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox1" id="scenario_description1"></label>
-                </p>
-                <br>
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox2" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox2" id="scenario_description2"></label>
-                </p>
-                <br>
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox3" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox3" id="scenario_description3"></label>
-                </p>
-                <br>
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox4" id="scenario_description4"></label>
-                </p>
-                <br>
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox5" id="scenario_description5"></label>
-                </p>
-                <br>
-                <p>
-                    <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
-                        onclick="check_description()" />
-                    <label for="checkbox6" id="scenario_description6"></label>
-                </p>
-                <br>
-            </form>
+    <div class="container">
+        <div id="header_area">
+            <div id="scenario_title" class="title"></div>
+            <div id="page"></div>
         </div>
-        <div style="padding: 20px 20px;">
-            <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" onclick="to_next_new_sample_page()"
-                disabled>このシナリオを<br>開始する</button>
+        <div id="preload_image">
+            <p>ページを読み込んでいます。</p>
+            <p>しばらくお待ちください。</p>
+        </div>        <div id="description_area" class="area" style="display:none; text-align: center;">
+            <p id="check_sentence" style="display:none;">それぞれの項目を読んだら左側のチェックボックスをチェックし、回答ページに進んでください。</p>
+            <br>        <div id="scenario_descriptions" style="text-align: left;">
+                <!-- チェックボックスと説明文は動的に生成されます -->
+            </div>
+            <div style="padding: 20px 20px;">
+                <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" onclick="to_next_new_sample_page()"
+                    disabled>このシナリオを<br>開始する</button>
+            </div>
         </div>
-    </div>
 
     <br>
 
@@ -105,28 +87,106 @@
     <br>
     <div id="estimate_input_area" class="area" style="display:none">
         <div id="estimate_description"></div><br>
-        <form oninput="estimate.value = Number(estimate_slider.value);">
-            <p>
-                <b><output id="estimate">0</output></b>
-            </p>
-            <p>
-                <input id="estimate_slider" type="range" min="-0" max="100" step="1" value="0" onclick="check_estimate()">
-            </p>
-        </form>
-        <br>
-        <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled onclick="check_estimate()" />
-        <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）<br></label>
+        
+        <div class="slider-container">
+            <div id="slider_description">
+                <p>この事例を見て、<span id="slider_scenario_result"></span>と思いますか？</p>
+                <div class="slider-labels">
+                    <span id="slider_min_result" class="slider-min-label"></span>
+                    <span id="slider_max_result" class="slider-max-label"></span>
+                </div>
+            </div>
+            
+            <form oninput="estimate.value = Number(estimate_slider.value);">
+                <div class="slider-value-container">
+                    <output id="estimate">0</o>
+                </div>
+                <div class="slider-input-container">
+                    <input id="estimate_slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                    <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
+                    <div style="margin-top: 10px;">
+                        <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled />
+                        <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        
+        <script>
+            // スライダー操作とチェックボックスの状態を追跡する変数
+            let sliderMoved = false;
+            
+            // スライダーが操作されたらチェックボックスを有効化
+            document.getElementById('estimate_slider').addEventListener('input', function() {
+                sliderMoved = true;
+                document.getElementById('checkbox').disabled = false;
+                updateSubmitButtonState();
+            });
+            
+            // チェックボックスがチェックされたら送信ボタンの状態を更新
+            document.getElementById('checkbox').addEventListener('change', function() {
+                updateSubmitButtonState();
+            });
+            
+            // スライダー操作とチェックボックスの状態に基づいて送信ボタンの有効/無効を設定
+            function updateSubmitButtonState() {
+                const isChecked = document.getElementById('checkbox').checked;
+                const buttons = ['next_scenario', 'continue_scenario', 'finish_all_scenarios'];
+                buttons.forEach(buttonId => {
+                    const button = document.getElementById(buttonId);
+                    if (button) {
+                        button.disabled = !(sliderMoved && isChecked);
+                    }
+                });
+            }
+            
+            // リセット関数：シナリオ切り替え時に呼び出し
+            window.resetResponseFlow = function() {
+                sliderMoved = false;
+                const cb = document.getElementById('checkbox');
+                const slider = document.getElementById('estimate_slider');
+                const waitMessage = document.getElementById('slider_wait_message');
+                
+                if (cb) {
+                    cb.checked = false;
+                    cb.disabled = true;
+                }
+                if (slider) {
+                    slider.disabled = true;
+                    slider.value = 0;
+                }
+                if (waitMessage) {
+                    waitMessage.style.display = 'block';
+                }
+                
+                // 出力値をリセット
+                const estimate = document.getElementById('estimate');
+                if (estimate) {
+                    estimate.innerHTML = '0';
+                }
+                
+                updateSubmitButtonState();
+                
+                // 3秒後にスライダーを再度有効化
+                setTimeout(function() {
+                    if (slider && waitMessage) {
+                        slider.disabled = false;
+                        waitMessage.style.display = 'none';
+                    }
+                }, 3000);
+            };
+        </script>
+        
         <div id="notes">
             <b>ボタンは1回押していただくだけで結構です。</b>
-            <b>送信に時間がかかる場合がありますので、最低30秒お待ちください。</b>
         </div>
-        <button id="next_scenario" style="display:none; cursor: hand; cursor:pointer;" disabled
+        
+        <button id="next_scenario" style="display:none; cursor:pointer;" disabled
             onclick="get_value();to_next_scenario_description()">次のシナリオへ進む</button>
-            <button id="finish_all_scenarios" style="display:none; cursor: hand; cursor:pointer;" disabled
-            onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>
-
-        <button id="continue_scenario" style="display:inline-grid; cursor: hand; cursor:pointer;" disabled 
+        <button id="finish_all_scenarios" style="display:none; cursor:pointer;" disabled
+            onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>        <button id="continue_scenario" style="display:inline-grid; cursor:pointer;" disabled 
             onclick="get_value();showStimulation()">シナリオを続ける</button>
+    </div>
     </div>
   
 </body>

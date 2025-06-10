@@ -9,6 +9,18 @@ import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
 import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow } from './utilities.js';
+import { 
+  validateCheckboxes, 
+  validateDataStructure, 
+  validateScenarioData,
+  setImagePaths,
+  createImageMapping,
+  setElementsDisplay,
+  setButtonStates,
+  setElementTexts,
+  setElementHTMLs,
+  setElementAttributes
+} from './common-utils.js';
 
 /**
  * 実験1.2を管理するクラス
@@ -54,6 +66,13 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       this.userId = Math.round(Math.random() * 100000000);
       this.userId = zeroPadding(this.userId, 8);
       
+      // DataManagerにユーザーIDを設定
+      dataManager.userId = this.userId;
+      
+      // サーバーから実験条件（対称/非対称）を取得
+      await dataManager.fetchSampleType();
+      console.log('examine1_2: 実験条件:', dataManager.sampleType);
+      
       // config.jsからexamine1_2用のシナリオを取得
       this.scenarios = config.setExperimentScenarios('examine1_2', this.userId);
       console.log('examine1_2: 配布されたシナリオ:', this.scenarios.join(', '));
@@ -82,7 +101,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       console.error('examine1_2の初期化に失敗しました:', error);
       uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
     }
-  }  /**
+  }/**
    * JSONファイルを読み込む
    */
   async readJson(filename) {
@@ -125,49 +144,100 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     } catch (error) {
       console.warn('examine1_2: 共通サンプルデータの読み込みに失敗しました。既存のsamplesデータを使用します。', error);
     }
-  }
-  /**
-   * 画像のプリロード
+  }  /**
+   * 画像のプリロード（最適化版）
    */
   getImages() {
-    // testOrderがオブジェクトであることを確認
-    if (!this.testOrder || typeof this.testOrder !== 'object') {
+    // データ構造の基本チェック
+    if (!validateDataStructure(this.testOrder, 'testOrder')) {
       console.warn('testOrderが初期化されていません。画像プリロードをスキップします。');
       return;
     }
     
     try {
-      for (let scenario in this.scenarios) {
-        const scenarioKey = this.scenarios[scenario];
-        
-        // シナリオが存在するかチェック
-        if (!this.testOrder[scenarioKey] || !this.testOrder[scenarioKey]['images1_2']) {
-          console.warn(`シナリオ ${scenarioKey} の画像データが見つかりません`);
-          continue;
-        }
-        
-        for (let type in this.imageType) {
-          const imageType = this.imageType[type];
-          const imagePath = this.testOrder[scenarioKey]['images1_2'][imageType];
-          
-          if (imagePath) {
-            var img = document.createElement('img');
-            img.src = `../${imagePath}`;
-            img.onerror = () => console.warn(`画像の読み込みに失敗: ${imagePath}`);
-          }
-        }
+      // 画像プリロード設定のマッピング
+      const preloadTasks = this.scenarios.map(scenarioKey => ({
+        scenarioKey,
+        requiredPaths: ['images1_2'],
+        imageTypes: this.imageType
+      }));
+      
+      // 並列でプリロード処理を実行
+      this.executeImagePreload(preloadTasks);
+      
+      // 対称条件の画像もプリロード
+      if (dataManager.sampleType === 'symmetric') {
+        const symmetricPreloadTasks = this.scenarios.map(scenarioKey => ({
+          scenarioKey,
+          requiredPaths: ['images_symmetric1_2'],
+          imageTypes: this.imageType
+        }));
+        this.executeSymmetricImagePreload(symmetricPreloadTasks);
       }
       
       // プリロード表示を非表示
-      const preloadElement = document.getElementById('preload_image');
-      if (preloadElement) {
-        preloadElement.style.display = "none";
-      }
+      setElementsDisplay({ 'preload_image': 'none' });
       
       console.log('examine1_2: 画像プリロード完了');
     } catch (error) {
       console.error('画像プリロード中にエラーが発生しました:', error);
     }
+  }
+    /**
+   * 画像プリロードの実行（ヘルパーメソッド）
+   * @param {Array} preloadTasks - プリロードタスクの配列
+   */
+  executeImagePreload(preloadTasks) {
+    preloadTasks.forEach(({ scenarioKey, requiredPaths, imageTypes }) => {
+      // データ構造の存在確認
+      if (!validateScenarioData(this.testOrder, scenarioKey, requiredPaths)) {
+        console.warn(`シナリオ ${scenarioKey} の画像データが見つかりません`);
+        return;
+      }
+      
+      // 画像タイプごとにプリロード
+      const images = this.testOrder[scenarioKey]['images1_2'];
+      imageTypes.forEach(imageType => {
+        const imagePath = images[imageType];
+        if (imagePath) {
+          this.preloadSingleImage(imagePath);
+        }
+      });
+    });
+  }
+  
+  /**
+   * 対称条件画像プリロードの実行（ヘルパーメソッド）
+   * @param {Array} preloadTasks - プリロードタスクの配列
+   */
+  executeSymmetricImagePreload(preloadTasks) {
+    preloadTasks.forEach(({ scenarioKey, requiredPaths, imageTypes }) => {
+      // データ構造の存在確認
+      if (!validateScenarioData(this.testOrder, scenarioKey, requiredPaths)) {
+        console.warn(`シナリオ ${scenarioKey} の対称条件画像データが見つかりません`);
+        return;
+      }
+      
+      // 画像タイプごとにプリロード
+      const images = this.testOrder[scenarioKey]['images_symmetric1_2'];
+      imageTypes.forEach(imageType => {
+        const imagePath = images[imageType];
+        if (imagePath) {
+          this.preloadSingleImage(imagePath);
+        }
+      });
+    });
+  }
+  
+  /**
+   * 単一画像のプリロード
+   * @param {string} imagePath - 画像のパス
+   */
+  preloadSingleImage(imagePath) {
+    const img = document.createElement('img');
+    img.src = `../${imagePath}`;
+    img.onerror = () => console.warn(`画像の読み込みに失敗: ${imagePath}`);
+    return img;
   }
 
   /**
@@ -178,13 +248,11 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     document.getElementById('check_sentence').style.display = "none";
     document.getElementById('description_area').style.display = "none";
     document.getElementById('show_sample_area').style.display = 'none';
-  }
-  /**
+  }  /**
    * 次のシナリオの説明を表示
    */
   toNextScenarioDescription(isFirstTime = false) {
-    if (!this.testOrder || typeof this.testOrder !== 'object') {
-      console.error('testOrderが初期化されていません');
+    if (!validateScenarioData(this.testOrder, null)) {
       return;
     }
     
@@ -195,49 +263,80 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     this.resetBackGround();
     
     const scenarioKey = this.scenarios[this.sceIdx];
-    if (!this.testOrder[scenarioKey]) {
-      console.error(`シナリオ ${scenarioKey} が見つかりません`);
+    if (!validateScenarioData(this.testOrder, scenarioKey)) {
       return;
     }
     
     document.getElementById('page').innerHTML = "<h4>" + (this.sceIdx + 1) + '/' + this.scenarios.length + "種類目</h4>";
     document.getElementById('scenario_title').innerHTML = "<h2>" + this.testOrder[scenarioKey]['title'] + "</h2>";
-    document.getElementById('check_sentence').style.display = "inline-block";
-    document.getElementById('description_area').style.display = "inline-block";
-    document.getElementById('start_scenario_button').setAttribute("disabled", true);
+      setElementsDisplay({
+      'check_sentence': 'inline-block',
+      'description_area': 'inline-block',
+      'start_scenario_button': 'inline'
+    });
+      setButtonStates({
+      'start_scenario_button': false
+    });
+      // 明示的にボタンを無効化
+    const startButton = document.getElementById('start_scenario_button');
+    if (startButton) {
+      startButton.setAttribute('disabled', true);
+    }
+
+    // 条件に応じて説明文を選択
+    let descriptions;
+    if (dataManager.sampleType === 'symmetric' && this.testOrder[scenarioKey]['descriptions_symmetric']) {
+      descriptions = this.testOrder[scenarioKey]['descriptions_symmetric'];
+      console.log('対称条件の説明文を使用');
+    } else {
+      descriptions = this.testOrder[scenarioKey]['descriptions'];
+      console.log('非対称条件の説明文を使用');
+    }
     
-    const descriptions = this.testOrder[scenarioKey]['descriptions'];
-    if (descriptions && descriptions.length > 0) {
+    // 説明文のHTML要素を動的に生成（examine1と同様）
+    const scenarioDescriptionsContainer = document.getElementById('scenario_descriptions');
+    if (scenarioDescriptionsContainer && descriptions && descriptions.length > 0) {
+      let html = '<form action="cgi-bin/abc.cgi" method="post">';
       for (let i = 0; i < descriptions.length; i++) {
-        const element = document.getElementById('scenario_description' + String(i + 1));
-        if (element) {
-          element.innerHTML = descriptions[i];
+        html += `
+          <p>
+            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" style="transform:scale(1.5)" onclick="check_description()" />
+            <label for="checkbox${i + 1}" id="scenario_description${i + 1}">${descriptions[i]}</label>
+          </p>`;
+        if (i < descriptions.length - 1) {
+          html += '<br>';
+        }
+      }
+      html += '</form>';
+      scenarioDescriptionsContainer.innerHTML = html;
+    } else {
+      // 既存のラベル要素を使用（フォールバック）
+      if (descriptions && descriptions.length > 0) {
+        for (let i = 0; i < descriptions.length; i++) {
+          const element = document.getElementById('scenario_description' + String(i + 1));
+          if (element) {
+            element.innerHTML = descriptions[i];
+          }
         }
       }
     }
+    
+    // チェックボックスをリセット
+    const checkboxes = document.getElementsByClassName("checkbox");
+    for (let i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = false;
+    }
   }
-
   /**
    * チェックボックスの確認
    */
   checkDescription() {
-    let checkbox = document.getElementsByClassName("checkbox");
-    let count = 0;
-    for (let i = 0; i < checkbox.length; i++) {
-      if (checkbox[i].checked) count++;
-    }
-    if (count == checkbox.length) {
-      document.getElementById('start_scenario_button').removeAttribute("disabled");
-    } else {
-      document.getElementById("start_scenario_button").setAttribute("disabled", true);
-    }
-  }
-  /**
+    validateCheckboxes("checkbox", "start_scenario_button");
+  }  /**
    * 次のサンプル表示ページへ遷移
    */
   toNextNewSamplePage() {
-    if (!this.testOrder || typeof this.testOrder !== 'object') {
-      console.error('testOrderが初期化されていません');
+    if (!validateScenarioData(this.testOrder, null)) {
       return;
     }
     
@@ -259,10 +358,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     const stimulusKey = this.stimuli[this.sceIdx];
     
     // データ構造の存在確認
-    if (!this.testOrder[scenarioKey] || 
-        !this.testOrder[scenarioKey]['samples'] || 
-        !this.testOrder[scenarioKey]['samples'][stimulusKey]) {
-      console.error(`サンプルデータが見つかりません: ${scenarioKey}/${stimulusKey}`);
+    if (!validateScenarioData(this.testOrder, scenarioKey, [`samples.${stimulusKey}`])) {
       return;
     }
     
@@ -296,6 +392,47 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     setTimeout(() => {
       button1.disabled = false;
     }, 500);
+  }  /**
+   * スライダーの質問文を設定
+   */
+  initializeSlider() {
+    const scenarioKey = this.scenarios[this.sceIdx];
+    const scenarioData = this.testOrder[scenarioKey];
+    
+    if (!scenarioData) {
+      console.error('シナリオデータが見つかりません:', scenarioKey);
+      return;
+    }
+    
+    // 条件に応じて評価文を選択（ui-manager.jsと同様のロジック）
+    let resultText;
+    if (dataManager.sampleType === 'symmetric' && scenarioData['result_symmetric']) {
+      resultText = scenarioData['result_symmetric'];
+      console.log('対称条件の評価文を使用:', resultText);
+    } else {
+      resultText = scenarioData['result'];
+      console.log('非対称条件の評価文を使用:', resultText);
+    }
+    
+    // スライダーの質問文を設定
+    const sliderResultElement = document.getElementById('slider_scenario_result');
+    if (sliderResultElement && resultText) {
+      sliderResultElement.textContent = resultText;
+      console.log('評価文をDOM要素に設定しました:', resultText);
+    } else {
+      console.error('slider_scenario_result要素が見つからないか、評価文が空です');
+    }
+    
+    // 最小値と最大値の設定
+    const minResultElement = document.getElementById('slider_min_result');
+    if (minResultElement) {
+      minResultElement.textContent = '0：' + (scenarioData['min_result'] || '全く引き起こさない');
+    }
+    
+    const maxResultElement = document.getElementById('slider_max_result');
+    if (maxResultElement) {
+      maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
+    }
   }
   /**
    * 刺激を表示
@@ -309,44 +446,48 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     const sample = this.currentSampleSelection[this.currentTestPage];
     const scenarioKey = this.scenarios[this.sceIdx];
     
+    // 条件に応じて文章セットを選択
+    let sentencesKey = 'sentences';
+    let imagesKey = 'images1_2';
+    
+    if (dataManager.sampleType === 'symmetric') {
+      if (this.testOrder[scenarioKey]['sentences_symmetric']) {
+        sentencesKey = 'sentences_symmetric';
+        console.log('対称条件の文章を使用');
+      }
+      if (this.testOrder[scenarioKey]['images_symmetric1_2']) {
+        imagesKey = 'images_symmetric1_2';
+        console.log('対称条件の画像を使用');
+      }
+    } else {
+      console.log('非対称条件の文章・画像を使用');
+    }
+    
     // データ構造の存在確認
-    if (!this.testOrder[scenarioKey] || 
-        !this.testOrder[scenarioKey]['sentences'] || 
-        !this.testOrder[scenarioKey]['sentences'][sample]) {
-      console.error(`センテンスデータが見つかりません: ${scenarioKey}/${sample}`);
+    if (!validateScenarioData(this.testOrder, scenarioKey, [`${sentencesKey}.${sample}`, imagesKey])) {
       return;
     }
     
-    const desc = this.testOrder[scenarioKey]['sentences'][sample];
-    console.log("showStimulation_in");
+    const desc = this.testOrder[scenarioKey][sentencesKey][sample];
+    console.log("showStimulation_in - 使用文章:", desc);
     const descParts = desc.split('、');
     
     document.getElementById('first_sentence').innerHTML = "<h4>" + descParts[0] + "</h4>";
     document.getElementById('last_sentence').innerHTML = "<h4>" + descParts[1] + "</h4>";
-    document.getElementById('show_sample_area').style.display = "inline";
-    document.getElementById('first_sentence').style.display = 'inline-block';
-    document.getElementById('last_sentence').style.display = 'inline-block';
-    document.getElementById('sample_before').style.display = 'inline';
-    document.getElementById('estimate_input_area').style.display = 'none';
-    document.getElementById('next_sample').style.display = 'inline';
     
-    // 画像パスの設定（images1_2を使用）
-    const images = this.testOrder[scenarioKey]['images1_2'];
-    if (images && this.imgCombination[sample]) {
-      const causePath = images[this.imgCombination[sample]['cause']];
-      const effectPath = images[this.imgCombination[sample]['effect']];
-      const arrowPath = images['arrow'];
-      
-      if (causePath) {
-        document.getElementById('sample_before').src = `../${causePath}`;
-      }
-      if (arrowPath) {
-        document.getElementById('arrow').src = `../${arrowPath}`;
-      }
-      if (effectPath) {
-        document.getElementById('sample_after').src = `../${effectPath}`;
-      }
-    }
+    setElementsDisplay({
+      'show_sample_area': 'inline',
+      'first_sentence': 'inline-block',
+      'last_sentence': 'inline-block',
+      'sample_before': 'inline',
+      'estimate_input_area': 'none',
+      'next_sample': 'inline'
+    });
+    
+    // 条件に応じた画像セットの設定
+    const images = this.testOrder[scenarioKey][imagesKey];
+    const imageMapping = createImageMapping(images, this.imgCombination, sample);
+    setImagePaths(imageMapping);
     
     // 進捗バー更新
     this.progressBar();
@@ -360,45 +501,64 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
   progressBar() {
     document.getElementById('progress_bar').value = this.currentTestPage;
     document.getElementById('progress_bar').max = this.sampleSize - 1;
-  }
-  /**
+  }  /**
    * 推定画面を描画
    */
   drawEstimate(c) {
     const scenarioKey = this.scenarios[this.sceIdx];
-    if (!this.testOrder[scenarioKey]) {
-      console.error(`シナリオデータが見つかりません: ${scenarioKey}`);
+    
+    // 共通化されたデータ構造存在確認
+    if (!validateScenarioData(this.testOrder, scenarioKey, ['result', 'min_result', 'max_result'])) {
       return;
     }
     
     this.clearPage();
-    document.getElementById("checkbox").setAttribute("disabled", true);
-    document.getElementById('next_scenario').style.display = 'none';
-    document.getElementById('estimate_input_area').style.display = 'inline-block';
-    document.getElementById('next_scenario').setAttribute("disabled", true);
-    document.getElementById('continue_scenario').setAttribute("disabled", true);
-    document.getElementById('continue_scenario').style.display = 'inline';
-    document.getElementById('finish_all_scenarios').setAttribute("disabled", true);
-    document.getElementById('estimate_slider').value = 50;
-    document.getElementById('estimate').innerHTML = 50;
-    document.getElementById("checkbox").checked = false;
     
-    if (c == 'fin') {
-      document.getElementById('continue_scenario').style.display = 'none';
-      if (this.sceIdx == this.scenarios.length - 1) {
-        document.getElementById('finish_all_scenarios').style.display = 'inline';
-      } else {
-        document.getElementById('next_scenario').style.display = 'inline';
-      }
+    // UI要素の状態を一括設定
+    setElementsDisplay({
+      'estimate_input_area': 'inline-block',
+      'next_scenario': 'none',
+      'continue_scenario': 'inline'
+    });
+    
+    setButtonStates({
+      'next_scenario': true,
+      'continue_scenario': true, 
+      'finish_all_scenarios': true
+    });    // フォーム要素の初期化
+    setElementAttributes('checkbox', { 'disabled': true, 'checked': false });
+    setElementAttributes('estimate_slider', { 'value': 0, 'disabled': true });
+    setElementHTMLs({ 'estimate': '0' });
+    
+    // スライダーの質問文を設定
+    this.initializeSlider();
+    
+    // 待機メッセージを表示し、3秒後にスライダーを有効化
+    const waitMessage = document.getElementById('slider_wait_message');
+    if (waitMessage) {
+      waitMessage.style.display = 'block';
     }
-
-    const scenarioData = this.testOrder[scenarioKey];
-    document.getElementById('estimate_description').innerHTML =
-      '<h3>' + (scenarioData['result'] || '結果を評価してください') + 'と思いますか？</h3>' +
-      '<ul>0：' + (scenarioData['min_result'] || '全く引き起こさない') + '</ul>' +
-      '<ul>100：' + (scenarioData['max_result'] || '確実に引き起こす') + '</ul>' +
-      '<ul>として、0から100の値で<b>直感的に</b>回答してください。</ul>' +
-      '<p>※スライダーの挙動に不具合が生じた場合、スライダーを直接クリックして値を選択してください。</p>';
+    
+    setTimeout(() => {
+      const slider = document.getElementById('estimate_slider');
+      if (slider && waitMessage) {
+        slider.disabled = false;
+        waitMessage.style.display = 'none';
+      }
+    }, 3000);
+      if (c == 'fin') {
+      setElementsDisplay({ 'continue_scenario': 'none' });
+      
+      if (this.sceIdx == this.scenarios.length - 1) {
+        setElementsDisplay({ 'finish_all_scenarios': 'inline' });
+      } else {
+        setElementsDisplay({ 'next_scenario': 'inline' });
+      }    }
+    
+    // HTMLのリセット関数を呼び出し
+    if (window.resetResponseFlow) {
+      window.resetResponseFlow();
+    }
   }
 
   /**
@@ -409,29 +569,21 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       document.getElementById('estimate_slider').value
     );
   }
-
   /**
    * 最終的な値を取得
    */
   getValueFin() {
     // 回答送信ボタンの連打防止
-    document.getElementById('finish_all_scenarios').disabled = true;
+    setButtonStates({ 'finish_all_scenarios': true });
     this.getValue();
     this.exportResults();
-  }
-
-  /**
+  }  /**
    * 推定画面のチェック確認
+   * HTMLのonclick呼び出しを無効化し、スライダー操作に基づく自動処理のみを行う
    */
   checkEstimate() {
-    if (document.getElementById('checkbox').checked) {
-      document.getElementById('next_scenario').removeAttribute("disabled");
-      document.getElementById('continue_scenario').removeAttribute("disabled");
-      document.getElementById('finish_all_scenarios').removeAttribute("disabled");
-    } else {
-      document.getElementById("checkbox").removeAttribute("disabled");
-      document.getElementById("finish_all_scenarios").setAttribute("disabled", true);
-    }
+    // この関数は後方互換性のために残しているが、実際の処理はHTMLのイベントリスナーに移行
+    console.log('checkEstimate() called - now handled by HTML event listeners');
   }
 
   /**
@@ -455,23 +607,23 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       data['start_time'] = this.startTime;
       data['end_time'] = getNow();
       data['user_agent'] = window.navigator.userAgent;
-      this.userData.push(data);
-
-      // DataManagerのsendExamine12Resultsメソッドを使用
+      this.userData.push(data);      // DataManagerのsendExamine12Resultsメソッドを使用
       await dataManager.sendExamine12Results(this.estimations, `../examine2?id=${this.userId}`);
       
     } catch (error) {
       console.error('結果送信に失敗しました:', error);
       alert("回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。");
-      document.getElementById('finish_all_scenarios').removeAttribute("disabled");
+      
+      // エラー時はボタンを再度有効化
+      setButtonStates({ 'finish_all_scenarios': false });
     }
   }
-
   /**
-   * 背景色を変更
+   * 背景色を変更（インデックスベース）
    */
   changeBackGround() {
-    document.body.style.backgroundColor = this.bgcolors[this.sceIdx];
+    const bgColor = this.bgcolors[this.sceIdx] || 'Transparent';
+    document.body.style.backgroundColor = bgColor;
   }
 
   /**

@@ -147,9 +147,11 @@ ul {
     padding: 1.5%;
     border-radius: 10px;
     text-align: left !important;
-    width: 90%;
+    width: auto;
+    max-width: 90%;
     margin: 0 auto 1% auto;
     box-sizing: border-box;
+    display: inline-block;
 }
 
 #scenario_descriptions form {
@@ -680,8 +682,10 @@ input[type="submit"]:disabled,
 
     /* 説明エリアの最適化 */
     #scenario_descriptions {
-        width: 96%;
+        width: auto;
+        max-width: 96%;
         padding: 1.2%;
+        display: inline-block;
     }
 
     #scenario_descriptions label {

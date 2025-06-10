@@ -2,6 +2,18 @@
 
 このプロジェクトは、実験参加者を条件間（asymmetric条件とsymmetric条件）にバランス良く割り当て、実験刺激を表示し、回答データを収集するためのWebアプリケーションです。クラウドワークスを通じた実験参加者の募集と謝金支払いに対応しています。
 
+## 現在の実験ステータス（2025年6月10日時点）
+
+- **実験実施期間**: 2024年3月～2025年6月（継続中）
+- **参加者数**: 43名（実験1完了）
+- **回答データ**: 204件（実験1の推定値データ）
+- **実験条件**: asymmetric/symmetric条件にバランス良く配布
+- **データ収集状況**: 
+  - 実験1（examine1）: 17.6KB（204回答）
+  - 実験2（IMC）: 206B（少数実施）
+  - 実験3（CRT）: 373B（少数実施）
+- **システム稼働状況**: 安定稼働中（最終アクセス：2025年6月10日23:31）
+
 ## 機能概要
 
 - **参加者管理**: ユーザーIDに基づいて参加者を追跡し、実験条件を割り当て
@@ -15,6 +27,9 @@
 - **データ収集**: 実験回答、認知的傾向測定結果の保存
 - **完了処理**: 謝金支払いのための完了コード発行（end.html）
 - **ブラウザ対応**: Chrome, Firefox, Edge, Safariなど主要ブラウザに対応
+- **モジュラー設計**: ES6モジュール、Observerパターン、イベント駆動アーキテクチャ
+- **エラーハンドリング**: 包括的なエラー処理とリトライ機能
+- **データ整合性**: SQLiteデータベースによる参加者管理と条件割り当ての追跡
 
 ## プロジェクト構造
 
@@ -32,8 +47,10 @@ ucs_vs_cs_experiment-summary/
 │
 ├── data/                  # データ保存ディレクトリ
 │   ├── participant_allocation.db  # 参加者割り当て用データベース
-│   ├── res_user_data_exp1.csv     # 実験1のユーザーデータ
-│   ├── res_estimations_exp1.csv   # 実験1の回答データ
+│   ├── res_user_data_exp1.csv     # 実験1のユーザーデータ（過去データ）
+│   ├── res_estimations_exp1.csv   # 実験1の回答データ（過去データ）
+│   ├── user_data_exp1.csv         # 実験1の現在のユーザーデータ（43名）
+│   ├── estimations_exp1.csv       # 実験1の現在の回答データ（204件）
 │   ├── imc_data_exp2.csv          # 実験2（IMC）のデータ
 │   ├── crt_data_exp3.csv          # 実験3（CRT）のデータ
 │   └── *.csv              # その他のデータファイル
@@ -67,9 +84,10 @@ ucs_vs_cs_experiment-summary/
 │       │   └── end.css        # 完了ページ用CSS
 │       ├── javascript/    # クライアント側スクリプト
 │       │   ├── config.js      # 設定管理
-│       │   ├── data-manager.js# データ管理クラス
-│       │   ├── event-bus.js   # イベント通知システム
+│       │   ├── data-manager.js# データ管理クラス（ES6モジュール）
+│       │   ├── event-bus.js   # イベント通知システム（Observerパターン）
 │       │   ├── event-handler.js# イベントハンドラー
+│       │   ├── ajax-utils.js  # Ajax通信ユーティリティ
 │       │   ├── ui-manager.js  # UI管理クラス
 │       │   ├── utilities.js   # ユーティリティ関数
 │       │   ├── examine1.js    # 実験1のロジック
@@ -214,6 +232,34 @@ SQLiteが自動的に管理する、AUTO_INCREMENT列の現在値を記録する
 | name | TEXT | テーブル名 |
 | seq | INTEGER | 次に使用される自動増分値 |
 
+## 技術仕様とアーキテクチャ
+
+### フロントエンド技術
+- **ES6モジュール**: JavaScriptコードのモジュール化
+- **Observerパターン**: イベント駆動アーキテクチャによる疎結合な設計
+- **非同期処理**: Promise/async-awaitによる効率的な通信
+- **エラーハンドリング**: 包括的なエラー処理とリトライ機能
+- **レスポンシブデザイン**: 複数デバイス対応のUI
+
+### バックエンド技術
+- **Flask**: 軽量Webフレームワーク
+- **SQLite**: 条件割り当て管理用データベース
+- **CSV**: 実験データ保存形式
+- **ロギング**: 詳細なアプリケーションログ
+- **WSGI**: 本番環境対応（Gunicorn）
+
+### データ管理
+- **DataManager**: 実験データの一元管理クラス
+- **条件バランシング**: 自動的な実験条件の均等配布
+- **セッション管理**: ユーザーIDベースの状態管理
+- **データ整合性**: トランザクション制御による安全なデータ操作
+
+### パフォーマンス最適化
+- **画像プリロード**: 実験画像の事前読み込み
+- **Intersection Observer**: 効率的な遅延読み込み
+- **イベントバス**: メモリ効率的なイベント通知
+- **Ajax最適化**: タイムアウトとリトライ機能付きHTTP通信
+
 ## データ収集
 
 以下のデータが収集されます:
@@ -222,41 +268,28 @@ SQLiteが自動的に管理する、AUTO_INCREMENT列の現在値を記録する
 - **IMC結果**: 指示操作確認課題の結果（実験の有効性確認用）
 - **CRTデータ**: 認知反射テストの回答と所要時間（認知傾向測定用）
 
-## データ分析
+### 現在のデータ収集状況（2025年6月10日時点）
 
-収集したデータの分析手順:
+#### 実験1（examine1）
+- **参加者数**: 43名
+- **回答データ**: 204件の推定値データ
+- **ファイルサイズ**: 17.6KB（estimations_exp1.csv）
+- **最終更新**: 2025年6月10日 15:10
 
-1. **データの前処理**
-```python
-from utils.data_handler import DataHandler
-handler = DataHandler()
-processed_data = handler.preprocess_data("res_user_data_exp1.csv", "res_estimations_exp1.csv")
-```
+#### 実験2（IMC - Instructional Manipulation Check）
+- **参加者数**: 少数（テスト段階）
+- **ファイルサイズ**: 206B（imc_data_exp2.csv）
+- **最終更新**: 2025年5月29日 01:23
 
-2. **実験結果の可視化**
-```python
-import pandas as pd
-import matplotlib.pyplot as plt
+#### 実験3（CRT - Cognitive Reflection Test）
+- **参加者数**: 少数（テスト段階）
+- **ファイルサイズ**: 373B（crt_data_exp3.csv）
+- **最終更新**: 2025年5月29日 01:23
 
-# データ読み込み
-df = pd.read_csv("data/res_estimations_exp1.csv")
-
-# 条件ごとの結果集計
-results = df.groupby(['stimuli', 'number']).mean()
-results.plot(kind='bar')
-plt.show()
-```
-
-3. **統計分析**
-```python
-import scipy.stats as stats
-
-# 条件間の差の検定
-condition1 = df[df['sample_type'] == 'matched']['estimation']
-condition2 = df[df['sample_type'] == 'unmatched']['estimation']
-t_stat, p_value = stats.ttest_ind(condition1, condition2)
-print(f"t統計量: {t_stat}, p値: {p_value}")
-```
+#### システムログ
+- **アプリケーションログ**: 継続的に記録（最新：2025年6月10日）
+- **エラーログ**: 問題発生時の詳細記録
+- **ビューログ**: ユーザーアクセスパターンの追跡
 
 ## 環境変数
 
@@ -305,6 +338,27 @@ gunicorn -w 4 -b 0.0.0.0:8000 wsgi:app
 
 Nginxとの連携設定は `config/nginx.conf` を参照してください。
 
+## 開発履歴と最新機能
+
+### 最新の改善点（2025年6月版）
+- **ES6モジュール化**: JavaScriptコードの完全なモジュール化
+- **Observerパターンの導入**: イベント駆動アーキテクチャによる保守性向上
+- **Ajax通信の最適化**: エラーハンドリングとリトライ機能の強化
+- **データ整合性の向上**: トランザクション制御の実装
+- **パフォーマンス改善**: 画像プリロードとメモリ使用量の最適化
+
+### 技術的な改善点
+- **共通サンプルデータ**: `samples_common.json`による効率的なデータ管理
+- **条件割り当ての自動化**: SQLiteベースの均等配布システム
+- **ログ管理の強化**: 詳細なアプリケーション監視
+- **エラー処理の包括化**: ユーザビリティを重視したエラーハンドリング
+
+### 実験デザインの特徴
+- **カウンターバランス**: 実験条件と順序の均等配布
+- **参加者追跡**: ユーザーIDベースの一意識別
+- **データ品質管理**: IMCによるアテンション確認
+- **認知測定**: CRTによる個人差の測定
+
 ## ブラウザ互換性
 
 本アプリケーションは以下のブラウザで動作確認済みです:
@@ -326,8 +380,7 @@ Nginxとの連携設定は `config/nginx.conf` を参照してください。
 
 ## 使用された画像
 
-- examine1:   ICOOON MONO(https://icooon-mono.com/)
-- examine1_2: いらすとや
+- examine1, examine1_2:   ICOOON MONO(https://icooon-mono.com/)
 
 ## 参考にしたサイト
 - SQLite の基礎 #Database - Qiita: https://qiita.com/shikuno_dev/items/13de104aa2c2adf8aead

@@ -111,17 +111,30 @@
             }
         };
         
-        // チェックボックスの確認
+        // チェックボックスの確認（統一化された関数）
         function check_agreement2() {
-            let checks = document.getElementsByClassName("checks");
-            let count = 0;
-            for (let i = 0; i < checks.length; i++) {
-                if (checks[i].checked) count++;
+            // 共通化されたチェックボックス確認ロジック
+            validateCheckboxesHTML("checks", "button");
+        }
+        
+        // チェックボックス確認の共通関数（HTML内で使用）
+        function validateCheckboxesHTML(checkboxClass, targetButtonId) {
+            const checkboxes = document.getElementsByClassName(checkboxClass);
+            let checkedCount = 0;
+            
+            for (let i = 0; i < checkboxes.length; i++) {
+                if (checkboxes[i].checked) {
+                    checkedCount++;
+                }
             }
-            if (count == checks.length) {
-                document.getElementById("button").removeAttribute("disabled");
-            } else {
-                document.getElementById("button").setAttribute("disabled", true);
+            
+            const targetButton = document.getElementById(targetButtonId);
+            if (targetButton) {
+                if (checkedCount === checkboxes.length) {
+                    targetButton.removeAttribute("disabled");
+                } else {
+                    targetButton.setAttribute("disabled", true);
+                }
             }
         }
     </script>
