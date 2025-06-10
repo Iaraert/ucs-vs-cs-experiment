@@ -24,6 +24,7 @@ export class DataManager {
     this.startTime = '';           // 実験開始時間
     this.customData = {};          // カスタムデータストレージ
     this.experimentType = '';      // 実験タイプ（examine1, examine1_2など）
+    this.totalPages = 6;           // 実験の総ページ数（examine1_2のデフォルト）
   }
 
   /**

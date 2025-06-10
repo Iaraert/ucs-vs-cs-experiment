@@ -103,13 +103,27 @@ export class UIManager {
     document.getElementById('check_sentence').style.display = "none";
     document.getElementById('description_area').style.display = "none";
     document.getElementById('show_sample_area').style.display = 'none';
-  }
+    }
   
   /**
    * 画像をプリロード
    */
   preloadImages() {
-    // 全12シナリオの各タイプの画像をプリロード
+    // examine1_2実験では、examine1_2.jsで画像プリロードを行うため、
+    // ui-manager.jsでのプリロードは無効化
+    const currentExperiment = window.location.pathname;
+    if (currentExperiment.includes('examine1_2')) {
+      console.log('examine1_2実験では、専用のプリロード処理を使用します');
+      
+      // プリロード表示を非表示
+      const preloadElement = document.getElementById('preload_image');
+      if (preloadElement) {
+        preloadElement.style.display = "none";
+      }
+      return;
+    }
+
+    // 従来のプリロード処理（他の実験用）
     const allScenarios = [
       'one', 'two', 'three', 'four', 'five', 'six', 
       'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'
@@ -609,6 +623,47 @@ export class UIManager {
     document.body.appendChild(loadingElement);
     
     this.loadingElement = loadingElement;
+  }
+
+  /**
+   * 要素を非表示にする
+   * @param {string} elementId - 要素のID
+   */
+  hideElement(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.style.display = 'none';
+    } else {
+      console.warn(`要素が見つかりません: ${elementId}`);
+    }
+  }
+
+  /**
+   * 要素を表示する
+   * @param {string} elementId - 要素のID
+   * @param {string} displayType - 表示タイプ（デフォルト: 'block'）
+   */
+  showElement(elementId, displayType = 'block') {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.style.display = displayType;
+    } else {
+      console.warn(`要素が見つかりません: ${elementId}`);
+    }
+  }
+
+  /**
+   * 要素の表示/非表示を切り替える
+   * @param {string} elementId - 要素のID
+   * @param {boolean} visible - true: 表示, false: 非表示
+   * @param {string} displayType - 表示タイプ（デフォルト: 'block'）
+   */
+  toggleElement(elementId, visible, displayType = 'block') {
+    if (visible) {
+      this.showElement(elementId, displayType);
+    } else {
+      this.hideElement(elementId);
+    }
   }
 }
 

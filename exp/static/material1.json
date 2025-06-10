@@ -92,7 +92,7 @@
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/sonar/x_sonar.png",
-            "notp": "static/images/scenarios/sonar/y_no_sonar.png",
+            "notp": "static/images/scenarios/sonar/no_sonar.png",
             "q": "static/images/scenarios/sonar/success.png",
             "notq": "static/images/scenarios/sonar/failure.png",
             "arrow": "static/images/yajirushi_right.png"

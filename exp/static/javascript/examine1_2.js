@@ -1,135 +1,101 @@
 /**
  * examine1_2.js - 因果関係の強さを推定する実験
- * モジュラーアーキテクチャに対応
+ * モジュラー構造に対応し、examine1との互換性を確保
  */
-import { getNow, zeroPadding, shuffleArray, preventBrowserBack, getOrCreateUserId, loadPageStyles, getNextPageUrl, setupPageLeaveWarning } from './utilities.js';
-import { fetchJson, postData } from './ajax-utils.js';
-import eventBus from './event-bus.js';
-import dataManager from './data-manager.js';
-import eventHandler from './event-handler.js';
-import uiManager from './ui-manager.js';
-import config from './config.js';
 
-// shuffleArrayのエイリアス
-const shuffle = shuffleArray;
+// 共有モジュールのインポート
+import config from './config.js';
+import dataManager from './data-manager.js';
+import uiManager from './ui-manager.js';
+import eventHandler from './event-handler.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow } from './utilities.js';
 
 /**
- * 実験1.2の管理クラス
+ * 実験1.2を管理するクラス
  */
-class Experiment12Manager {
-  constructor() {
-    // 実験タイプを設定
+class Experiment12Manager {  constructor() {    // 実験タイプを設定
     dataManager.setExperimentType('examine1_2');
     
-    // 実験データ
-    this.experimentData = null;
-    
-    // examine1_2固有の状態
-    this.currentTestPage = 0;
-    this.sampleSize = 0;
-    this.scenarioIndex = 0;
-    this.currentSampleSelection = [];
-    this.cellSize = 0;
-    this.estimationIndex = 0;
-    this.sampleType = 'asymmetric'; // デフォルトは非対称条件
-    
     // examine1_2固有の設定
-    this.bgcolors = shuffle([
-      '#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0',
-      '#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8'
-    ]);
+    this.file = '../static/material1.json';
+    this.userData = [];
+    this.testOrder = {};  // オブジェクトとして初期化
+    this.currentSampleSelection = [];
+    this.estimations = [];
+    
+    // シナリオはconfig.jsから取得（ハードコードしない）
+    this.scenarios = null;  // 初期化時に設定される
+    this.stimuli = shuffleArray(['1','2','3','4','5','6']);
+    this.bgcolors = shuffleArray(['#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0','#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8']);
+    
     this.imageType = ["p", "notp", "q", "notq"];
     this.imgCombination = {
-      'a': {'cause': 'p', 'effect': 'q'},
-      'b': {'cause': 'p', 'effect': 'notq'},
-      'c': {'cause': 'notp', 'effect': 'q'},
-      'd': {'cause': 'notp', 'effect': 'notq'}
+        'a': {'cause': 'p', 'effect': 'q'},
+        'b': {'cause': 'p', 'effect': 'notq'},
+        'c': {'cause': 'notp', 'effect': 'q'},
+        'd': {'cause': 'notp', 'effect': 'notq'}
     };
     
-    // DataManagerとの連携設定
-    this.initializeDataManager();
-    this.setupEventListeners();
-  }
-
-  /**
-   * DataManagerとの連携を初期化
-   */
-  initializeDataManager() {
-    // 実験固有のデータ構造を初期化
-    dataManager.customData.estimations = [];
-    dataManager.customData.sampleType = 'asymmetric';
-  }
-
-  setupEventListeners() {
-    // 共有EventHandlerを使用してexamine1_2固有のイベントを設定
-    eventHandler.setupExamine12Events(this);
+    // 実験状態管理
+    this.currentTestPage = 0;
+    this.sampleSize = 0;
+    this.userId = 0;
+    this.startTime = getNow();
+    this.sceIdx = 0;
+    this.estI = 0;
+    this.cellSize = 0;
     
-    // シナリオ配布完了イベントを監視
-    eventBus.on('scenarios:assigned', (data) => {
-      console.log('examine1_2: シナリオ配布完了', data);
-      this.scenarios = data.scenarios;
-      this.stimuli = shuffle(['1','2','3','4','5','6']);
-    });
-    
-    // ページ読み込み完了の確認と初期化
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => this.initialize());
-    } else if (document.readyState === 'interactive' || document.readyState === 'complete') {
-      // すでに読み込み完了している場合は即座に初期化
-      this.initialize();
-    }
-  }
-
-  async initialize() {
+    this.initialize();
+  }  /**
+   * 実験を初期化
+   */  async initialize() {
     try {
-      // DataManagerを使用してユーザーIDと開始時刻を設定
-      dataManager.userId = getOrCreateUserId({ persistent: true });
-      dataManager.startTime = getNow();
+      // ユーザーIDの生成
+      this.userId = Math.round(Math.random() * 100000000);
+      this.userId = zeroPadding(this.userId, 8);
       
-      await loadPageStyles('examine1_2');
-      await this.loadExperimentData();
-      await this.fetchSampleType(); // 実験条件を取得
-      await this.preloadImages();
+      // config.jsからexamine1_2用のシナリオを取得
+      this.scenarios = config.setExperimentScenarios('examine1_2', this.userId);
+      console.log('examine1_2: 配布されたシナリオ:', this.scenarios.join(', '));
       
-      this.setupLazyLoading();
+      // データの読み込み
+      this.testOrder = await this.readJson(this.file);
+      this.estimations = new Array();
       
-      // シナリオが設定されるまで待機
-      if (!this.scenarios) {
-        console.log('examine1_2: シナリオ配布を待機中...');
-        await new Promise(resolve => {
-          const checkScenarios = () => {
-            if (config.scenarios && config.scenarios.length === 6) {
-              this.scenarios = config.scenarios;
-              this.stimuli = shuffle(['1','2','3','4','5','6']);
-              resolve();
-            } else {
-              setTimeout(checkScenarios, 100);
-            }
-          };
-          checkScenarios();
-        });
-      }
-      
-      console.log('examine1_2: 使用シナリオ', this.scenarios);
-      this.toNextScenarioDescription(true);
-      
-    } catch (error) {
-      console.error('実験の初期化に失敗しました', error);
-      uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
-    }
-  }
-
-  async loadExperimentData() {
-    try {
-      this.experimentData = await fetchJson('../static/material1.json');
-      
-      // 共通サンプルデータを読み込み、samples_refを解決
+      // 共通サンプルデータの解決
       await this.resolveCommonSamples();
       
-      return this.experimentData;
+      // 画像のプリロード
+      this.getImages();
+      
+      // 最初のシナリオ表示
+      this.toNextScenarioDescription(true);
+      
+      // ページ離脱警告の設定
+      setupPageLeaveWarning();
+      
+      // ブラウザバック防止
+      preventBrowserBack();
+      
+      console.log('examine1_2: 初期化完了');
     } catch (error) {
-      console.error('実験データの読み込みに失敗しました', error);
-      uiManager.showErrorMessage('データの読み込みに失敗しました。ページを再読み込みしてください。');
+      console.error('examine1_2の初期化に失敗しました:', error);
+      uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
+    }
+  }  /**
+   * JSONファイルを読み込む
+   */
+  async readJson(filename) {
+    try {
+      const response = await fetch(filename);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const json = await response.json();
+      console.log('examine1_2: JSONデータ読み込み完了');
+      return json;
+    } catch (error) {
+      console.error('JSONファイルの読み込みに失敗しました:', error);
       throw error;
     }
   }
@@ -140,278 +106,223 @@ class Experiment12Manager {
   async resolveCommonSamples() {
     try {
       // 共通サンプルデータを読み込み
-      const commonSamplesData = await fetchJson('../static/samples_common.json');
-      console.log('共通サンプルデータを読み込みました');
+      const response = await fetch('../static/samples_common.json');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const commonSamplesData = await response.json();
+      console.log('examine1_2: 共通サンプルデータを読み込みました');
       
       // 各シナリオのsamples_refを解決
-      Object.keys(this.experimentData).forEach(scenarioKey => {
-        const scenario = this.experimentData[scenarioKey];
+      Object.keys(this.testOrder).forEach(scenarioKey => {
+        const scenario = this.testOrder[scenarioKey];
         if (scenario.samples_ref && commonSamplesData[scenario.samples_ref]) {
           // samples_refが指定されている場合、共通データで置き換え
           scenario.samples = commonSamplesData[scenario.samples_ref];
-          console.log(`シナリオ ${scenarioKey} のsamples_refを解決しました: ${scenario.samples_ref}`);
+          console.log(`examine1_2: シナリオ ${scenarioKey} のsamples_refを解決しました: ${scenario.samples_ref}`);
         }
       });
     } catch (error) {
-      console.warn('共通サンプルデータの読み込みに失敗しました。既存のsamplesデータを使用します。', error);
+      console.warn('examine1_2: 共通サンプルデータの読み込みに失敗しました。既存のsamplesデータを使用します。', error);
     }
   }
-  
   /**
-   * サーバーから実験条件を取得
+   * 画像のプリロード
    */
-  async fetchSampleType() {
-    try {
-      const response = await fetch(`/getSampleType?user_id=${encodeURIComponent(dataManager.userId)}`);
-      
-      if (!response.ok) {
-        throw new Error(`サーバーエラー: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      this.sampleType = data.sampleType || 'asymmetric';
-      dataManager.customData.sampleType = this.sampleType;
-      console.log(`実験条件を取得: ${this.sampleType}`);
-      
-      return this.sampleType;
-    } catch (error) {
-      console.error('実験条件の取得に失敗しました。デフォルトで非対称条件を使用します。', error);
-      this.sampleType = 'asymmetric';
-      dataManager.customData.sampleType = this.sampleType;
-      return this.sampleType;
-    }
-  }
-
-  async preloadImages() {
-    this.preloadedImages = new Map();
-    
-    // 必要な画像URLを収集
-    const imageUrls = [];
-    const basePath = '..';
-    
-    for (const scenario of this.scenarios) {
-      const scenarioData = this.experimentData[scenario];
-      
-      // 非対称条件の画像
-      imageUrls.push(`${basePath}/${scenarioData['images1_2']['arrow']}`);
-      for (const type of this.imageType) {
-        imageUrls.push(`${basePath}/${scenarioData['images1_2'][type]}`);
-      }
-      
-      // 対称条件の画像（存在する場合）
-      if (scenarioData['images_symmetric1_2']) {
-        imageUrls.push(`${basePath}/${scenarioData['images_symmetric1_2']['arrow']}`);
-        for (const type of this.imageType) {
-          imageUrls.push(`${basePath}/${scenarioData['images_symmetric1_2'][type]}`);
-        }
-      }
-    }
-    
-    // 重複を排除
-    const uniqueUrls = [...new Set(imageUrls)];
-    
-    // プログレスバーUI
-    const progressContainer = document.createElement('div');
-    progressContainer.style.cssText = 'position:fixed;top:0;left:0;right:0;background:rgba(255,255,255,0.9);padding:20px;text-align:center;z-index:1000;';
-    
-    const messageEl = document.createElement('div');
-    messageEl.textContent = '画像を読み込み中...';
-    
-    const progressBar = document.createElement('progress');
-    progressBar.value = 0;
-    progressBar.max = 100;
-    progressBar.style.cssText = 'width:80%;margin:10px auto;display:block;';
-    
-    const progressText = document.createElement('div');
-    progressText.textContent = '0%';
-    
-    progressContainer.appendChild(messageEl);
-    progressContainer.appendChild(progressBar);
-    progressContainer.appendChild(progressText);
-    
-    document.body.appendChild(progressContainer);
-    
-    // 画像のプリロード
-    let loaded = 0;
-    const total = uniqueUrls.length;
-    
-    const promises = uniqueUrls.map(url => 
-      new Promise(resolve => {
-        const img = new Image();
-        img.onload = img.onerror = () => {
-          loaded++;
-          const percent = (loaded / total) * 100;
-          progressBar.value = percent;
-          progressText.textContent = `${Math.round(percent)}%`;
-          resolve();
-        };
-        img.src = url;
-      })
-    );
-    
-    try {
-      await Promise.all(promises);
-    } catch (e) {
-      // エラーは無視して続行
-    } finally {
-      document.body.removeChild(progressContainer);
-      document.getElementById('preload_image').style.display = "none";
-    }
-  }
-
-  setupLazyLoading() {
-    if (!('IntersectionObserver' in window)) {
-      // フォールバック
-      document.querySelectorAll('img[data-src]').forEach(img => {
-        img.src = img.dataset.src;
-      });
+  getImages() {
+    // testOrderがオブジェクトであることを確認
+    if (!this.testOrder || typeof this.testOrder !== 'object') {
+      console.warn('testOrderが初期化されていません。画像プリロードをスキップします。');
       return;
     }
     
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.dataset.src;
-          observer.unobserve(img);
+    try {
+      for (let scenario in this.scenarios) {
+        const scenarioKey = this.scenarios[scenario];
+        
+        // シナリオが存在するかチェック
+        if (!this.testOrder[scenarioKey] || !this.testOrder[scenarioKey]['images1_2']) {
+          console.warn(`シナリオ ${scenarioKey} の画像データが見つかりません`);
+          continue;
         }
-      });
-    }, { rootMargin: '200px' });
-    
-    document.querySelectorAll('img[data-src]').forEach(img => observer.observe(img));
+        
+        for (let type in this.imageType) {
+          const imageType = this.imageType[type];
+          const imagePath = this.testOrder[scenarioKey]['images1_2'][imageType];
+          
+          if (imagePath) {
+            var img = document.createElement('img');
+            img.src = `../${imagePath}`;
+            img.onerror = () => console.warn(`画像の読み込みに失敗: ${imagePath}`);
+          }
+        }
+      }
+      
+      // プリロード表示を非表示
+      const preloadElement = document.getElementById('preload_image');
+      if (preloadElement) {
+        preloadElement.style.display = "none";
+      }
+      
+      console.log('examine1_2: 画像プリロード完了');
+    } catch (error) {
+      console.error('画像プリロード中にエラーが発生しました:', error);
+    }
   }
 
+  /**
+   * ページをクリアする
+   */
   clearPage() {
     document.getElementById('estimate_input_area').style.display = "none";
     document.getElementById('check_sentence').style.display = "none";
     document.getElementById('description_area').style.display = "none";
     document.getElementById('show_sample_area').style.display = 'none';
   }
-
+  /**
+   * 次のシナリオの説明を表示
+   */
   toNextScenarioDescription(isFirstTime = false) {
-    this.clearPage();
-    
-    if (!isFirstTime) {
-      this.scenarioIndex++;
+    if (!this.testOrder || typeof this.testOrder !== 'object') {
+      console.error('testOrderが初期化されていません');
+      return;
     }
     
+    this.clearPage();
+    if (!isFirstTime) {
+      this.sceIdx++;
+    }
     this.resetBackGround();
     
-    // 配布されたシナリオを使用
-    const scenarios = this.scenarios || config.scenarios;
-    document.getElementById('page').innerHTML = "<h4>" + (this.scenarioIndex + 1) + '/' + scenarios.length + "種類目</h4>";
-    document.getElementById('scenario_title').innerHTML = "<h2>" + this.experimentData[scenarios[this.scenarioIndex]]['title'] + "</h2>";
+    const scenarioKey = this.scenarios[this.sceIdx];
+    if (!this.testOrder[scenarioKey]) {
+      console.error(`シナリオ ${scenarioKey} が見つかりません`);
+      return;
+    }
+    
+    document.getElementById('page').innerHTML = "<h4>" + (this.sceIdx + 1) + '/' + this.scenarios.length + "種類目</h4>";
+    document.getElementById('scenario_title').innerHTML = "<h2>" + this.testOrder[scenarioKey]['title'] + "</h2>";
     document.getElementById('check_sentence').style.display = "inline-block";
     document.getElementById('description_area').style.display = "inline-block";
     document.getElementById('start_scenario_button').setAttribute("disabled", true);
     
-    // 条件に応じた説明文を選択
-    let descriptions;
-    if (this.sampleType === 'symmetric' && this.experimentData[scenarios[this.scenarioIndex]]['descriptions_symmetric']) {
-      descriptions = this.experimentData[scenarios[this.scenarioIndex]]['descriptions_symmetric'];
-      console.log('対称条件の説明文を使用');
-    } else {
-      descriptions = this.experimentData[scenarios[this.scenarioIndex]]['descriptions'];
-      console.log('非対称条件の説明文を使用');
-    }
-    
-    const descLen = descriptions.length;
-    for (let i = 0; i < descLen; i++) {
-      document.getElementById('scenario_description' + String(i + 1)).innerHTML = descriptions[i];
+    const descriptions = this.testOrder[scenarioKey]['descriptions'];
+    if (descriptions && descriptions.length > 0) {
+      for (let i = 0; i < descriptions.length; i++) {
+        const element = document.getElementById('scenario_description' + String(i + 1));
+        if (element) {
+          element.innerHTML = descriptions[i];
+        }
+      }
     }
   }
 
+  /**
+   * チェックボックスの確認
+   */
   checkDescription() {
-    const checkbox = document.getElementsByClassName("checkbox");
+    let checkbox = document.getElementsByClassName("checkbox");
     let count = 0;
-    
     for (let i = 0; i < checkbox.length; i++) {
       if (checkbox[i].checked) count++;
     }
-    
     if (count == checkbox.length) {
       document.getElementById('start_scenario_button').removeAttribute("disabled");
     } else {
       document.getElementById("start_scenario_button").setAttribute("disabled", true);
     }
   }
-
+  /**
+   * 次のサンプル表示ページへ遷移
+   */
   toNextNewSamplePage() {
-    this.clearPage();
+    if (!this.testOrder || typeof this.testOrder !== 'object') {
+      console.error('testOrderが初期化されていません');
+      return;
+    }
     
-    // チェックボックスをリセット
-    const list = document.getElementsByClassName("checkbox");
+    this.clearPage();
+    let list = document.getElementsByClassName("checkbox");
     for (let index = 0; index < list.length; ++index) {
       list[index].checked = false;
     }
-    
     this.currentTestPage = 0;
     document.getElementById('show_sample_area').style.display = "inline";
     document.getElementById('order').innerHTML = "実験の進捗状況";
     this.changeBackGround();
 
-    // 提示するサンプル作成
+    // 提示するサンプルのリストを作り、サンプルサイズを求める
     this.currentSampleSelection = [];
     this.sampleSize = 0;
     
-    const scenarios = this.scenarios || config.scenarios;
-    const currentScenario = scenarios[this.scenarioIndex];
-    const currentStimulus = this.stimuli[this.scenarioIndex];
-    const samples = this.experimentData[currentScenario]['samples'][currentStimulus];
+    const scenarioKey = this.scenarios[this.sceIdx];
+    const stimulusKey = this.stimuli[this.sceIdx];
     
-    Object.keys(samples).forEach(elm => {
+    // データ構造の存在確認
+    if (!this.testOrder[scenarioKey] || 
+        !this.testOrder[scenarioKey]['samples'] || 
+        !this.testOrder[scenarioKey]['samples'][stimulusKey]) {
+      console.error(`サンプルデータが見つかりません: ${scenarioKey}/${stimulusKey}`);
+      return;
+    }
+    
+    const samples = this.testOrder[scenarioKey]['samples'][stimulusKey];
+    Object.keys(samples).forEach((elm) => {
       if (samples[elm] > 0) {
         this.sampleSize += samples[elm];
         this.cellSize = samples[elm];
-        
         for (let i = 0; i < this.cellSize; i++) {
           this.currentSampleSelection.push(elm);
         }
       }
     });
-    
-    this.currentSampleSelection = shuffle(this.currentSampleSelection);
+    this.currentSampleSelection = shuffleArray(this.currentSampleSelection);
+
     this.toNextSample();
   }
 
+  /**
+   * 次のサンプルを表示
+   */
   toNextSample() {
-    const button = document.getElementById('next_sample');
-    button.disabled = true;
-    
+    const button1 = document.getElementById('next_sample');
+    button1.disabled = true;
     if (this.currentTestPage >= this.sampleSize) {
-      uiManager.showErrorMessage('結果は以上になります。');
+      alert('結果は以上になります。');
       this.drawEstimate('fin');
       return;
     }
-    
     this.showStimulation();
-    
-    // 連打防止
     setTimeout(() => {
-      button.disabled = false;
+      button1.disabled = false;
     }, 500);
   }
-
+  /**
+   * 刺激を表示
+   */
   showStimulation() {
-    const sample = this.currentSampleSelection[this.currentTestPage];
-    const scenarios = this.scenarios || config.scenarios;
-    const currentScenario = scenarios[this.scenarioIndex];
-    
-    // 条件に応じて適切な文章を選択
-    let sentences;
-    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['sentences_symmetric']) {
-      sentences = this.experimentData[currentScenario]['sentences_symmetric'];
-      console.log('対称条件の文章を使用');
-    } else {
-      sentences = this.experimentData[currentScenario]['sentences'];
-      console.log('非対称条件の文章を使用');
+    if (!this.currentSampleSelection || this.currentTestPage >= this.currentSampleSelection.length) {
+      console.error('サンプル選択データが不正です');
+      return;
     }
     
-    const desc = sentences[sample];
-    const sentenceParts = desc.split('、');
-    document.getElementById('first_sentence').innerHTML = "<h4>" + sentenceParts[0] + "</h4>";
-    document.getElementById('last_sentence').innerHTML = "<h4>" + sentenceParts[1] + "</h4>";
+    const sample = this.currentSampleSelection[this.currentTestPage];
+    const scenarioKey = this.scenarios[this.sceIdx];
     
+    // データ構造の存在確認
+    if (!this.testOrder[scenarioKey] || 
+        !this.testOrder[scenarioKey]['sentences'] || 
+        !this.testOrder[scenarioKey]['sentences'][sample]) {
+      console.error(`センテンスデータが見つかりません: ${scenarioKey}/${sample}`);
+      return;
+    }
+    
+    const desc = this.testOrder[scenarioKey]['sentences'][sample];
+    console.log("showStimulation_in");
+    const descParts = desc.split('、');
+    
+    document.getElementById('first_sentence').innerHTML = "<h4>" + descParts[0] + "</h4>";
+    document.getElementById('last_sentence').innerHTML = "<h4>" + descParts[1] + "</h4>";
     document.getElementById('show_sample_area').style.display = "inline";
     document.getElementById('first_sentence').style.display = 'inline-block';
     document.getElementById('last_sentence').style.display = 'inline-block';
@@ -419,39 +330,48 @@ class Experiment12Manager {
     document.getElementById('estimate_input_area').style.display = 'none';
     document.getElementById('next_sample').style.display = 'inline';
     
-    const combination = this.imgCombination[sample];
-    
-    // 条件に応じて適切な画像セットを選択
-    let imageSet;
-    if (this.sampleType === 'symmetric' && this.experimentData[currentScenario]['images_symmetric1_2']) {
-      imageSet = this.experimentData[currentScenario]['images_symmetric1_2'];
-      console.log('対称条件の画像を使用');
-    } else {
-      imageSet = this.experimentData[currentScenario]['images1_2'];
-      console.log('非対称条件の画像を使用');
+    // 画像パスの設定（images1_2を使用）
+    const images = this.testOrder[scenarioKey]['images1_2'];
+    if (images && this.imgCombination[sample]) {
+      const causePath = images[this.imgCombination[sample]['cause']];
+      const effectPath = images[this.imgCombination[sample]['effect']];
+      const arrowPath = images['arrow'];
+      
+      if (causePath) {
+        document.getElementById('sample_before').src = `../${causePath}`;
+      }
+      if (arrowPath) {
+        document.getElementById('arrow').src = `../${arrowPath}`;
+      }
+      if (effectPath) {
+        document.getElementById('sample_after').src = `../${effectPath}`;
+      }
     }
     
-    document.getElementById('sample_before').src = 
-      `../${imageSet[combination['cause']]}`;
-    document.getElementById('arrow').src = 
-      `../${imageSet['arrow']}`;
-    document.getElementById('sample_after').src = 
-      `../${imageSet[combination['effect']]}`;
-    
-    this.updateProgressBar();
-    
+    // 進捗バー更新
+    this.progressBar();
     this.currentTestPage++;
     document.getElementById('current_page').innerHTML = this.currentTestPage + '/' + this.sampleSize;
   }
 
-  updateProgressBar() {
+  /**
+   * 進捗バーを更新
+   */
+  progressBar() {
     document.getElementById('progress_bar').value = this.currentTestPage;
     document.getElementById('progress_bar').max = this.sampleSize - 1;
   }
-
-  drawEstimate(condition) {
-    this.clearPage();
+  /**
+   * 推定画面を描画
+   */
+  drawEstimate(c) {
+    const scenarioKey = this.scenarios[this.sceIdx];
+    if (!this.testOrder[scenarioKey]) {
+      console.error(`シナリオデータが見つかりません: ${scenarioKey}`);
+      return;
+    }
     
+    this.clearPage();
     document.getElementById("checkbox").setAttribute("disabled", true);
     document.getElementById('next_scenario').style.display = 'none';
     document.getElementById('estimate_input_area').style.display = 'inline-block';
@@ -463,126 +383,46 @@ class Experiment12Manager {
     document.getElementById('estimate').innerHTML = 50;
     document.getElementById("checkbox").checked = false;
     
-    if (condition === 'fin') {
+    if (c == 'fin') {
       document.getElementById('continue_scenario').style.display = 'none';
-      
-      const scenarios = this.scenarios || config.scenarios;
-      if (this.scenarioIndex === scenarios.length - 1) {
+      if (this.sceIdx == this.scenarios.length - 1) {
         document.getElementById('finish_all_scenarios').style.display = 'inline';
       } else {
         document.getElementById('next_scenario').style.display = 'inline';
       }
     }
 
-    const scenarios = this.scenarios || config.scenarios;
-    const currentScenario = this.experimentData[scenarios[this.scenarioIndex]];
-    
-    // 実験条件に応じて結果テキストを選択
-    let resultText;
-    if (this.sampleType === 'symmetric' && currentScenario['result_symmetric']) {
-      resultText = currentScenario['result_symmetric'];
-      console.log('対称条件の評価文を使用:', resultText);
-    } else {
-      resultText = currentScenario['result'];
-      console.log('非対称条件の評価文を使用:', resultText);
-    }
-    
-    document.getElementById('estimate_description').innerHTML = 
-      '<h3>' + resultText + 'と思いますか？</h3>' + 
-      '<ul>0：' + currentScenario['min_result'] + '</ul>' + 
-      '<ul>100：' + currentScenario['max_result'] + '</ul>' +
+    const scenarioData = this.testOrder[scenarioKey];
+    document.getElementById('estimate_description').innerHTML =
+      '<h3>' + (scenarioData['result'] || '結果を評価してください') + 'と思いますか？</h3>' +
+      '<ul>0：' + (scenarioData['min_result'] || '全く引き起こさない') + '</ul>' +
+      '<ul>100：' + (scenarioData['max_result'] || '確実に引き起こす') + '</ul>' +
       '<ul>として、0から100の値で<b>直感的に</b>回答してください。</ul>' +
       '<p>※スライダーの挙動に不具合が生じた場合、スライダーを直接クリックして値を選択してください。</p>';
   }
 
-  // EventHandlerから呼び出されるメソッド
   /**
-   * 次のシナリオへ進む処理（EventHandler用）
+   * 推定値を取得
    */
-  handleNextScenario() {
-    console.log('次のシナリオへ進みます');
-    // 推定値を記録
-    this.recordEstimation();
-    // 次のシナリオ説明に進む
-    this.toNextScenarioDescription();
+  getValue() {
+    this.appendEstimation(
+      document.getElementById('estimate_slider').value
+    );
   }
 
   /**
-   * シナリオを継続する処理（EventHandler用）
+   * 最終的な値を取得
    */
-  handleContinueScenario() {
-    console.log('シナリオを継続します');
-    // 推定値を記録
-    this.recordEstimation();
-    // 新しいサンプルページに進む
-    this.toNextNewSamplePage();
-  }
-
-  /**
-   * 結果をエクスポートする処理（EventHandler用）
-   */
-  async handleExportResults() {
-    console.log('結果をエクスポートします');
-    
-    // ボタンを無効化（連打防止）
+  getValueFin() {
+    // 回答送信ボタンの連打防止
     document.getElementById('finish_all_scenarios').disabled = true;
-    
-    try {
-      // 最後の推定値を記録
-      this.recordEstimation();
-      // 結果をエクスポート
-      await this.exportResults();
-    } catch (error) {
-      console.error('結果エクスポート処理でエラーが発生しました:', error);
-      // エラー時はボタンを再有効化
-      document.getElementById('finish_all_scenarios').disabled = false;
-    }
+    this.getValue();
+    this.exportResults();
   }
 
   /**
-   * 推定値を記録
+   * 推定画面のチェック確認
    */
-  recordEstimation() {
-    const estimation = document.getElementById('estimate_slider').value;
-    const scenarios = this.scenarios || config.scenarios;
-    const currentScenario = scenarios[this.scenarioIndex];
-    
-    // DataManagerのカスタムデータに推定結果を追加
-    if (!dataManager.customData.estimations) {
-      dataManager.customData.estimations = [];
-    }
-    
-    dataManager.customData.estimations.push({
-      'user_id': dataManager.userId,
-      'number': currentScenario,
-      'stimuli': this.stimuli[this.scenarioIndex],
-      'estimation': parseInt(estimation)
-    });
-    
-    console.log('推定結果を記録しました:', {
-      scenario: currentScenario,
-      estimation: estimation,
-      stimulus: this.stimuli[this.scenarioIndex]
-    });
-  }
-
-  async exportResults() {
-    try {
-      // ページ離脱警告を無効化
-      setupPageLeaveWarning(false);
-      
-      // DataManagerから推定データを取得し、次のページURLを決定
-      const nextUrl = await getNextPageUrl('examine1_2', dataManager.userId);
-      
-      // DataManagerの送信メソッドを使用してデータを送信
-      await dataManager.sendExamine12Results(dataManager.customData.estimations, nextUrl);
-    } catch (error) {
-      console.error("回答送信中にエラーが発生しました", error);
-      document.getElementById('finish_all_scenarios').removeAttribute("disabled");
-      throw error;
-    }
-  }
-
   checkEstimate() {
     if (document.getElementById('checkbox').checked) {
       document.getElementById('next_scenario').removeAttribute("disabled");
@@ -594,41 +434,68 @@ class Experiment12Manager {
     }
   }
 
-  changeBackGround() {
-    document.body.style.backgroundColor = this.bgcolors[this.scenarioIndex];
+  /**
+   * 推定データを追加
+   */
+  appendEstimation(estimation) {
+    let data = {};
+    data['user_id'] = this.userId;
+    data['number'] = this.scenarios[this.sceIdx];
+    data['stimuli'] = this.stimuli[this.sceIdx];
+    data['estimation'] = estimation;
+    this.estimations.push(data);
+  }
+  /**
+   * 結果をエクスポート
+   */
+  async exportResults() {
+    try {
+      let data = {};
+      data['user_id'] = this.userId;
+      data['start_time'] = this.startTime;
+      data['end_time'] = getNow();
+      data['user_agent'] = window.navigator.userAgent;
+      this.userData.push(data);
+
+      // DataManagerのsendExamine12Resultsメソッドを使用
+      await dataManager.sendExamine12Results(this.estimations, `../examine2?id=${this.userId}`);
+      
+    } catch (error) {
+      console.error('結果送信に失敗しました:', error);
+      alert("回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。");
+      document.getElementById('finish_all_scenarios').removeAttribute("disabled");
+    }
   }
 
+  /**
+   * 背景色を変更
+   */
+  changeBackGround() {
+    document.body.style.backgroundColor = this.bgcolors[this.sceIdx];
+  }
+
+  /**
+   * 背景色をリセット
+   */
   resetBackGround() {
     document.body.style.backgroundColor = 'Transparent';
   }
 }
 
-// 実験マネージャーのインスタンスを作成
-const experimentManager = new Experiment12Manager();
+// グローバル変数として実験インスタンスを保持
+let experimentManager;
 
-// グローバルスコープに公開する必要がある関数（HTMLから呼び出し可能）
-window.experiment12Manager = null;
-
-// ページ読み込み時に実験マネージャーを初期化
+// ページ読み込み時の初期化
 window.addEventListener('DOMContentLoaded', () => {
-  window.experiment12Manager = new Experiment12Manager();
+  experimentManager = new Experiment12Manager();
 });
 
-// HTMLのonclick属性から呼び出し可能なグローバル関数
-window.checkDescription = function() {
-  if (window.experiment12Manager) {
-    window.experiment12Manager.checkDescription();
-  }
-};
-
-window.to_next_new_sample_page = function() {
-  if (window.experiment12Manager) {
-    window.experiment12Manager.toNextNewSamplePage();
-  }
-};
-
-window.checkEstimate = function() {
-  if (window.experiment12Manager) {
-    window.experiment12Manager.checkEstimate();
-  }
-};
+// グローバル関数として公開（HTMLからの呼び出し用）
+window.check_description = () => experimentManager.checkDescription();
+window.to_next_new_sample_page = () => experimentManager.toNextNewSamplePage();
+window.to_next_sample = () => experimentManager.toNextSample();
+window.draw_estimate = (c) => experimentManager.drawEstimate(c);
+window.get_value = () => experimentManager.getValue();
+window.get_value_fin = () => experimentManager.getValueFin();
+window.check_estimate = () => experimentManager.checkEstimate();
+window.to_next_scenario_description = (isFirstTime) => experimentManager.toNextScenarioDescription(isFirstTime);
