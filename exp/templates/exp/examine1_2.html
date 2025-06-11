@@ -96,13 +96,12 @@
                     <span id="slider_max_result" class="slider-max-label"></span>
                 </div>
             </div>
-            
-            <form oninput="estimate.value = Number(estimate_slider.value);">
+              <form oninput="estimate.value = Number(estimate_slider.value);">
                 <div class="slider-value-container">
-                    <output id="estimate">0</o>
+                    <output id="estimate">50</o>
                 </div>
                 <div class="slider-input-container">
-                    <input id="estimate_slider" type="range" min="0" max="100" step="1" value="0" disabled>
+                    <input id="estimate_slider" type="range" min="0" max="100" step="1" value="50" disabled>
                     <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
                     <div style="margin-top: 10px;">
                         <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled />
@@ -150,10 +149,9 @@
                 if (cb) {
                     cb.checked = false;
                     cb.disabled = true;
-                }
-                if (slider) {
+                }                if (slider) {
                     slider.disabled = true;
-                    slider.value = 0;
+                    slider.value = 50;
                 }
                 if (waitMessage) {
                     waitMessage.style.display = 'block';
@@ -162,7 +160,7 @@
                 // 出力値をリセット
                 const estimate = document.getElementById('estimate');
                 if (estimate) {
-                    estimate.innerHTML = '0';
+                    estimate.innerHTML = '50';
                 }
                 
                 updateSubmitButtonState();
@@ -176,15 +174,15 @@
                 }, 3000);
             };
         </script>
-        
-        <div id="notes">
+          <div id="notes">
             <b>ボタンは1回押していただくだけで結構です。</b>
         </div>
         
         <button id="next_scenario" style="display:none; cursor:pointer;" disabled
             onclick="get_value();to_next_scenario_description()">次のシナリオへ進む</button>
         <button id="finish_all_scenarios" style="display:none; cursor:pointer;" disabled
-            onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>        <button id="continue_scenario" style="display:inline-grid; cursor:pointer;" disabled 
+            onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>
+        <button id="continue_scenario" style="display:inline-grid; cursor:pointer;" disabled 
             onclick="get_value();showStimulation()">シナリオを続ける</button>
     </div>
     </div>

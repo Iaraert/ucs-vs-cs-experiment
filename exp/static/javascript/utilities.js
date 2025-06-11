@@ -247,24 +247,31 @@ export async function getNextPageUrl(currentPage, userId) {
   // reallocate=falseを明示的に設定して既存の経路を尊重するようにする
   const experimentOrder = await getExperimentOrder(userId, false);
   
+  console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
+  
   if (currentPage === 'examine1') {
     if (experimentOrder === 'order1') {
       // examine1 → examine1_2 → examine2の順序
+      console.log('order1: examine1 → examine1_2への遷移');
       return `../examine1_2?id=${encodeURIComponent(userId)}`;
     } else {
-      // examine1_2 → examine1 → examine2の順序（examine1が最後）
+      // order2: examine1_2 → examine1 → examine2の順序（examine1が最後）
+      console.log('order2: examine1 → examine2への遷移（examine1が最後）');
       return `../examine2?id=${encodeURIComponent(userId)}`;
     }
   } else if (currentPage === 'examine1_2') {
     if (experimentOrder === 'order1') {
-      // examine1 → examine1_2 → examine2の順序（examine1_2が最後）
+      // order1: examine1 → examine1_2 → examine2の順序（examine1_2が最後）
+      console.log('order1: examine1_2 → examine2への遷移（examine1_2が最後）');
       return `../examine2?id=${encodeURIComponent(userId)}`;
     } else {
-      // examine1_2 → examine1 → examine2の順序
+      // order2: examine1_2 → examine1 → examine2の順序
+      console.log('order2: examine1_2 → examine1への遷移');
       return `../examine1?id=${encodeURIComponent(userId)}`;
     }
   }
   
   // デフォルトはexamine2
+  console.log('デフォルト: examine2への遷移');
   return `../examine2?id=${encodeURIComponent(userId)}`;
 }

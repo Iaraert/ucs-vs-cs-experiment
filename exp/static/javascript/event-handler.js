@@ -45,7 +45,7 @@ export class EventHandler {
     validateCheckboxes("checkbox", "start_scenario_button");
   }
   
-  submitResponseAndContinue() {
+  async submitResponseAndContinue() {
     const sliderElement = document.getElementById('response_slider');
     if (!sliderElement) {
       console.error('スライダー要素が見つかりません');
@@ -54,7 +54,7 @@ export class EventHandler {
     
     const sliderValue = sliderElement.value;
     
-    dataManager.recordResponse(sliderValue);
+    await dataManager.recordResponse(sliderValue);
     
     if (dataManager.isExperimentComplete()) {
       setupPageLeaveWarning(false);

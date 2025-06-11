@@ -281,13 +281,12 @@ export class DataManager {
     
     console.log(`シナリオ ${scenarioKey} ⇒ サンプル${sampleNumber} 使用`);
     
-    // サンプルデータを保存
+    // サンプルデータを保存（sample_typeは除外）
     this.currentSampleData = {
       'a': sampleData.a,
       'b': sampleData.b,
       'c': sampleData.c,
       'd': sampleData.d,
-      'sample_type': this.sampleType,
       'sample_number': sampleNumber
     };
     
@@ -301,23 +300,40 @@ export class DataManager {
     
     return this.currentSampleData;
   }
+
+
   
   /**
    * 回答データを記録
    * @param {number|string} value - 回答値
    */
-  recordResponse(value) {
+  async recordResponse(value) {
+    // 実験順序を取得
+    let experimentOrder = 'order1'; // デフォルト値
+    try {
+      const { getExperimentOrder } = await import('./utilities.js');
+      experimentOrder = await getExperimentOrder(this.userId, false);
+    } catch (error) {
+      console.warn('実験順序の取得に失敗しました。デフォルト値を使用します:', error);
+    }
+
+    // 最適化されたデータ構造：a, b, c, d を個別の列として記録
     let data = {
       'user_id': this.userId,
-      'scenario': this.getCurrentScenarioKey(),
-      'stimulus_data': this.currentSampleData,
-      'response': value,
-      'sample_type': this.sampleType,
+      'number': this.getCurrentScenarioKey(),
+      'a_value': this.currentSampleData ? this.currentSampleData.a : null,
+      'b_value': this.currentSampleData ? this.currentSampleData.b : null,
+      'c_value': this.currentSampleData ? this.currentSampleData.c : null,
+      'd_value': this.currentSampleData ? this.currentSampleData.d : null,
+      'estimation': value,
+      'order': experimentOrder,
+      'symmetric_condition': this.sampleType,
+      'sample_number': this.currentSampleData ? this.currentSampleData.sample_number : null,
       'timestamp': getNow()
     };
     
     this.estimations.push(data);
-    console.log("回答を記録しました:", data);
+    console.log("回答を記録しました（最適化済み）:", data);
     
     // 回答記録イベントを通知（Observerパターン）
     eventBus.emit('response:recorded', { responseData: data });
@@ -364,7 +380,7 @@ export class DataManager {
   }
 
   /**
-   * 実験結果をサーバーに送信
+   * 実験結果をサーバーに送信（examine1用）
    * @param {string} nextUrl - 送信成功時のリダイレクト先URL
    * @returns {Promise} 送信処理のPromise
    */
@@ -486,7 +502,7 @@ export class DataManager {
       const response = await postData('/send', {
         'user_data': JSON.stringify(userData),
         'estimations': JSON.stringify(estimations),
-        'file_name_suffix': 'exp1'
+        'file_name_suffix': 'exp1_2'  // examine1_2専用のサフィックス
       }, {
         timeout: 50000
       });
@@ -497,6 +513,9 @@ export class DataManager {
         response: response,
         nextUrl: nextUrl
       });
+      
+      console.log(`sendExamine12Results: リダイレクト先URL: ${nextUrl}`);
+      console.log(`sendExamine12Results: 現在のユーザーID: ${this.userId}`);
       
       if (nextUrl) {
         location.href = nextUrl;
