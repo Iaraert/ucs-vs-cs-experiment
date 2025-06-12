@@ -18,20 +18,20 @@
             "A剤の投与がB剤と比べて頭痛をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/drug/sleepy.png",
+            "positive": "static/images/scenarios/drug/headache.png",
             "negative": "static/images/scenarios/drug/normal.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/drug/sleepy.png",
+            "p": "static/images/scenarios/drug/headache.png",
             "notp": "static/images/scenarios/drug/normal.png",
-            "q": "static/images/scenarios/drug/sleepy.png",
+            "q": "static/images/scenarios/drug/headache.png",
             "notq": "static/images/scenarios/drug/normal.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/drug/sleepy.png",
+            "p": "static/images/scenarios/drug/headache.png",
             "notp": "static/images/scenarios/drug/normal.png",
-            "q": "static/images/scenarios/drug/sleepy.png",
+            "q": "static/images/scenarios/drug/headache.png",
             "notq": "static/images/scenarios/drug/normal.png",
             "arrow": "static/images/yajirushi_right.png"
         },
@@ -390,21 +390,21 @@
             "全ての結果が表示されたら、Aの周波数のホワイトノイズがBの周波数のホワイトノイズと比べて正答率をどの程度向上させるか評価してもらいます。"
         ],
         "images": {
-            "positive": "static/images/scenarios/test/high_score.png",
-            "negative": "static/images/scenarios/test/low_score.png"
+            "positive": "static/images/scenarios/whitenoise/high_score.png",
+            "negative": "static/images/scenarios/whitenoise/low_score.png"
         },
         "images1_2": {
             "p": "static/images/scenarios/whitenoise/using.png",
             "notp": "static/images/scenarios/whitenoise/not_using.png",
-            "q": "static/images/scenarios/test/high_score.png",
-            "notq": "static/images/scenarios/test/low_score.png",
+            "q": "static/images/scenarios/whitenoise/high_score.png",
+            "notq": "static/images/scenarios/whitenoise/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/whitenoise/freq_a.png",
             "notp": "static/images/scenarios/whitenoise/freq_b.png",
-            "q": "static/images/scenarios/test/high_score.png",
-            "notq": "static/images/scenarios/test/low_score.png",
+            "q": "static/images/scenarios/whitenoise/high_score.png",
+            "notq": "static/images/scenarios/whitenoise/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -452,21 +452,21 @@
             "自律清掃ロボットが遠隔操作清掃ロボットと比べて感染症発生件数をどの程度減少させるかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/infection/reduced.png",
-            "negative": "static/images/scenarios/infection/unchanged.png"
+            "positive": "static/images/scenarios/robot/reduced.png",
+            "negative": "static/images/scenarios/robot/unchanged.png"
         },
         "images1_2": {
             "p": "static/images/scenarios/robot/cleaning_robot.png",
             "notp": "static/images/scenarios/robot/manual_cleaning.png",
-            "q": "static/images/scenarios/infection/reduced.png",
-            "notq": "static/images/scenarios/infection/unchanged.png",
+            "q": "static/images/scenarios/robot/reduced.png",
+            "notq": "static/images/scenarios/robot/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/robot/autonomous_robot.png",
             "notp": "static/images/scenarios/robot/remote_robot.png",
-            "q": "static/images/scenarios/infection/reduced.png",
-            "notq": "static/images/scenarios/infection/unchanged.png",
+            "q": "static/images/scenarios/robot/reduced.png",
+            "notq": "static/images/scenarios/robot/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -518,15 +518,15 @@
             "negative": "static/images/scenarios/training/fatigue.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/equipment/new_equipment.png",
-            "notp": "static/images/scenarios/equipment/old_equipment.png",
+            "p": "static/images/scenarios/training/new_equipment.png",
+            "notp": "static/images/scenarios/training/old_equipment.png",
             "q": "static/images/scenarios/training/no_fatigue.png",
             "notq": "static/images/scenarios/training/fatigue.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/equipment/light_equipment.png",
-            "notp": "static/images/scenarios/equipment/heavy_equipment.png",
+            "p": "static/images/scenarios/training/light_equipment.png",
+            "notp": "static/images/scenarios/training/heavy_equipment.png",
             "q": "static/images/scenarios/training/no_fatigue.png",
             "notq": "static/images/scenarios/training/fatigue.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -576,21 +576,21 @@
             "青系背景色が暖色系背景色と比べて質問による時間延長をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/presentation/extended.png",
-            "negative": "static/images/scenarios/presentation/on_time.png"
+            "positive": "static/images/scenarios/slide/extended.png",
+            "negative": "static/images/scenarios/slide/on_time.png"
         },
         "images1_2": {
             "p": "static/images/scenarios/slide/special_color.png",
             "notp": "static/images/scenarios/slide/standard_color.png",
-            "q": "static/images/scenarios/presentation/extended.png",
-            "notq": "static/images/scenarios/presentation/on_time.png",
+            "q": "static/images/scenarios/slide/extended.png",
+            "notq": "static/images/scenarios/slide/on_time.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/slide/blue_background.png",
             "notp": "static/images/scenarios/slide/warm_background.png",
-            "q": "static/images/scenarios/presentation/extended.png",
-            "notq": "static/images/scenarios/presentation/on_time.png",
+            "q": "static/images/scenarios/slide/extended.png",
+            "notq": "static/images/scenarios/slide/on_time.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -638,21 +638,21 @@
             "色温度Aの照明が色温度Bの照明と比べて夜間覚醒をどの程度抑制するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/sleep/no_awakening.png",
-            "negative": "static/images/scenarios/sleep/awakening.png"
+            "positive": "static/images/scenarios/lighting/no_awakening.png",
+            "negative": "static/images/scenarios/lighting/awakening.png"
         },
         "images1_2": {
             "p": "static/images/scenarios/lighting/dim_light.png",
             "notp": "static/images/scenarios/lighting/bright_light.png",
-            "q": "static/images/scenarios/sleep/no_awakening.png",
-            "notq": "static/images/scenarios/sleep/awakening.png",
+            "q": "static/images/scenarios/lighting/no_awakening.png",
+            "notq": "static/images/scenarios/lighting/awakening.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/lighting/warm_light.png",
             "notp": "static/images/scenarios/lighting/cool_light.png",
-            "q": "static/images/scenarios/sleep/no_awakening.png",
-            "notq": "static/images/scenarios/sleep/awakening.png",
+            "q": "static/images/scenarios/lighting/no_awakening.png",
+            "notq": "static/images/scenarios/lighting/awakening.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {

@@ -28,6 +28,10 @@ class ExperimentApp {
       // DataManagerを初期化
       await dataManager.init();
       
+      // サーバーから実験条件（対称/非対称）を取得
+      await dataManager.fetchSampleType();
+      console.log('examine1: 実験条件:', dataManager.sampleType);
+      
       // UIManagerを初期化
       uiManager.init();
       

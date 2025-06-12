@@ -401,3 +401,8 @@ Nginxとの連携設定は `config/nginx.conf` を参照してください。
 
 - Javaでデザインパターンを学ぶ：Observerパターン - 土日の勉強ノート: https://daisuke20240310.hatenablog.com/entry/observer
 - JavaScriptでObserverパターンの理解: https://viblo.asia/p/javascript%E3%81%A7observer%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%E3%81%AE%E7%90%86%E8%A7%A3-E1XVOXlp4Mz
+
+- Gunicornってなんだろう？WSGIってなんだろう？｜Fuji: https://note.com/shirotabistudy/n/n99fcb1586fd1
+
+- EC2のAmazon LinuxにNginxを入れてFlaskを動かす方法: https://zenn.dev/century/articles/6b7d6ad29605f8
+- 【AWS EC2】Amazon Linux2にnginxをインストールする方法: https://qiita.com/tamorieeeen/items/07743216a3662cfca890
