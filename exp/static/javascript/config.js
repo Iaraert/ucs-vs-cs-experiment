@@ -28,10 +28,9 @@ export class ExperimentConfig {
     ];
     this.sliderWaitTime = options.sliderWaitTime || 3000;
     
-    // 全12シナリオの定義
     this.allScenarios = [
-      'one', 'two', 'three', 'four', 'five', 'six', 
-      'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'
+      '1', '2', '3', '4', '5', '6', 
+      '7', '8', '9', '10', '11', '12'
     ];
     
     // エラー処理とロギングの設定

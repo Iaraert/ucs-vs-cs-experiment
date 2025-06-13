@@ -47,8 +47,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
         'c': {'cause': 'notp', 'effect': 'q'},
         'd': {'cause': 'notp', 'effect': 'notq'}
     };
-    
-    // 実験状態管理
+      // 実験状態管理
     this.currentTestPage = 0;
     this.sampleSize = 0;
     this.userId = 0;
@@ -262,20 +261,43 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    */
   toNextScenarioDescription(isFirstTime = false) {
     if (!validateScenarioData(this.testOrder, null)) {
+      console.error('testOrderが初期化されていません');
       return;
     }
     
     this.clearPage();
     if (!isFirstTime) {
       this.sceIdx++;
+      
+      // 境界チェック: シナリオ数を超えていないか確認
+      if (this.sceIdx >= this.scenarios.length) {
+        console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+        alert('すべてのシナリオが完了しました。');
+        return;
+      }
     }
+    
     this.resetBackGround();
     
     const scenarioKey = this.scenarios[this.sceIdx];
+    console.log(`シナリオ表示: インデックス=${this.sceIdx}, キー=${scenarioKey}`);
+    
     if (!validateScenarioData(this.testOrder, scenarioKey)) {
+      console.error(`シナリオデータが見つかりません: ${scenarioKey}`);
+      alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
       return;
     }
-    
+
+    // シナリオデータの必須プロパティ確認
+    const requiredProperties = ['title', 'descriptions'];
+    for (const prop of requiredProperties) {
+      if (!this.testOrder[scenarioKey][prop]) {
+        console.error(`シナリオ "${scenarioKey}" に必要なプロパティ "${prop}" がありません`);
+        alert(`シナリオデータが不完全です。管理者にお問い合わせください。`);
+        return;
+      }
+    }
+
     document.getElementById('page').innerHTML = "<h4>" + (this.sceIdx + 1) + '/' + this.scenarios.length + "種類目</h4>";
     document.getElementById('scenario_title').innerHTML = "<h2>" + this.testOrder[scenarioKey]['title'] + "</h2>";
       setElementsDisplay({
@@ -346,6 +368,14 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    */
   toNextNewSamplePage() {
     if (!validateScenarioData(this.testOrder, null)) {
+      console.error('testOrderが初期化されていません');
+      return;
+    }
+    
+    // 境界チェック
+    if (this.sceIdx >= this.scenarios.length) {
+      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。');
       return;
     }
     
@@ -365,6 +395,8 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     
     const scenarioKey = this.scenarios[this.sceIdx];
     const stimulusKey = this.stimuli[this.sceIdx];
+    
+    console.log(`サンプル表示準備: シナリオ=${scenarioKey}, 刺激=${stimulusKey}`);
     
     // データ構造の存在確認
     if (!validateScenarioData(this.testOrder, scenarioKey, [`samples.${stimulusKey}`])) {
@@ -405,11 +437,18 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    * スライダーの質問文を設定
    */
   initializeSlider() {
+    // 境界チェック
+    if (this.sceIdx >= this.scenarios.length) {
+      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      return;
+    }
+    
     const scenarioKey = this.scenarios[this.sceIdx];
     const scenarioData = this.testOrder[scenarioKey];
     
     if (!scenarioData) {
       console.error('シナリオデータが見つかりません:', scenarioKey);
+      alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
       return;
     }
     
@@ -442,8 +481,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     if (maxResultElement) {
       maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
     }
-  }
-  /**
+  }  /**
    * 刺激を表示
    */
   showStimulation() {
@@ -452,8 +490,17 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       return;
     }
     
+    // 境界チェック
+    if (this.sceIdx >= this.scenarios.length) {
+      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。');
+      return;
+    }
+    
     const sample = this.currentSampleSelection[this.currentTestPage];
     const scenarioKey = this.scenarios[this.sceIdx];
+    
+    console.log(`刺激表示: シナリオ=${scenarioKey}, サンプル=${sample}, ページ=${this.currentTestPage + 1}/${this.currentSampleSelection.length}`);
     
     // 条件に応じて文章セットを選択
     let sentencesKey = 'sentences';
@@ -514,10 +561,20 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    * 推定画面を描画
    */
   drawEstimate(c) {
+    // 境界チェック
+    if (this.sceIdx >= this.scenarios.length) {
+      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。');
+      return;
+    }
+    
     const scenarioKey = this.scenarios[this.sceIdx];
+    console.log(`推定画面描画: シナリオ=${scenarioKey}, モード=${c}`);
     
     // 共通化されたデータ構造存在確認
     if (!validateScenarioData(this.testOrder, scenarioKey, ['result', 'min_result', 'max_result'])) {
+      console.error(`シナリオ "${scenarioKey}" の必要データが不足しています`);
+      alert('シナリオデータが不完全です。管理者にお問い合わせください。');
       return;
     }
     
@@ -634,8 +691,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     
     // サンプルデータから各値を取得
     const scenarioSamples = this.testOrder[scenarioKey]['samples'][stimulusKey];
-    
-    // 実験順序を取得
+      // 実験順序を取得
     let experimentOrder = 'order1'; // デフォルト値
     try {
       const { getExperimentOrder } = await import('./utilities.js');
@@ -644,21 +700,27 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       console.warn('実験順序の取得に失敗しました。デフォルト値を使用します:', error);
     }
     
-    // 最適化されたデータ構造：a, b, c, d を個別の列として記録
+    // is_first を 0/1 に変換
+    const isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+    
+    // is_symmetric を 0/1 に変換
+    const isSymmetricNumeric = dataManager.sampleType === 'symmetric' ? 1 : 0;
+      // 最適化されたデータ構造：a, b, c, d を個別の列として記録
     let data = {
-      'user_id': this.userId,      'number': scenarioKey,
+      'user_id': this.userId,
+      'cover_story': scenarioKey,
       'a_value': scenarioSamples.a || 0,
       'b_value': scenarioSamples.b || 0,
       'c_value': scenarioSamples.c || 0,
       'd_value': scenarioSamples.d || 0,
       'estimation': estimation,
-      'order': experimentOrder,
-      'symmetric_condition': dataManager.sampleType,
+      'is_first': isFirstNumeric,
+      'is_symmetric': isSymmetricNumeric,
       'sample_number': this.currentTestPage,
       'timestamp': getNow()
     };
       this.estimations.push(data);
-    console.log(`推定データを記録しました（最適化済み）- 記録数: ${this.estimations.length}/${this.scenarios.length}:`, data);
+    console.log(`推定データを記録しました（最適化済み、is_first/is_symmetric は 0/1 形式）- 記録数: ${this.estimations.length}/${this.scenarios.length}:`, data);
   }
 /**
    * 結果をエクスポート
@@ -705,18 +767,48 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
 // グローバル変数として実験インスタンスを保持
 let experimentManager;
 
+// 安全なアクセスのためのヘルパー関数
+function safeCall(methodName, ...args) {
+  if (!experimentManager) {
+    console.error(`experimentManager not initialized when calling ${methodName}`);
+    return;
+  }
+  if (typeof experimentManager[methodName] !== 'function') {
+    console.error(`Method ${methodName} not found on experimentManager`);
+    return;
+  }
+  return experimentManager[methodName](...args);
+}
+
 // ページ読み込み時の初期化
 window.addEventListener('DOMContentLoaded', () => {
-  experimentManager = new Experiment12Manager();
+  try {
+    experimentManager = new Experiment12Manager();
+    console.log('examine1_2: experimentManager初期化完了');
+  } catch (error) {
+    console.error('examine1_2: experimentManager初期化エラー:', error);
+  }
 });
 
 // グローバル関数として公開（HTMLからの呼び出し用）
-window.check_description = () => experimentManager.checkDescription();
-window.to_next_new_sample_page = () => experimentManager.toNextNewSamplePage();
-window.to_next_sample = () => experimentManager.toNextSample();
-window.draw_estimate = (c) => experimentManager.drawEstimate(c);
-window.get_value = async () => await experimentManager.getValue();
-window.get_value_fin = async () => await experimentManager.getValueFin();
-window.check_estimate = () => experimentManager.checkEstimate();
-window.to_next_scenario_description = (isFirstTime) => experimentManager.toNextScenarioDescription(isFirstTime);
-window.showStimulation = () => experimentManager.showStimulation();
+window.check_description = () => safeCall('checkDescription');
+window.to_next_new_sample_page = () => safeCall('toNextNewSamplePage');
+window.to_next_sample = () => safeCall('toNextSample');
+window.draw_estimate = (c) => safeCall('drawEstimate', c);
+window.get_value = async () => {
+  if (!experimentManager) {
+    console.error('experimentManager not initialized when calling get_value');
+    return;
+  }
+  return await experimentManager.getValue();
+};
+window.get_value_fin = async () => {
+  if (!experimentManager) {
+    console.error('experimentManager not initialized when calling get_value_fin');
+    return;
+  }
+  return await experimentManager.getValueFin();
+};
+window.check_estimate = () => safeCall('checkEstimate');
+window.to_next_scenario_description = (isFirstTime) => safeCall('toNextScenarioDescription', isFirstTime);
+window.showStimulation = () => safeCall('showStimulation');

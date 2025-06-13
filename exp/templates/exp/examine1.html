@@ -68,38 +68,39 @@
                 <form action="cgi-bin/abc.cgi" method="post">
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox1" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox1" id="scenario_description1"></label>
                     </p>
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox2" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox2" id="scenario_description2"></label>
                     </p>
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox3" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox3" id="scenario_description3"></label>
                     </p>
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox4" id="scenario_description4"></label>
                     </p>
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox5" id="scenario_description5"></label>
                     </p>
                     <p>
                         <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
-                            onclick="check_description()" />
+                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox6" id="scenario_description6"></label>
                     </p>
                 </form>
             </div>
             <div style="padding: 20px 20px;">
-                <button id="start_scenario_button" class="btn" style="cursor:pointer;" onclick="to_next_new_sample_page()"
+                <button id="start_scenario_button" class="btn" style="cursor:pointer;" 
+                    onclick="try { to_next_new_sample_page(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }"
                     disabled>このシナリオを<br>開始する</button>
             </div>
         </div>
@@ -231,11 +232,11 @@
                 <b>送信に時間がかかる場合がありますので、最低30秒お待ちください。</b>
             </div>
             <button id="next_scenario" class="btn" style="display:none; cursor:pointer;" disabled
-                onclick="get_value();to_next_scenario_description()">次のシナリオへ進む</button>
+                onclick="try { get_value(); to_next_scenario_description(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">次のシナリオへ進む</button>
             <button id="finish_all_scenarios" class="btn" style="display:none; cursor:pointer;" disabled
-                onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>
+                onclick="try { window.onbeforeunload = null; get_value_fin(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">回答を送信する</button>
             <button id="continue_scenario" class="btn" style="display:inline-grid; cursor:pointer;" disabled 
-                onclick="get_value();showStimulation()">シナリオを続ける</button>
+                onclick="try { get_value(); showStimulation(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">シナリオを続ける</button>
         </div>
     </div>
 

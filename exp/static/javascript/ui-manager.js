@@ -38,8 +38,32 @@ export class UIManager {
     this.resetBackGround();
 
     const currentIndex = dataManager.currentScenarioIndex;
+    
+    // 境界チェック
+    if (currentIndex >= config.scenarios.length) {
+      console.error(`シナリオインデックスが範囲外です: ${currentIndex}/${config.scenarios.length}`);
+      alert('すべてのシナリオが完了しました。');
+      return;
+    }
+    
     const scenarioKey = dataManager.getCurrentScenarioKey();
     const scenarioData = dataManager.getCurrentScenarioData();
+    
+    // シナリオデータの存在確認
+    if (!scenarioData) {
+      console.error(`シナリオデータが見つかりません: ${scenarioKey}`);
+      alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
+      return;
+    }
+    
+    // 必須プロパティの確認
+    if (!scenarioData.title || !scenarioData.descriptions) {
+      console.error(`シナリオ "${scenarioKey}" に必要なプロパティがありません`);
+      alert('シナリオデータが不完全です。管理者にお問い合わせください。');
+      return;
+    }
+    
+    console.log(`シナリオ表示: インデックス=${currentIndex}, キー=${scenarioKey}`);
     
     // progress_barの最大値と現在値を更新
     const progressBar = document.getElementById('progress_bar');
@@ -125,8 +149,8 @@ export class UIManager {
 
     // 従来のプリロード処理（他の実験用）
     const allScenarios = [
-      'one', 'two', 'three', 'four', 'five', 'six', 
-      'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'
+      '1', '2', '3', '4', '5', '6', 
+      '7', '8', '9', '10', '11', '12'
     ];
     
     for (let scenario of allScenarios) {

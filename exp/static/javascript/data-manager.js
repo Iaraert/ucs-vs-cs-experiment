@@ -317,23 +317,29 @@ export class DataManager {
       console.warn('実験順序の取得に失敗しました。デフォルト値を使用します:', error);
     }
 
+    // is_first を 0/1 に変換
+    const isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+    
+    // is_symmetric を 0/1 に変換
+    const isSymmetricNumeric = this.sampleType === 'symmetric' ? 1 : 0;
+
     // 最適化されたデータ構造：a, b, c, d を個別の列として記録
     let data = {
       'user_id': this.userId,
-      'number': this.getCurrentScenarioKey(),
+      'cover_story': this.getCurrentScenarioKey(),
       'a_value': this.currentSampleData ? this.currentSampleData.a : null,
       'b_value': this.currentSampleData ? this.currentSampleData.b : null,
       'c_value': this.currentSampleData ? this.currentSampleData.c : null,
       'd_value': this.currentSampleData ? this.currentSampleData.d : null,
       'estimation': value,
-      'order': experimentOrder,
-      'symmetric_condition': this.sampleType,
+      'is_first': isFirstNumeric,
+      'is_symmetric': isSymmetricNumeric,
       'sample_number': this.currentSampleData ? this.currentSampleData.sample_number : null,
       'timestamp': getNow()
     };
     
     this.estimations.push(data);
-    console.log("回答を記録しました（最適化済み）:", data);
+    console.log("回答を記録しました（最適化済み、is_first/is_symmetric は 0/1 形式）:", data);
     
     // 回答記録イベントを通知（Observerパターン）
     eventBus.emit('response:recorded', { responseData: data });

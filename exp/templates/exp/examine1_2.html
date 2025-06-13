@@ -43,9 +43,9 @@
             <p id="check_sentence" style="display:none;">それぞれの項目を読んだら左側のチェックボックスをチェックし、回答ページに進んでください。</p>
             <br>        <div id="scenario_descriptions" style="text-align: left;">
                 <!-- チェックボックスと説明文は動的に生成されます -->
-            </div>
-            <div style="padding: 20px 20px;">
-                <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" onclick="to_next_new_sample_page()"
+            </div>            <div style="padding: 20px 20px;">
+                <button id="start_scenario_button" class="next_button" style="cursor: hand; cursor:pointer;" 
+                    onclick="try { to_next_new_sample_page(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }"
                     disabled>このシナリオを<br>開始する</button>
             </div>
         </div>
@@ -73,9 +73,9 @@
             </td></tr>
             </table>
         </div>
-        
-        <div id="pred_ans"></div>
-        <button id="next_sample" class="next_button"  style="display: none; cursor: hand; cursor:pointer;" onclick="to_next_sample();">次の事例へ</button>
+          <div id="pred_ans"></div>
+        <button id="next_sample" class="next_button"  style="display: none; cursor: hand; cursor:pointer;" 
+            onclick="try { to_next_sample(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">次の事例へ</button>
     </div>
     <script>
         $('button').on('click', function() {
@@ -177,13 +177,12 @@
           <div id="notes">
             <b>ボタンは1回押していただくだけで結構です。</b>
         </div>
-        
-        <button id="next_scenario" style="display:none; cursor:pointer;" disabled
-            onclick="get_value();to_next_scenario_description()">次のシナリオへ進む</button>
+          <button id="next_scenario" style="display:none; cursor:pointer;" disabled
+            onclick="try { get_value(); to_next_scenario_description(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">次のシナリオへ進む</button>
         <button id="finish_all_scenarios" style="display:none; cursor:pointer;" disabled
-            onclick="window.onbeforeunload = null; get_value_fin();">回答を送信する</button>
+            onclick="try { window.onbeforeunload = null; get_value_fin(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">回答を送信する</button>
         <button id="continue_scenario" style="display:inline-grid; cursor:pointer;" disabled 
-            onclick="get_value();showStimulation()">シナリオを続ける</button>
+            onclick="try { get_value(); showStimulation(); } catch(e) { console.error('Button click error:', e); alert('システムエラーが発生しました。ページを再読み込みしてください。'); }">シナリオを続ける</button>
     </div>
     </div>
   
