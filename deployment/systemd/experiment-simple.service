@@ -2,6 +2,7 @@
 Description=UCS vs CS Experiment Production Service
 After=network.target network-online.target
 Wants=network-online.target
+WantedBy=nginx.service
 
 [Service]
 Type=simple
@@ -16,7 +17,7 @@ Environment=PORT=9876
 Environment=HOST=127.0.0.1
 
 # 実行コマンド
-ExecStart=/opt/ucs-vs-cs-experiment/venv/bin/python server.py
+ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/python server.py
 ExecReload=/bin/kill -HUP $MAINPID
 
 # ヘルスチェック（アプリケーション起動確認）

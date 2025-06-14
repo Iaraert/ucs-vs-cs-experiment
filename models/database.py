@@ -372,3 +372,16 @@ class Database:
                 "total": 0,
                 "error": str(e)
             }
+
+    def get_connection(self):
+        """ヘルスチェック用のデータベース接続テスト"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            # 簡単なクエリでテスト
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+            conn.close()
+            return True
+        except Exception as e:
+            raise Exception(f"Database connection failed: {e}")

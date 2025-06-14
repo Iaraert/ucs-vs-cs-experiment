@@ -383,26 +383,39 @@ Nginxとの連携設定は `config/nginx.conf` を参照してください。
 - examine1, examine1_2:   ICOOON MONO(https://icooon-mono.com/)
 
 ## 参考にしたサイト
+### SQLite
 - SQLite の基礎 #Database - Qiita: https://qiita.com/shikuno_dev/items/13de104aa2c2adf8aead
 - SQLite3を用いたSQL入門: https://www.aise.ics.saitama-u.ac.jp/~gotoh/Lectures/TUS_IP/IntroSQLBySQLite3.html
 - 【Python】sqlite3.connect() の使い方と実行結果 — シラベルノート: https://pyex.srbrnote.work/library/sqlite3/sqlite3.connect.html
 
+### threading
 - threading --- スレッドベースの並列処理 — Python 3.10.17 ドキュメント: https://docs.python.org/ja/3.10/library/threading.html
 - Pythonの「threading.Lock」とは？ | プログラミング単語帳: https://programming-tango.jp/vocabulary/7151/
 - pythonでマルチスレッドについて勉強してみる: https://qiita.com/jabberwocky3376/items/60b8b133eb9151147c7e
 
+### RESTful API
 - RESTful API: https://zenn.dev/mstng/articles/1c2e0fecbab103
 - 実践：はじめてのWebAPI設計: https://qiita.com/kazuki_tachikawa/items/7dab01ac2ea08b85fb15
 - RESTful API 設計の極意：実践ガイド: https://qiita.com/Leapcell/items/d57e5e180c1812d88f8b
 
+### 動的SQL
 - 動的SQLの使用方法: https://docs.oracle.com/cd/E16338_01/appdev.112/b61344/ch_ten.htm
 - 7.1 動的SQLの概念: https://software.fujitsu.com/jp/manual/manualfiles/M070075/J2X01638/01Z200/sqlbg07/sqlbg069.html
 - 動的SQLの使用方法 https://docs.oracle.com/cd/F82042_01/zzpre/using-dynamic-SQL.html#GUID-09DE3FA0-C622-466A-9A2E-A7735A970271
 
+### Observerパターン
 - Javaでデザインパターンを学ぶ：Observerパターン - 土日の勉強ノート: https://daisuke20240310.hatenablog.com/entry/observer
 - JavaScriptでObserverパターンの理解: https://viblo.asia/p/javascript%E3%81%A7observer%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%E3%81%AE%E7%90%86%E8%A7%A3-E1XVOXlp4Mz
 
+### Gunicorn
 - Gunicornってなんだろう？WSGIってなんだろう？｜Fuji: https://note.com/shirotabistudy/n/n99fcb1586fd1
 
+### Nginx
 - EC2のAmazon LinuxにNginxを入れてFlaskを動かす方法: https://zenn.dev/century/articles/6b7d6ad29605f8
 - 【AWS EC2】Amazon Linux2にnginxをインストールする方法: https://qiita.com/tamorieeeen/items/07743216a3662cfca890
+
+
+### Systemd
+- man systemd.service 日本語訳 #Linux - Qiita: https://qiita.com/JhonnyBravo/items/a28074c20fa9adf02be3
+- これからSystemd入門する: https://qiita.com/bluesDD/items/eaf14408d635ffd55a18
+- Oracle Linux 9 Managing the System With systemd: https://docs.oracle.com/en/operating-systems/oracle-linux/9/systemd/index.html
