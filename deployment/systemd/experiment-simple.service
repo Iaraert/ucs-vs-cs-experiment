@@ -19,24 +19,35 @@ Environment=HOST=127.0.0.1
 ExecStart=/opt/experiment/venv/bin/python server.py
 ExecReload=/bin/kill -HUP $MAINPID
 
-# 再起動の設定（安全な設定）
-Restart=on-failure
-RestartSec=10
-StartLimitInterval=300
-StartLimitBurst=3
+# ヘルスチェック（アプリケーション起動確認）
+ExecStartPost=/bin/sleep 5
+ExecStartPost=/bin/bash -c 'timeout 10 bash -c "until curl -f http://127.0.0.1:9876/health || nc -z 127.0.0.1 9876; do sleep 1; done"'
 
-# セキュリティ設定（最小限）
+# 安全な再起動制御（ループ防止）
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=600
+StartLimitBurst=3
+RestartPreventExitStatus=1 2 3
+
+# プロセス制限とタイムアウト
+TimeoutStartSec=60
+TimeoutStopSec=30
+TimeoutSec=0
+KillMode=mixed
+KillSignal=SIGTERM
+
+# 追加のセキュリティ設定
 NoNewPrivileges=yes
 PrivateTmp=yes
+ProtectSystem=strict
+ReadWritePaths=/opt/experiment/logs /opt/experiment/data
+ProtectHome=yes
 
 # ログ設定
 StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=experiment-app
-
-# プロセス制限
-TimeoutStartSec=30
-TimeoutStopSec=15
 
 [Install]
 WantedBy=multi-user.target

@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 from flask import render_template, request, Response, redirect, jsonify, current_app
 from exp import app
 from exp.config import LOG_LEVEL, LOG_DIR
@@ -255,4 +256,50 @@ def get_experiment_path():
             "error_code": "SYSTEM_ERROR",
             "status_code": 500,
             "recovery_path": "/"
+        }), 500
+
+@app.route('/health')
+def health_check():
+    """
+    ヘルスチェックエンドポイント - systemdの起動確認用
+    """
+    try:
+        # 基本的なシステム状態をチェック
+        status = {
+            'status': 'healthy',
+            'timestamp': datetime.datetime.now().isoformat(),
+            'service': 'UCS vs CS Experiment',
+            'version': '1.0.0'
+        }
+        
+        # データベース接続の確認
+        try:
+            db.get_connection()
+            status['database'] = 'connected'
+        except Exception as db_error:
+            status['database'] = 'error'
+            status['status'] = 'degraded'
+            logger.warning(f"ヘルスチェック - データベース接続エラー: {db_error}")
+        
+        # ログディレクトリの書き込み権限確認
+        try:
+            test_log_path = os.path.join(LOG_DIR, 'health_check_test.tmp')
+            with open(test_log_path, 'w') as f:
+                f.write('test')
+            os.remove(test_log_path)
+            status['log_directory'] = 'writable'
+        except Exception as log_error:
+            status['log_directory'] = 'error'
+            status['status'] = 'degraded'
+            logger.warning(f"ヘルスチェック - ログディレクトリエラー: {log_error}")
+        
+        http_status = 200 if status['status'] == 'healthy' else 503
+        return jsonify(status), http_status
+        
+    except Exception as e:
+        error_logger.log_exception(e, level='ERROR', context={'endpoint': 'health_check'})
+        return jsonify({
+            'status': 'error',
+            'message': 'ヘルスチェックでエラーが発生しました',
+            'timestamp': datetime.datetime.now().isoformat()
         }), 500
