@@ -7,16 +7,16 @@ Wants=network-online.target
 Type=simple
 User=www-data
 Group=www-data
-WorkingDirectory=/opt/experiment
+WorkingDirectory=/opt/ucs-vs-cs-experiment
 
 # 本番環境用の設定
 Environment=FLASK_ENV=production
-Environment=PYTHONPATH=/opt/experiment
+Environment=PYTHONPATH=/opt/ucs-vs-cs-experiment
 Environment=PORT=9876
 Environment=HOST=127.0.0.1
 
 # 実行コマンド
-ExecStart=/opt/experiment/venv/bin/python server.py
+ExecStart=/opt/ucs-vs-cs-experiment/venv/bin/python server.py
 ExecReload=/bin/kill -HUP $MAINPID
 
 # ヘルスチェック（アプリケーション起動確認）
@@ -41,7 +41,7 @@ KillSignal=SIGTERM
 NoNewPrivileges=yes
 PrivateTmp=yes
 ProtectSystem=strict
-ReadWritePaths=/opt/experiment/logs /opt/experiment/data
+ReadWritePaths=/opt/ucs-vs-cs-experiment/logs /opt/ucs-vs-cs-experiment/data
 ProtectHome=yes
 
 # ログ設定

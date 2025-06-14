@@ -21,10 +21,11 @@ if [ ! -f "experiment-simple.service" ]; then
 fi
 
 # 1. アプリケーションディレクトリの作成
-APP_DIR="/opt/experiment"
+APP_DIR="/opt/ucs-vs-cs-experiment"
 echo "アプリケーションディレクトリを作成中: $APP_DIR"
 mkdir -p $APP_DIR
 mkdir -p $APP_DIR/logs
+mkdir -p $APP_DIR/data
 
 # 2. www-dataユーザーの存在確認
 if ! id "www-data" &>/dev/null; then

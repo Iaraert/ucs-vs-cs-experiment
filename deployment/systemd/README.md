@@ -52,16 +52,16 @@ sudo ./setup.sh
 ### 2. アプリケーションのデプロイ
 ```bash
 # アプリケーションファイルをコピー
-sudo cp -r /path/to/your/app/* /opt/experiment/
+sudo cp -r /path/to/your/app/* /opt/ucs-vs-cs-experiment/
 
 # 仮想環境を作成
-sudo python3 -m venv /opt/experiment/venv
+sudo python3 -m venv /opt/ucs-vs-cs-experiment/venv
 
 # 依存関係をインストール
-sudo /opt/experiment/venv/bin/pip install -r /opt/experiment/requirements.txt
+sudo /opt/ucs-vs-cs-experiment/venv/bin/pip install -r /opt/ucs-vs-cs-experiment/requirements.txt
 
 # 権限を設定
-sudo chown -R www-data:www-data /opt/experiment
+sudo chown -R www-data:www-data /opt/ucs-vs-cs-experiment
 ```
 
 ### 3. サービスの起動
@@ -162,11 +162,11 @@ curl -v http://127.0.0.1:9876/health
    - アプリケーションログで根本原因を確認
 
 2. **Python仮想環境のパスが間違っている**
-   - `/opt/experiment/venv/bin/python`が存在するか確認
-   - `sudo -u www-data /opt/experiment/venv/bin/python --version`でテスト
+   - `/opt/ucs-vs-cs-experiment/venv/bin/python`が存在するか確認
+   - `sudo -u www-data /opt/ucs-vs-cs-experiment/venv/bin/python --version`でテスト
 
 3. **権限エラー**
-   - `sudo chown -R www-data:www-data /opt/experiment`を実行
+   - `sudo chown -R www-data:www-data /opt/ucs-vs-cs-experiment`を実行
    - ログディレクトリとデータディレクトリの書き込み権限を確認
 
 4. **ポートが使用中**
@@ -174,7 +174,7 @@ curl -v http://127.0.0.1:9876/health
    - `sudo lsof -i :9876`で使用中のプロセスを特定
 
 5. **データベース接続エラー**
-   - `/opt/experiment/data/`ディレクトリの権限を確認
+   - `/opt/ucs-vs-cs-experiment/data/`ディレクトリの権限を確認
    - ヘルスチェックでデータベース状態を確認
 
 ### 緊急時の手動リセット
@@ -203,7 +203,7 @@ sudo rm /etc/systemd/system/experiment-simple.service
 sudo systemctl daemon-reload
 
 # アプリケーションディレクトリを削除（必要に応じて）
-sudo rm -rf /opt/experiment
+sudo rm -rf /opt/ucs-vs-cs-experiment
 ```
 
 ## パフォーマンス監視
