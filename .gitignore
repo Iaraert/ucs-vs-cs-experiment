@@ -26,6 +26,7 @@ instance/
 
 # 仮想環境
 venv/
+venv-wsl/
 ENV/
 
 # データとログ
