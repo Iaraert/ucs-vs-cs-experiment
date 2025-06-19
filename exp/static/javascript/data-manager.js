@@ -386,6 +386,14 @@ export class DataManager {
   }
 
   /**
+   * 配布されたシナリオリストを取得
+   * @returns {Array} シナリオのリスト
+   */
+  get scenarios() {
+    return config.scenarios || [];
+  }
+
+  /**
    * 実験結果をサーバーに送信（examine1用）
    * @param {string} nextUrl - 送信成功時のリダイレクト先URL
    * @returns {Promise} 送信処理のPromise

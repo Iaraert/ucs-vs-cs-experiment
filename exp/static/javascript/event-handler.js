@@ -1,10 +1,11 @@
 /**
  * ユーザーイベント処理
  */
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
 import { validateCheckboxes } from './common-utils.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
+import config from './config.js';
 
 /**
  * イベント処理管理
@@ -43,6 +44,38 @@ export class EventHandler {
   checkDescription() {
     // 共通ユーティリティ関数を使用してチェックボックス確認ロジックを統一化
     validateCheckboxes("checkbox", "start_scenario_button");
+    
+    // examine1で6個目のシナリオの場合、実験形式変更通知を表示
+    this.checkForExperimentFormatNotification();
+  }
+  
+  /**
+   * 実験形式変更通知をチェックして表示
+   */
+  async checkForExperimentFormatNotification() {
+    try {
+      // dataManagerが初期化されていることを確認
+      if (!dataManager || !dataManager.userId) {
+        return;
+      }
+      
+      // 現在のシナリオが6個目（最後）かどうかチェック
+      const currentScenarioIndex = dataManager.currentScenarioIndex;
+      const totalScenarios = dataManager.scenarios ? dataManager.scenarios.length : (config && config.scenarios ? config.scenarios.length : 6);
+      
+      if (currentScenarioIndex === totalScenarios - 1) {
+        // 実験順序を取得
+        const experimentOrder = await getExperimentOrder(dataManager.userId, false);
+        
+        // order1の場合（examine1が最初の実験）のみ通知を表示
+        if (experimentOrder === 'order1') {
+          showExperimentFormatChangeNotification('examine1', experimentOrder);
+        }
+      }
+    } catch (error) {
+      console.error('実験形式変更通知のチェック中にエラーが発生しました:', error);
+      // エラーが発生しても実験の進行に影響しないようにする
+    }
   }
   
   async submitResponseAndContinue() {

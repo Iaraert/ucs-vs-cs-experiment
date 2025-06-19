@@ -419,3 +419,4 @@ Nginxとの連携設定は `config/nginx.conf` を参照してください。
 - man systemd.service 日本語訳 #Linux - Qiita: https://qiita.com/JhonnyBravo/items/a28074c20fa9adf02be3
 - これからSystemd入門する: https://qiita.com/bluesDD/items/eaf14408d635ffd55a18
 - Oracle Linux 9 Managing the System With systemd: https://docs.oracle.com/en/operating-systems/oracle-linux/9/systemd/index.html
+- Linux女子部　systemd徹底入門: https://www.slideshare.net/slideshow/linux-27872553/27872553

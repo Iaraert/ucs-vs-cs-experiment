@@ -8,7 +8,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
 import { 
   validateCheckboxes, 
   validateDataStructure, 
@@ -357,13 +357,36 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     for (let i = 0; i < checkboxes.length; i++) {
       checkboxes[i].checked = false;
     }
-  }
-  /**
+  }  /**
    * チェックボックスの確認
    */
-  checkDescription() {
+  async checkDescription() {
     validateCheckboxes("checkbox", "start_scenario_button");
-  }  /**
+    
+    // examine1_2で6個目のシナリオの場合、実験形式変更通知を表示
+    await this.checkForExperimentFormatNotification();
+  }
+  
+  /**
+   * 実験形式変更通知をチェックして表示
+   */
+  async checkForExperimentFormatNotification() {
+    try {
+      // 現在のシナリオが6個目（最後）かどうかチェック
+      if (this.sceIdx === this.scenarios.length - 1) {
+        // 実験順序を取得
+        const experimentOrder = await getExperimentOrder(this.userId, false);
+        
+        // order2の場合（examine1_2が最初の実験）のみ通知を表示
+        if (experimentOrder === 'order2') {
+          showExperimentFormatChangeNotification('examine1_2', experimentOrder);
+        }
+      }
+    } catch (error) {
+      console.error('実験形式変更通知のチェック中にエラーが発生しました:', error);
+      // エラーが発生しても実験の進行に影響しないようにする
+    }
+  }/**
    * 次のサンプル表示ページへ遷移
    */
   toNextNewSamplePage() {
@@ -721,8 +744,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     };
       this.estimations.push(data);
     console.log(`推定データを記録しました（最適化済み、is_first/is_symmetric は 0/1 形式）- 記録数: ${this.estimations.length}/${this.scenarios.length}:`, data);
-  }
-/**
+  }  /**
    * 結果をエクスポート
    */
   async exportResults() {
@@ -732,7 +754,9 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       data['start_time'] = this.startTime;
       data['end_time'] = getNow();
       data['user_agent'] = window.navigator.userAgent;
-      this.userData.push(data);      // 実験順序に基づいて次のページURLを決定
+      this.userData.push(data);
+      
+      // 実験順序に基づいて次のページURLを決定
       console.log('examine1_2: exportResults - ユーザーID:', this.userId);
       const nextUrl = await getNextPageUrl('examine1_2', this.userId);
       console.log('examine1_2: 次のページURL:', nextUrl);
@@ -791,7 +815,17 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // グローバル関数として公開（HTMLからの呼び出し用）
-window.check_description = () => safeCall('checkDescription');
+window.check_description = async () => {
+  if (!experimentManager) {
+    console.error('experimentManager not initialized when calling check_description');
+    return;
+  }
+  if (typeof experimentManager.checkDescription !== 'function') {
+    console.error('Method checkDescription not found on experimentManager');
+    return;
+  }
+  return await experimentManager.checkDescription();
+};
 window.to_next_new_sample_page = () => safeCall('toNextNewSamplePage');
 window.to_next_sample = () => safeCall('toNextSample');
 window.draw_estimate = (c) => safeCall('drawEstimate', c);
@@ -812,3 +846,5 @@ window.get_value_fin = async () => {
 window.check_estimate = () => safeCall('checkEstimate');
 window.to_next_scenario_description = (isFirstTime) => safeCall('toNextScenarioDescription', isFirstTime);
 window.showStimulation = () => safeCall('showStimulation');
+
+// checkResponseCheckbox関数はHTMLファイル内で定義されています

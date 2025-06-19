@@ -102,10 +102,9 @@
                 </div>
                 <div class="slider-input-container">
                     <input id="estimate_slider" type="range" min="0" max="100" step="1" value="50" disabled>
-                    <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
-                    <div style="margin-top: 10px;">
-                        <input type="checkbox" id="checkbox" style="transform:scale(1.5)" disabled />
-                        <label for="checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
+                    <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>                    <div style="margin-top: 10px;">
+                        <input type="checkbox" id="slider_confirmation_checkbox" style="transform:scale(1.5)" disabled />
+                        <label for="slider_confirmation_checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
                     </div>
                 </div>
             </form>
@@ -114,22 +113,22 @@
         <script>
             // スライダー操作とチェックボックスの状態を追跡する変数
             let sliderMoved = false;
-            
-            // スライダーが操作されたらチェックボックスを有効化
+              // スライダーが操作されたらチェックボックスを有効化
             document.getElementById('estimate_slider').addEventListener('input', function() {
                 sliderMoved = true;
-                document.getElementById('checkbox').disabled = false;
+                document.getElementById('slider_confirmation_checkbox').disabled = false;
                 updateSubmitButtonState();
-            });
-            
-            // チェックボックスがチェックされたら送信ボタンの状態を更新
-            document.getElementById('checkbox').addEventListener('change', function() {
+            });              // チェックボックスがチェックされたら送信ボタンの状態を更新
+            document.getElementById('slider_confirmation_checkbox').addEventListener('change', function() {
                 updateSubmitButtonState();
+                // 実験形式変更通知をチェック（slider_confirmation_checkboxの場合のみ）
+                if (this.checked && this.id === 'slider_confirmation_checkbox') {
+                    checkResponseCheckbox();
+                }
             });
-            
-            // スライダー操作とチェックボックスの状態に基づいて送信ボタンの有効/無効を設定
+              // スライダー操作とチェックボックスの状態に基づいて送信ボタンの有効/無効を設定
             function updateSubmitButtonState() {
-                const isChecked = document.getElementById('checkbox').checked;
+                const isChecked = document.getElementById('slider_confirmation_checkbox').checked;
                 const buttons = ['next_scenario', 'continue_scenario', 'finish_all_scenarios'];
                 buttons.forEach(buttonId => {
                     const button = document.getElementById(buttonId);
@@ -138,18 +137,17 @@
                     }
                 });
             }
-            
-            // リセット関数：シナリオ切り替え時に呼び出し
+              // リセット関数：シナリオ切り替え時に呼び出し
             window.resetResponseFlow = function() {
                 sliderMoved = false;
-                const cb = document.getElementById('checkbox');
+                const cb = document.getElementById('slider_confirmation_checkbox');
                 const slider = document.getElementById('estimate_slider');
                 const waitMessage = document.getElementById('slider_wait_message');
                 
                 if (cb) {
                     cb.checked = false;
                     cb.disabled = true;
-                }                if (slider) {
+                }if (slider) {
                     slider.disabled = true;
                     slider.value = 50;
                 }
@@ -164,8 +162,7 @@
                 }
                 
                 updateSubmitButtonState();
-                
-                // 3秒後にスライダーを再度有効化
+                  // 3秒後にスライダーを再度有効化
                 setTimeout(function() {
                     if (slider && waitMessage) {
                         slider.disabled = false;
@@ -173,6 +170,36 @@
                     }
                 }, 3000);
             };
+              // チェックボックスがチェックされた際の処理（スライダー用チェックボックスのみ対象）
+            async function checkResponseCheckbox(sourceElement) {
+                try {
+                    // 呼び出し元が指定されていない場合は、イベントターゲットを確認
+                    const target = sourceElement || event.target;
+                      // スライダー用のチェックボックス（slider_confirmation_checkbox）以外では通知しない
+                    if (!target || target.id !== 'slider_confirmation_checkbox') {
+                        console.log('checkResponseCheckbox: 対象外のチェックボックスからの呼び出しをスキップ');
+                        return;
+                    }
+                    
+                    // experimentManagerから現在のシナリオ情報を取得
+                    if (!window.experimentManager) {
+                        console.warn('experimentManager not available');
+                        return;
+                    }
+                    
+                    const currentIndex = window.experimentManager.sceIdx;
+                    const totalCount = window.experimentManager.scenarios.length;
+                    
+                    // 実験順序を取得
+                    const { getExperimentOrder, showExperimentFormatChangeNotification } = await import('/static/javascript/utilities.js');
+                    const experimentOrder = await getExperimentOrder(window.experimentManager.userId, false);
+                    
+                    // 通知を表示（最後のシナリオの場合のみ）
+                    await showExperimentFormatChangeNotification('examine1_2', experimentOrder, currentIndex, totalCount);
+                } catch (error) {
+                    console.error('チェックボックス処理中にエラーが発生しました:', error);
+                }
+            }
         </script>
           <div id="notes">
             <b>ボタンは1回押していただくだけで結構です。</b>

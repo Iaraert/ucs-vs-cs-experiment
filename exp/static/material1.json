@@ -18,21 +18,21 @@
             "A剤の投与がB剤と比べて頭痛をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/drug/headache.png",
-            "negative": "static/images/scenarios/drug/normal.png"
+            "positive": "static/images/scenarios/1/headache.png",
+            "negative": "static/images/scenarios/1/normal.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/drug/headache.png",
-            "notp": "static/images/scenarios/drug/normal.png",
-            "q": "static/images/scenarios/drug/headache.png",
-            "notq": "static/images/scenarios/drug/normal.png",
+            "p": "static/images/scenarios/1/medicine.png",
+            "notp": "static/images/scenarios/1/no_medicine.png",
+            "q": "static/images/scenarios/1/headache.png",
+            "notq": "static/images/scenarios/1/normal.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/drug/headache.png",
-            "notp": "static/images/scenarios/drug/normal.png",
-            "q": "static/images/scenarios/drug/headache.png",
-            "notq": "static/images/scenarios/drug/normal.png",
+            "p": "static/images/scenarios/1/A_medicine.png",
+            "notp": "static/images/scenarios/1/B_medicine.png",
+            "q": "static/images/scenarios/1/headache.png",
+            "notq": "static/images/scenarios/1/normal.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -80,21 +80,21 @@
             "X式ソナーがY式ソナーと比べて宝箱発見をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/sonar/success.png",
-            "negative": "static/images/scenarios/sonar/failure.png"
+            "positive": "static/images/scenarios/2/success.png",
+            "negative": "static/images/scenarios/2/failure.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/sonar/sonar.png",
-            "notp": "static/images/scenarios/sonar/no_sonar.png",
-            "q": "static/images/scenarios/sonar/success.png",
-            "notq": "static/images/scenarios/sonar/failure.png",
+            "p": "static/images/scenarios/2/sonar.png",
+            "notp": "static/images/scenarios/2/no_sonar.png",
+            "q": "static/images/scenarios/2/success.png",
+            "notq": "static/images/scenarios/2/failure.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/sonar/x_sonar.png",
-            "notp": "static/images/scenarios/sonar/no_sonar.png",
-            "q": "static/images/scenarios/sonar/success.png",
-            "notq": "static/images/scenarios/sonar/failure.png",
+            "p": "static/images/scenarios/2/x_sonar.png",
+            "notp": "static/images/scenarios/2/no_sonar.png",
+            "q": "static/images/scenarios/2/success.png",
+            "notq": "static/images/scenarios/2/failure.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -142,21 +142,21 @@
             "添加剤Aが添加剤Bと比べて開花をどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/flower/bloom.png",
-            "negative": "static/images/scenarios/flower/nobloom.png"
+            "positive": "static/images/scenarios/3/bloom.png",
+            "negative": "static/images/scenarios/3/nobloom.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/flower/additive.png",
-            "notp": "static/images/scenarios/flower/no_additive.png",
-            "q": "static/images/scenarios/flower/bloom.png",
-            "notq": "static/images/scenarios/flower/nobloom.png",
+            "p": "static/images/scenarios/3/additive.png",
+            "notp": "static/images/scenarios/3/no_additive.png",
+            "q": "static/images/scenarios/3/bloom.png",
+            "notq": "static/images/scenarios/3/nobloom.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/flower/additive_a.png",
-            "notp": "static/images/scenarios/flower/additive_b.png",
-            "q": "static/images/scenarios/flower/bloom.png",
-            "notq": "static/images/scenarios/flower/nobloom.png",
+            "p": "static/images/scenarios/3/additive_a.png",
+            "notp": "static/images/scenarios/3/additive_b.png",
+            "q": "static/images/scenarios/3/bloom.png",
+            "notq": "static/images/scenarios/3/nobloom.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -204,21 +204,21 @@
             "タイプAのLED照明がタイプBのLED照明と比べて成長促進をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/filter/clean.png",
-            "negative": "static/images/scenarios/filter/dirty.png"
+            "positive": "static/images/scenarios/4/growth.png",
+            "negative": "static/images/scenarios/4/no_growth.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/filter/clean.png",
-            "notp": "static/images/scenarios/filter/dirty.png",
-            "q": "static/images/scenarios/filter/clean.png",
-            "notq": "static/images/scenarios/filter/dirty.png",
+            "p": "static/images/scenarios/4/led_light.png",
+            "notp": "static/images/scenarios/4/no_led.png",
+            "q": "static/images/scenarios/4/growth.png",
+            "notq": "static/images/scenarios/4/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/filter/clean.png",
-            "notp": "static/images/scenarios/filter/dirty.png",
-            "q": "static/images/scenarios/filter/clean.png",
-            "notq": "static/images/scenarios/filter/dirty.png",
+            "p": "static/images/scenarios/4/led_type_a.png",
+            "notp": "static/images/scenarios/4/led_type_b.png",
+            "q": "static/images/scenarios/4/growthd.png",
+            "notq": "static/images/scenarios/4/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -266,21 +266,21 @@
             "新機能Aが新機能Bと比べてメッセージへの応答時間短縮をどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/chat/quick_response.png",
-            "negative": "static/images/scenarios/chat/slow_response.png"
+            "positive": "static/images/scenarios/5/quick_response.png",
+            "negative": "static/images/scenarios/5/slow_response.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/chat/read.png",
-            "notp": "static/images/scenarios/chat/no_read.png",
-            "q": "static/images/scenarios/chat/quick_response.png",
-            "notq": "static/images/scenarios/chat/slow_response.png",
+            "p": "static/images/scenarios/5/read.png",
+            "notp": "static/images/scenarios/5/no_read.png",
+            "q": "static/images/scenarios/5/quick_response.png",
+            "notq": "static/images/scenarios/5/slow_response.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/chat/read.png",
-            "notp": "static/images/scenarios/chat/sound.png",
-            "q": "static/images/scenarios/chat/quick_response.png",
-            "notq": "static/images/scenarios/chat/slow_response.png",
+            "p": "static/images/scenarios/5/read.png",
+            "notp": "static/images/scenarios/5/sound.png",
+            "q": "static/images/scenarios/5/quick_response.png",
+            "notq": "static/images/scenarios/5/slow_response.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -328,21 +328,21 @@
             "A社の新開発された添加物がB社の新開発された添加物と比べてパンの膨らみをどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/bread/fluffy.png",
-            "negative": "static/images/scenarios/bread/flat.png"
+            "positive": "static/images/scenarios/6/fluffy.png",
+            "negative": "static/images/scenarios/6/flat.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/bread/additive.png",
-            "notp": "static/images/scenarios/bread/no_additive.png",
-            "q": "static/images/scenarios/bread/fluffy.png",
-            "notq": "static/images/scenarios/bread/flat.png",
+            "p": "static/images/scenarios/6/additive.png",
+            "notp": "static/images/scenarios/6/no_additive.png",
+            "q": "static/images/scenarios/6/fluffy.png",
+            "notq": "static/images/scenarios/6/flat.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/bread/additive_a.png",
-            "notp": "static/images/scenarios/bread/additive_b.png",
-            "q": "static/images/scenarios/bread/fluffy.png",
-            "notq": "static/images/scenarios/bread/flat.png",
+            "p": "static/images/scenarios/6/additive_a.png",
+            "notp": "static/images/scenarios/6/additive_b.png",
+            "q": "static/images/scenarios/6/fluffy.png",
+            "notq": "static/images/scenarios/6/flat.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -390,21 +390,21 @@
             "全ての結果が表示されたら、AタイプのノイズがBタイプのノイズと比べて正答率をどの程度向上させるか評価してもらいます。"
         ],
         "images": {
-            "positive": "static/images/scenarios/noise/high_score.png",
-            "negative": "static/images/scenarios/noise/low_score.png"
+            "positive": "static/images/scenarios/7/high_score.png",
+            "negative": "static/images/scenarios/7/low_score.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/noise/using.png",
-            "notp": "static/images/scenarios/noise/not_using.png",
-            "q": "static/images/scenarios/noise/high_score.png",
-            "notq": "static/images/scenarios/noise/low_score.png",
+            "p": "static/images/scenarios/7/using.png",
+            "notp": "static/images/scenarios/7/not_using.png",
+            "q": "static/images/scenarios/7/high_score.png",
+            "notq": "static/images/scenarios/7/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/noise/freq_a.png",
-            "notp": "static/images/scenarios/noise/freq_b.png",
-            "q": "static/images/scenarios/noise/high_score.png",
-            "notq": "static/images/scenarios/noise/low_score.png",
+            "p": "static/images/scenarios/7/freq_a.png",
+            "notp": "static/images/scenarios/7/freq_b.png",
+            "q": "static/images/scenarios/7/high_score.png",
+            "notq": "static/images/scenarios/7/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -452,21 +452,21 @@
             "システムタイプAがシステムタイプBと比べて運営効率改善をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/robot/improved.png",
-            "negative": "static/images/scenarios/robot/unchanged.png"
+            "positive": "static/images/scenarios/8/improved.png",
+            "negative": "static/images/scenarios/8/unchanged.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/robot/cleaning_robot.png",
-            "notp": "static/images/scenarios/robot/manual_cleaning.png",
-            "q": "static/images/scenarios/robot/improved.png",
-            "notq": "static/images/scenarios/robot/unchanged.png",
+            "p": "static/images/scenarios/8/system_a.png",
+            "notp": "static/images/scenarios/8/no_system.png",
+            "q": "static/images/scenarios/8/improved.png",
+            "notq": "static/images/scenarios/8/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/robot/autonomous_robot.png",
-            "notp": "static/images/scenarios/robot/remote_robot.png",
-            "q": "static/images/scenarios/robot/improved.png",
-            "notq": "static/images/scenarios/robot/unchanged.png",
+            "p": "static/images/scenarios/8/system_a.png",
+            "notp": "static/images/scenarios/8/system_b.png.png",
+            "q": "static/images/scenarios/8/improved.png",
+            "notq": "static/images/scenarios/8/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -514,21 +514,21 @@
             "器具Aが器具Bと比べて筋肥大をどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/training/muscle_growth.png",
-            "negative": "static/images/scenarios/training/no_growth.png"
+            "positive": "static/images/scenarios/9/muscle_growth.png",
+            "negative": "static/images/scenarios/9/no_growth.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/training/new_equipment.png",
-            "notp": "static/images/scenarios/training/old_equipment.png",
-            "q": "static/images/scenarios/training/muscle_growth.png",
-            "notq": "static/images/scenarios/training/no_growth.png",
+            "p": "static/images/scenarios/9/equipment_a.png",
+            "notp": "static/images/scenarios/9/old_equipment.png",
+            "q": "static/images/scenarios/9/muscle_growth.png",
+            "notq": "static/images/scenarios/9/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/training/light_equipment.png",
-            "notp": "static/images/scenarios/training/heavy_equipment.png",
-            "q": "static/images/scenarios/training/muscle_growth.png",
-            "notq": "static/images/scenarios/training/no_growth.png",
+            "p": "static/images/scenarios/9/equipment_a.png",
+            "notp": "static/images/scenarios/9/equipment_b.png",
+            "q": "static/images/scenarios/9/muscle_growth.png",
+            "notq": "static/images/scenarios/9/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -576,21 +576,21 @@
             "補助ツールAが補助ツールBと比べて理解度向上をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/slide/extended.png",
-            "negative": "static/images/scenarios/slide/on_time.png"
+            "positive": "static/images/scenarios/10/extended.png",
+            "negative": "static/images/scenarios/10/on_time.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/slide/tool_on.png",
-            "notp": "static/images/scenarios/slide/tool_off.png",
-            "q": "static/images/scenarios/slide/extended.png",
-            "notq": "static/images/scenarios/slide/on_time.png",
+            "p": "static/images/scenarios/10/tool_on.png",
+            "notp": "static/images/scenarios/10/tool_off.png",
+            "q": "static/images/scenarios/10/extended.png",
+            "notq": "static/images/scenarios/10/on_time.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/slide/tool_a.png",
-            "notp": "static/images/scenarios/slide/tool_b.png",
-            "q": "static/images/scenarios/slide/extended.png",
-            "notq": "static/images/scenarios/slide/on_time.png",
+            "p": "static/images/scenarios/10/tool_a.png",
+            "notp": "static/images/scenarios/10/tool_b.png",
+            "q": "static/images/scenarios/10/extended.png",
+            "notq": "static/images/scenarios/10/on_time.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {

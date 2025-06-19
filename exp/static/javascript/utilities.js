@@ -275,3 +275,118 @@ export async function getNextPageUrl(currentPage, userId) {
   console.log('デフォルト: examine2への遷移');
   return `../examine2?id=${encodeURIComponent(userId)}`;
 }
+
+/**
+ * 実験形式変更通知を表示する
+ * @param {string} currentExperiment - 現在の実験タイプ ('examine1' または 'examine1_2')
+ * @param {string} experimentOrder - 実験順序 ('order1' または 'order2')
+ * @param {number} currentScenarioIndex - 現在のシナリオインデックス（0ベース）
+ * @param {number} totalScenarios - 総シナリオ数
+ * @returns {Promise} - 通知処理の完了を示すPromise
+ */
+export function showExperimentFormatChangeNotification(currentExperiment, experimentOrder, currentScenarioIndex = 5, totalScenarios = 6) {
+  return new Promise((resolve) => {
+    try {
+      // 6個目のシナリオ（インデックス5）の時のみ通知を表示
+      const isLastScenario = currentScenarioIndex === totalScenarios - 1;
+      
+      // 通知が必要なタイミングかチェック
+      const shouldShowNotification = isLastScenario && (
+        (experimentOrder === 'order1' && currentExperiment === 'examine1') ||
+        (experimentOrder === 'order2' && currentExperiment === 'examine1_2')
+      );
+      
+      if (!shouldShowNotification) {
+        resolve();
+        return;
+      }
+      
+      // 既に通知が表示されているかチェック
+      if (document.getElementById('experiment-format-notification')) {
+        resolve();
+        return;
+      }
+      
+      // モーダル形式の通知を表示
+      const notification = document.createElement('div');
+      notification.id = 'experiment-format-notification';
+      notification.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: Arial, sans-serif;
+      `;
+      
+      const modal = document.createElement('div');
+      modal.style.cssText = `
+        background-color: white;
+        padding: 30px;
+        border-radius: 10px;
+        text-align: center;
+        max-width: 500px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      `;
+      
+      // 次の実験の形式を決定
+      const nextExperiment = experimentOrder === 'order1' ? 'examine1_2' : 'examine1';
+      const formatDescription = nextExperiment === 'examine1_2' ? 
+        '次の実験では、複数の事例を観察した後に評価を行う形式になります。' :
+        '次の実験では、1つの事例を観察した後に評価を行う形式になります。';
+      
+      modal.innerHTML = `
+        <h3 style="color: #2c5282; margin-bottom: 20px;">実験形式の変更について</h3>
+        <p style="margin-bottom: 20px; line-height: 1.6;">
+          これまでの実験お疲れ様でした。<br>
+          ${formatDescription}
+        </p>
+        <p style="margin-bottom: 30px; font-weight: bold; color: #e53e3e;">
+          実験の進め方が変わりますので、次のページの説明をよくお読みください。
+        </p>
+        <button id="notification-ok-btn" style="
+          background-color: #2c5282;
+          color: white;
+          border: none;
+          padding: 12px 30px;
+          border-radius: 5px;
+          font-size: 16px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        " onmouseover="this.style.backgroundColor='#2a4db7'" onmouseout="this.style.backgroundColor='#2c5282'">
+          了解しました
+        </button>
+      `;
+      
+      notification.appendChild(modal);
+      document.body.appendChild(notification);
+      
+      // ボタンクリックでモーダルを閉じる
+      const okButton = document.getElementById('notification-ok-btn');
+      okButton.addEventListener('click', () => {
+        document.body.removeChild(notification);
+        resolve();
+      });
+      
+      // 自動削除（30秒後）
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+          resolve();
+        }
+      }, 30000);
+      
+      console.log(`実験形式変更通知を表示: ${currentExperiment} → ${nextExperiment} (${experimentOrder}), シナリオ: ${currentScenarioIndex + 1}/${totalScenarios}`);
+      
+    } catch (error) {
+      console.error('実験形式変更通知の表示中にエラーが発生しました:', error);
+      // エラーが発生しても実験の進行に影響しないようにする
+      resolve();
+    }
+  });
+}

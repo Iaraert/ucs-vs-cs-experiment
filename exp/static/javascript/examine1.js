@@ -6,7 +6,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
 
 /**
  * 実験1の管理クラス
@@ -146,6 +146,8 @@ window.get_value_fin = async function() {
     alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");
   }
 };
+
+// checkResponseCheckbox関数はHTMLファイル内で定義されています
 
 window.check_estimate = function() {
   // examine1_2との互換性のためのスタブ関数

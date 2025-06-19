@@ -209,7 +209,10 @@ export class UIManager {
     this.changeBackGround();
 
     // 前のシナリオのレスポンスチェックボックスとボタンをリセット
-    const respCheckbox = document.getElementById('response_checkbox');
+    // 実験タイプに応じて適切なチェックボックスIDを選択
+    const currentExperiment = window.location.pathname;
+    const checkboxId = currentExperiment.includes('examine1_2') ? 'checkbox' : 'response_checkbox';
+    const respCheckbox = document.getElementById(checkboxId);
     if (respCheckbox) {
       respCheckbox.checked = false;
       respCheckbox.disabled = true;
