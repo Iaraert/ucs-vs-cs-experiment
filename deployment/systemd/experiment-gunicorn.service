@@ -1,0 +1,62 @@
+[Unit]
+Description=UCS vs CS Experiment Gunicorn Service
+After=network.target network-online.target
+Wants=network-online.target
+Before=nginx.service
+
+[Service]
+Type=notify
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ucs-vs-cs-experiment
+
+# 環境変数
+Environment=FLASK_ENV=production
+Environment=PYTHONPATH=/opt/ucs-vs-cs-experiment
+
+# Gunicorn実行コマンド
+ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/gunicorn \
+    --config /opt/ucs-vs-cs-experiment/deployment/gunicorn.conf.py \
+    --pid /opt/ucs-vs-cs-experiment/logs/gunicorn.pid \
+    wsgi:app
+
+# プロセス管理
+PIDFile=/opt/ucs-vs-cs-experiment/logs/gunicorn.pid
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+ExecStopPost=/bin/rm -f /opt/ucs-vs-cs-experiment/logs/gunicorn.pid
+
+# 再起動設定
+Restart=on-failure
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# タイムアウト設定
+TimeoutStartSec=30
+TimeoutStopSec=30
+TimeoutSec=0
+
+# プロセス制御
+KillMode=mixed
+KillSignal=SIGTERM
+
+# セキュリティ設定
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/ucs-vs-cs-experiment/logs /opt/ucs-vs-cs-experiment/data
+
+# リソース制限
+MemoryLimit=2G
+CPUQuota=200%
+TasksMax=200
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=experiment-gunicorn
+
+[Install]
+WantedBy=multi-user.target

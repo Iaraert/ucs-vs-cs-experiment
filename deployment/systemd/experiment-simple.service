@@ -16,8 +16,8 @@ Environment=PYTHONPATH=/opt/ucs-vs-cs-experiment
 Environment=PORT=9876
 Environment=HOST=127.0.0.1
 
-# 実行コマンド
-ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/python server.py
+# 実行コマンド（Gunicorn使用）
+ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/gunicorn --config /opt/ucs-vs-cs-experiment/deployment/gunicorn.conf.py wsgi:app
 ExecReload=/bin/kill -HUP $MAINPID
 
 # ヘルスチェック（アプリケーション起動確認）
@@ -30,6 +30,11 @@ RestartSec=30
 StartLimitInterval=600
 StartLimitBurst=3
 RestartPreventExitStatus=1 2 3
+
+# Gunicornプロセス管理
+PIDFile=/opt/ucs-vs-cs-experiment/logs/gunicorn.pid
+ExecStop=/bin/kill -TERM $MAINPID
+ExecStopPost=/bin/rm -f /opt/ucs-vs-cs-experiment/logs/gunicorn.pid
 
 # プロセス制限とタイムアウト
 TimeoutStartSec=60
