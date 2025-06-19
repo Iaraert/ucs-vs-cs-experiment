@@ -6,8 +6,8 @@ Before=nginx.service
 
 [Service]
 Type=notify
-User=www-data
-Group=www-data
+User=ec2-user
+Group=ec2-user
 WorkingDirectory=/opt/ucs-vs-cs-experiment
 
 # 環境変数
