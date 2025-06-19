@@ -1,0 +1,46 @@
+[Unit]
+Description=UCS vs CS Experiment Service (Development)
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/ucs-vs-cs-experiment
+
+# 開発環境用の設定
+Environment=FLASK_ENV=development
+Environment=PYTHONPATH=/opt/ucs-vs-cs-experiment
+Environment=PORT=9876
+Environment=HOST=127.0.0.1
+Environment=TMPDIR=/opt/ucs-vs-cs-experiment/tmp
+
+# 実行コマンド（開発用設定を使用）
+ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/gunicorn --config /opt/ucs-vs-cs-experiment/deployment/environments/development/gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -HUP $MAINPID
+
+# ヘルスチェック
+ExecStartPost=/bin/sleep 5
+ExecStartPost=/bin/bash -c 'timeout 15 bash -c "until curl -f http://127.0.0.1:9876/ 2>/dev/null || [ $? -eq 22 ]; do sleep 1; done"'
+
+# 安全な再起動制御
+Restart=on-failure
+RestartSec=30
+StartLimitInterval=600
+StartLimitBurst=3
+
+# ファイル記述子制限
+LimitNOFILE=65536
+
+# セキュリティ設定（開発環境用）
+NoNewPrivileges=yes
+PrivateTmp=yes
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=experiment-dev
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,57 @@
+[Unit]
+Description=UCS vs CS Experiment Service (Production)
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/ucs-vs-cs-experiment
+
+# 本番環境用の設定
+Environment=FLASK_ENV=production
+Environment=PYTHONPATH=/opt/ucs-vs-cs-experiment
+Environment=PORT=9876
+Environment=HOST=127.0.0.1
+Environment=TMPDIR=/opt/ucs-vs-cs-experiment/tmp
+
+# 実行コマンド（本番用設定を使用）
+ExecStart=/opt/ucs-vs-cs-experiment/venv-aws/bin/gunicorn --config /opt/ucs-vs-cs-experiment/deployment/environments/production/gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -HUP $MAINPID
+
+# ヘルスチェック
+ExecStartPost=/bin/sleep 5
+ExecStartPost=/bin/bash -c 'timeout 15 bash -c "until curl -f http://127.0.0.1:9876/ 2>/dev/null || [ $? -eq 22 ]; do sleep 1; done"'
+
+# 本番環境用の堅牢な再起動制御
+Restart=always
+RestartSec=10
+StartLimitInterval=300
+StartLimitBurst=5
+
+# リソース制限
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# セキュリティ設定（本番環境用）
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/opt/ucs-vs-cs-experiment/logs
+ReadWritePaths=/opt/ucs-vs-cs-experiment/data
+ReadWritePaths=/opt/ucs-vs-cs-experiment/tmp
+
+# ログ設定
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=experiment-prod
+
+# キルシグナル設定
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
