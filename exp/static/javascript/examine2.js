@@ -30,7 +30,7 @@ class IMCExperiment {
         alert("ユーザーIDが取得できません。対応しますのでクラウドワークスから不具合を報告してください。");
         return;
       }
-      console.log('User ID:', dataManager.userId); // デバッグ用
+      // console.log('User ID:', dataManager.userId); // デバッグ用
       
       // ページ離脱警告を設定
       setupPageLeaveWarning(true);

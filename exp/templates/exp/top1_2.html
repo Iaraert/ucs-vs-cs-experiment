@@ -9,19 +9,82 @@
     <script>
         // ページ読み込み時に実行
         window.onload = async function() {
-            // ユーザーID生成/取得関数
+            // ユーザーID生成/取得関数（utilities.jsと統一）
             function generateUniqueId() {
-                return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+                // より強力な一意性を保証するため、複数の要素を組み合わせ
+                const timestamp = Date.now().toString(36);
+                const randomPart1 = Math.random().toString(36).substr(2, 6);
+                const randomPart2 = Math.random().toString(36).substr(2, 4);
+                const performanceNow = performance.now().toString(36).substr(2, 4);
+                
+                return `${timestamp}${randomPart1}${randomPart2}${performanceNow}`;
             }
             
-            function saveUserId(userId, persistent = false) {
-                sessionStorage.setItem('exp_user_id', userId);
+            /**
+             * ユーザーIDの妥当性を検証
+             * @param {string} userId - 検証するユーザーID
+             * @returns {boolean} IDが有効かどうか
+             */
+            function validateUserId(userId) {
+                if (!userId) return false;
                 
-                if (persistent) {
-                    localStorage.setItem('exp_user_id_persistent', userId);
+                // 基本的な長さチェック（最小3文字、最大50文字）
+                if (userId.length < 3 || userId.length > 50) return false;
+                
+                // 危険な文字の除外（SQLインジェクション、XSS対策）
+                const dangerousChars = /[<>'"&=;()|]/;
+                if (dangerousChars.test(userId)) return false;
+                
+                // 制御文字の除外
+                if (/[\x00-\x1F\x7F]/.test(userId)) return false;
+                
+                return true;
+            }
+            
+            /**
+             * ユーザーIDをサニタイズ
+             * @param {string} userId - サニタイズするユーザーID
+             * @returns {string} サニタイズされたユーザーID
+             */
+            function sanitizeUserId(userId) {
+                if (!userId) return '';
+                
+                // 基本的なサニタイズ
+                return userId
+                    .toString()
+                    .trim()
+                    .substring(0, 50) // 最大長制限
+                    .replace(/[<>'"&=;()|]/g, '') // 危険な文字を削除
+                    .replace(/[\x00-\x1F\x7F]/g, ''); // 制御文字を削除
+            }
+            
+            /**
+             * ユーザーIDをストレージに保存（検証付き）
+             * @param {string} userId - 保存するユーザーID
+             * @param {boolean} persistent - 永続化するかどうか
+             * @returns {string|null} 保存されたユーザーIDまたはnull
+             */
+            function saveUserId(userId, persistent = false) {
+                // ユーザーIDの検証
+                if (!validateUserId(userId)) {
+                    console.error('Invalid user ID cannot be saved:', userId);
+                    return null;
                 }
                 
-                return userId;
+                const sanitizedId = sanitizeUserId(userId);
+                
+                try {
+                    sessionStorage.setItem('exp_user_id', sanitizedId);
+                    
+                    if (persistent) {
+                        localStorage.setItem('exp_user_id_persistent', sanitizedId);
+                    }
+                    
+                    return sanitizedId;
+                } catch (error) {
+                    console.error('Failed to save user ID to storage:', error);
+                    return null;
+                }
             }
             
             function getOrCreateUserId(options = {}) {
@@ -30,26 +93,66 @@
                     persistent = false 
                 } = options;
                 
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlId = urlParams.get('id');
-                if (urlParam && urlId) {
-                    return saveUserId(urlId, persistent);
-                }
-                
-                const sessionId = sessionStorage.getItem('exp_user_id');
-                if (sessionId) {
-                    return sessionId;
-                }
-                
-                if (persistent) {
-                    const localId = localStorage.getItem('exp_user_id_persistent');
-                    if (localId) {
-                        return saveUserId(localId, true);
+                // URLからのID取得を試みる（検証付き）
+                if (urlParam) {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const rawId = urlParams.get('id');
+                    
+                    // URLパラメータを隠す（アドレスバーから除去）
+                    try {
+                        const cleanUrl = window.location.protocol + '//' + 
+                                        window.location.host + 
+                                        window.location.pathname;
+                        window.history.replaceState({}, document.title, cleanUrl);
+                        console.log('URLパラメータを非表示にしました');
+                    } catch (error) {
+                        console.error('URLパラメータの非表示に失敗しました:', error);
+                    }
+                    
+                    if (rawId) {
+                        const sanitizedId = sanitizeUserId(rawId);
+                        if (validateUserId(sanitizedId)) {
+                            const savedId = saveUserId(sanitizedId, persistent);
+                            if (savedId) return savedId;
+                        } else {
+                            console.warn('Invalid user ID detected from URL:', rawId);
+                        }
                     }
                 }
                 
+                // セッションストレージから取得を試みる（検証付き）
+                try {
+                    const sessionId = sessionStorage.getItem('exp_user_id');
+                    if (sessionId && validateUserId(sessionId)) {
+                        return sessionId;
+                    } else if (sessionId) {
+                        // 無効なIDはクリア
+                        sessionStorage.removeItem('exp_user_id');
+                        console.warn('Invalid user ID found in session storage, cleared');
+                    }
+                } catch (error) {
+                    console.warn('Failed to access session storage:', error);
+                }
+                
+                // 永続ストレージから取得を試みる（検証付き）
+                if (persistent) {
+                    try {
+                        const localId = localStorage.getItem('exp_user_id_persistent');
+                        if (localId && validateUserId(localId)) {
+                            return saveUserId(localId, true) || localId;
+                        } else if (localId) {
+                            // 無効なIDはクリア
+                            localStorage.removeItem('exp_user_id_persistent');
+                            console.warn('Invalid user ID found in local storage, cleared');
+                        }
+                    } catch (error) {
+                        console.warn('Failed to access local storage:', error);
+                    }
+                }
+                
+                // 新規IDを生成
                 const newId = generateUniqueId();
-                return saveUserId(newId, persistent);
+                return saveUserId(newId, persistent) || newId;
             }
             
             // サーバーから実験経路を取得する関数

@@ -2,6 +2,7 @@ import os
 import sqlite3
 import threading
 import datetime
+import re
 
 class Database:
     """
@@ -20,6 +21,54 @@ class Database:
         self.db_path = db_path or os.path.join('.', 'data', 'participant_allocation.db')
         # SQLite接続用のロックを作成（スレッドセーフにするため）
         self.db_lock = threading.Lock()
+
+    def validate_user_id(self, user_id):
+        """
+        ユーザーIDの妥当性を検証
+        
+        Args:
+            user_id (str): 検証するユーザーID
+            
+        Returns:
+            bool: IDが有効かどうか
+        """
+        if not user_id or not isinstance(user_id, str):
+            return False
+        
+        # 基本的な長さチェック（最小3文字、最大50文字）
+        if len(user_id) < 3 or len(user_id) > 50:
+            return False
+        
+        # 危険な文字の除外（SQLインジェクション、XSS対策）
+        dangerous_chars = re.compile(r'[<>\'"&=;()|]')
+        if dangerous_chars.search(user_id):
+            return False
+        
+        # 制御文字の除外
+        if re.search(r'[\x00-\x1F\x7F]', user_id):
+            return False
+        
+        return True
+
+    def sanitize_user_id(self, user_id):
+        """
+        ユーザーIDをサニタイズ
+        
+        Args:
+            user_id (str): サニタイズするユーザーID
+            
+        Returns:
+            str: サニタイズされたユーザーID
+        """
+        if not user_id:
+            return ''
+        
+        # 文字列に変換し、基本的なサニタイズ
+        sanitized = str(user_id).strip()[:50]  # 最大長制限
+        sanitized = re.sub(r'[<>\'"&=;()|]', '', sanitized)  # 危険な文字を削除
+        sanitized = re.sub(r'[\x00-\x1F\x7F]', '', sanitized)  # 制御文字を削除
+        
+        return sanitized
 
     def init_db(self):
         """データベースの初期化と必要なテーブルの作成"""
@@ -93,6 +142,9 @@ class Database:
             with self.db_lock:  # スレッドセーフに処理
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
+
+                # ユーザーIDのサニタイズ
+                user_id = self.sanitize_user_id(user_id)
 
                 # トランザクション開始
                 conn.execute("BEGIN TRANSACTION")
@@ -254,13 +306,21 @@ class Database:
         Returns:
             dict: 割り当てられた経路と関連情報を含む辞書
         """
+        # ユーザーIDの検証とサニタイズ
+        if not self.validate_user_id(user_id):
+            print(f"無効なユーザーID: {user_id}")
+            return {"pathType": "order1", "error": "Invalid user ID", "userId": user_id}
+            
         try:
             with self.db_lock:  # スレッドセーフに処理
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
                 
+                # ユーザーIDのサニタイズ
+                sanitized_user_id = self.sanitize_user_id(user_id)
+                
                 # デバッグ情報追加
-                print(f"DEBUG: パラメータ - user_id={user_id}, reallocate={reallocate}, type={type(reallocate)}")
+                print(f"DEBUG: パラメータ - user_id={sanitized_user_id}, reallocate={reallocate}, type={type(reallocate)}")
                 
                 # トランザクション開始
                 conn.execute("BEGIN TRANSACTION")
@@ -268,18 +328,18 @@ class Database:
                 # まず、このユーザーIDに既存の経路割り当てがあるか確認
                 cursor.execute(
                     "SELECT path_type FROM experiment_path_history WHERE user_id = ?",
-                    (user_id,)
+                    (sanitized_user_id,)
                 )
                 existing_path = cursor.fetchone()
                 print(f"DEBUG: existing_path={existing_path}")
 
                 # 検証: ユーザーIDが正しく使用されているか確認
-                print(f"DEBUG: SQLクエリに使用されたユーザーID={user_id}")
+                print(f"DEBUG: SQLクエリに使用されたユーザーID={sanitized_user_id}")
 
                 if existing_path and not reallocate:
                     # 既存の割り当てがある場合はそれを使用（カウンターは更新しない）
                     selected_path = existing_path[0]
-                    print(f"既存の経路を使用: ユーザーID {user_id} -> {selected_path}")
+                    print(f"既存の経路を使用: ユーザーID {sanitized_user_id} -> {selected_path}")
                 else:
                     # 新規ユーザーまたは再割り当ての場合
                     # 現在の各経路の参加者数を取得
@@ -300,29 +360,29 @@ class Database:
 
                     # 既存ユーザーの場合は履歴を更新、新規ユーザーの場合は挿入
                     if existing_path:
-                        print(f"経路再割り当て: ユーザーID {user_id} -> {selected_path}")
+                        print(f"経路再割り当て: ユーザーID {sanitized_user_id} -> {selected_path}")
                         # timestampも明示的に更新
                         update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?"
-                        cursor.execute(update_query, (selected_path, user_id))
+                        cursor.execute(update_query, (selected_path, sanitized_user_id))
                         print(f"DEBUG: UPDATEクエリ実行結果 - 影響行数={cursor.rowcount}")
                     else:
-                        print(f"新規経路割り当て: ユーザーID {user_id} -> {selected_path}")
+                        print(f"新規経路割り当て: ユーザーID {sanitized_user_id} -> {selected_path}")
                         # INSERTに失敗した場合に備えて、基本的なINSERTを使用
                         insert_query = "INSERT INTO experiment_path_history (user_id, path_type) VALUES (?, ?)"
                         try:
-                            cursor.execute(insert_query, (user_id, selected_path))
+                            cursor.execute(insert_query, (sanitized_user_id, selected_path))
                             print(f"DEBUG: INSERTクエリ実行結果 - 影響行数={cursor.rowcount}")
                         except sqlite3.IntegrityError as e:
                             print(f"DEBUG: ユニーク制約違反エラー: {e}")
                             # ユニーク制約違反の場合は更新を試みる
-                            cursor.execute(update_query, (selected_path, user_id))
+                            cursor.execute(update_query, (selected_path, sanitized_user_id))
                             print(f"DEBUG: フォールバックUPDATE実行結果 - 影響行数={cursor.rowcount}")
 
                 # トランザクションをコミット
                 conn.commit()
                 conn.close()
 
-                return {"pathType": selected_path, "userId": user_id}
+                return {"pathType": selected_path, "userId": sanitized_user_id}
 
         except Exception as e:
             print(f"経路割り当てエラー: {e}")

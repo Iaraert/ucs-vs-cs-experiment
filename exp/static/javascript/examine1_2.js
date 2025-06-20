@@ -64,14 +64,13 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       // URLパラメータからユーザーIDを取得（examine1と同様）
       const urlParams = new URLSearchParams(window.location.search);
       this.userId = urlParams.get('id');
-      
-      // ユーザーIDが取得できない場合は新規生成
+        // ユーザーIDが取得できない場合は新規生成
       if (!this.userId) {
-        this.userId = Math.round(Math.random() * 100000000);
-        this.userId = zeroPadding(this.userId, 8);
-        console.warn('examine1_2: URLからユーザーIDを取得できませんでした。新規生成:', this.userId);
+        // utilities.jsのgenerateUniqueId()関数を使用して統一
+        const { generateUniqueId } = await import('./utilities.js');
+        this.userId = generateUniqueId();        console.warn('examine1_2: URLからユーザーIDを取得できませんでした。新規生成:', this.userId);
       } else {
-        console.log('examine1_2: URLからユーザーIDを取得:', this.userId);
+        // console.log('examine1_2: URLからユーザーIDを取得:', this.userId);
       }
       
       // DataManagerにユーザーIDを設定
@@ -757,7 +756,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       this.userData.push(data);
       
       // 実験順序に基づいて次のページURLを決定
-      console.log('examine1_2: exportResults - ユーザーID:', this.userId);
+      // console.log('examine1_2: exportResults - ユーザーID:', this.userId);
       const nextUrl = await getNextPageUrl('examine1_2', this.userId);
       console.log('examine1_2: 次のページURL:', nextUrl);
 

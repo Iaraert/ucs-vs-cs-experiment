@@ -10,9 +10,15 @@ from utils.logger import setup_logger, error_logger, UserFriendlyError
 from models.database import Database
 from utils.data_handler import DataHandler
 
+# セキュリティ機能のインポート
+from exp.security_handlers import security_bp, analyze_security_patterns
+
 # インスタンスを初期化
 db = Database()
 data_handler = DataHandler()
+
+# セキュリティBlueprint登録
+app.register_blueprint(security_bp)
 
 # ロガーをセットアップ
 logger = setup_logger('views', log_level=LOG_LEVEL, log_dir=LOG_DIR)

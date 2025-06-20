@@ -3,9 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1_2.css') }}"/>
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1_2.css') }}"/>    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/examine1_2.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/url-cleaner.js') }}"></script>
+    <script>
+        // ページ読み込み時にURLパラメータを隠す
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                const cleanUrl = window.location.protocol + '//' + 
+                                window.location.host + 
+                                window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+                console.log('examine1_2: URLパラメータを非表示にしました');
+            } catch (error) {
+                console.error('examine1_2: URLパラメータの非表示に失敗しました:', error);
+            }
+        });
+    </script>
     <title>回答ページ</title>    <style>
         #scenario_descriptions {
             text-align: left !important;

@@ -45,28 +45,74 @@ export function preventBrowserBack() {
 }
 
 /**
- * URLパラメータからユーザーIDを取得
+ * URLパラメータからユーザーIDを取得（検証付き）
+ * end.html以外では取得後にURLパラメータを隠す
+ * @returns {string|null} 検証済みのユーザーIDまたはnull
  */
 export function getUserIdFromUrl() {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('id');
-}
-
-/**
- * ユーザーIDをストレージに保存
- */
-export function saveUserId(userId, persistent = false) {
-  sessionStorage.setItem('exp_user_id', userId);
+  const rawId = urlParams.get('id');
   
-  if (persistent) {
-    localStorage.setItem('exp_user_id_persistent', userId);
+  // end.html以外でURLパラメータを隠す
+  if (!window.location.pathname.includes('/end')) {
+    try {
+      const cleanUrl = window.location.protocol + '//' + 
+                      window.location.host + 
+                      window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      console.log('utilities.js: URLパラメータを非表示にしました');
+    } catch (error) {
+      console.error('utilities.js: URLパラメータの非表示に失敗しました:', error);
+    }
   }
   
-  return userId;
+  if (!rawId) return null;
+  
+  // ユーザーIDをサニタイズ
+  const sanitizedId = sanitizeUserId(rawId);
+  
+  // サニタイズ後のIDを検証
+  if (!validateUserId(sanitizedId)) {
+    console.warn('Invalid user ID detected from URL:', rawId);
+    return null;
+  }
+  
+  return sanitizedId;
 }
 
 /**
- * ユーザーIDを生成または復元
+ * ユーザーIDをストレージに保存（検証付き）
+ * @param {string} userId - 保存するユーザーID
+ * @param {boolean} persistent - 永続化するかどうか
+ * @returns {string|null} 保存されたユーザーIDまたはnull
+ */
+export function saveUserId(userId, persistent = false) {
+  // ユーザーIDの検証
+  if (!validateUserId(userId)) {
+    console.error('Invalid user ID cannot be saved:', userId);
+    return null;
+  }
+  
+  const sanitizedId = sanitizeUserId(userId);
+  
+  try {
+    sessionStorage.setItem('exp_user_id', sanitizedId);
+    
+    if (persistent) {
+      localStorage.setItem('exp_user_id_persistent', sanitizedId);
+    }
+    
+    return sanitizedId;
+  } catch (error) {
+    console.error('Failed to save user ID to storage:', error);
+    return null;
+  }
+}
+
+/**
+ * ユーザーIDを生成または復元（検証強化版）
+ * @param {Object} options - オプション設定
+ * @returns {string} 検証済みのユーザーID
  */
 export function getOrCreateUserId(options = {}) {
   const { 
@@ -78,34 +124,58 @@ export function getOrCreateUserId(options = {}) {
   if (urlParam) {
     const urlId = getUserIdFromUrl();
     if (urlId) {
-      return saveUserId(urlId, persistent);
+      const savedId = saveUserId(urlId, persistent);
+      if (savedId) return savedId;
     }
   }
   
   // セッションストレージから取得を試みる
-  const sessionId = sessionStorage.getItem('exp_user_id');
-  if (sessionId) {
-    return sessionId;
+  try {
+    const sessionId = sessionStorage.getItem('exp_user_id');
+    if (sessionId && validateUserId(sessionId)) {
+      return sessionId;
+    } else if (sessionId) {
+      // 無効なIDはクリア
+      sessionStorage.removeItem('exp_user_id');
+      console.warn('Invalid user ID found in session storage, cleared');
+    }
+  } catch (error) {
+    console.warn('Failed to access session storage:', error);
   }
   
   // 永続ストレージから取得を試みる
   if (persistent) {
-    const localId = localStorage.getItem('exp_user_id_persistent');
-    if (localId) {
-      return saveUserId(localId, true);
+    try {
+      const localId = localStorage.getItem('exp_user_id_persistent');
+      if (localId && validateUserId(localId)) {
+        return saveUserId(localId, true) || localId;
+      } else if (localId) {
+        // 無効なIDはクリア
+        localStorage.removeItem('exp_user_id_persistent');
+        console.warn('Invalid user ID found in local storage, cleared');
+      }
+    } catch (error) {
+      console.warn('Failed to access local storage:', error);
     }
   }
   
   // 新規IDを生成
   const newId = generateUniqueId();
-  return saveUserId(newId, persistent);
+  return saveUserId(newId, persistent) || newId;
 }
 
 /**
  * ランダムな一意のID文字列を生成
+ * @returns {string} より堅牢で衝突しにくい一意のID
  */
 export function generateUniqueId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  // より強力な一意性を保証するため、複数の要素を組み合わせ
+  const timestamp = Date.now().toString(36);
+  const randomPart1 = Math.random().toString(36).substr(2, 6);
+  const randomPart2 = Math.random().toString(36).substr(2, 4);
+  const performanceNow = performance.now().toString(36).substr(2, 4);
+  
+  return `${timestamp}${randomPart1}${randomPart2}${performanceNow}`;
 }
 
 /**
@@ -219,7 +289,7 @@ export async function getExperimentOrder(userId, reallocate = false) {
     // サーバーから実験経路を取得
     // reallocateパラメータを明示的に設定
     const url = `/getExperimentPath?user_id=${encodeURIComponent(userId)}&reallocate=${reallocate}`;
-    console.log(`実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
+    // console.log(`実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -247,7 +317,7 @@ export async function getNextPageUrl(currentPage, userId) {
   // reallocate=falseを明示的に設定して既存の経路を尊重するようにする
   const experimentOrder = await getExperimentOrder(userId, false);
   
-  console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
+  // console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
   
   if (currentPage === 'examine1') {
     if (experimentOrder === 'order1') {
@@ -389,4 +459,42 @@ export function showExperimentFormatChangeNotification(currentExperiment, experi
       resolve();
     }
   });
+}
+
+/**
+ * ユーザーIDの妥当性を検証
+ * @param {string} userId - 検証するユーザーID
+ * @returns {boolean} IDが有効かどうか
+ */
+export function validateUserId(userId) {
+  if (!userId) return false;
+  
+  // 基本的な長さチェック（最小3文字、最大50文字）
+  if (userId.length < 3 || userId.length > 50) return false;
+  
+  // 危険な文字の除外（SQLインジェクション、XSS対策）
+  const dangerousChars = /[<>'"&=;()|]/;
+  if (dangerousChars.test(userId)) return false;
+  
+  // 制御文字の除外
+  if (/[\x00-\x1F\x7F]/.test(userId)) return false;
+  
+  return true;
+}
+
+/**
+ * ユーザーIDをサニタイズ
+ * @param {string} userId - サニタイズするユーザーID
+ * @returns {string} サニタイズされたユーザーID
+ */
+export function sanitizeUserId(userId) {
+  if (!userId) return '';
+  
+  // 基本的なサニタイズ
+  return userId
+    .toString()
+    .trim()
+    .substring(0, 50) // 最大長制限
+    .replace(/[<>'"&=;()|]/g, '') // 危険な文字を削除
+    .replace(/[\x00-\x1F\x7F]/g, ''); // 制御文字を削除
 }
