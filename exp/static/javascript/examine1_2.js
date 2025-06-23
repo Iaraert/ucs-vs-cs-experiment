@@ -3,6 +3,11 @@
  * モジュラー構造に対応し、examine1との互換性を確保
  */
 
+// 依存関係の読み込み状態を管理
+let modulesLoaded = false;
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 5;
+
 // 共有モジュールのインポート
 import config from './config.js';
 import dataManager from './data-manager.js';
@@ -24,9 +29,71 @@ import {
 } from './common-utils.js';
 
 /**
+ * 依存モジュールの読み込み状態をチェック
+ */
+function checkModulesLoaded() {
+  try {
+    // 必要なモジュールが正しく読み込まれているかチェック
+    const requiredModules = {
+      config: config,
+      dataManager: dataManager,
+      uiManager: uiManager,
+      eventHandler: eventHandler,
+      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder },
+      commonUtils: { validateCheckboxes, validateCheckboxesRobust, validateDataStructure, validateScenarioData, setImagePaths, createImageMapping, setElementsDisplay, setButtonStates, setElementTexts, setElementHTMLs, setElementAttributes }
+    };
+    
+    for (const [moduleName, moduleObj] of Object.entries(requiredModules)) {
+      if (!moduleObj || (typeof moduleObj === 'object' && Object.keys(moduleObj).length === 0)) {
+        console.warn(`Module ${moduleName} is not properly loaded`);
+        return false;
+      }
+    }
+    
+    console.log('✅ All required modules are loaded successfully');
+    return true;
+  } catch (error) {
+    console.error('❌ Error checking module dependencies:', error);
+    return false;
+  }
+}
+
+/**
+ * 初期化のリトライ機能付き実行
+ */
+async function initializeWithRetry() {
+  return new Promise((resolve, reject) => {
+    const attemptInit = () => {
+      initializationAttempts++;
+      console.log(`🔄 Initialization attempt ${initializationAttempts}/${MAX_INIT_ATTEMPTS}`);
+      
+      if (checkModulesLoaded()) {
+        modulesLoaded = true;
+        console.log('✅ Modules loaded successfully, proceeding with initialization');
+        resolve();
+      } else if (initializationAttempts < MAX_INIT_ATTEMPTS) {
+        console.log(`⏳ Modules not ready, retrying in ${1000 * initializationAttempts}ms...`);
+        setTimeout(attemptInit, 1000 * initializationAttempts);
+      } else {
+        const error = new Error(`Failed to load modules after ${MAX_INIT_ATTEMPTS} attempts`);
+        console.error('❌ Module loading failed:', error);
+        reject(error);
+      }
+    };
+    
+    attemptInit();
+  });
+}
+
+/**
  * 実験1.2を管理するクラス
  */
-class Experiment12Manager {  constructor() {    // 実験タイプを設定
+class Experiment12Manager {  constructor() {
+    // 初期化状態管理
+    this.initialized = false;
+    this.initializationInProgress = false;
+    
+    // 実験タイプを設定
     dataManager.setExperimentType('examine1_2');
     
     // examine1_2固有の設定
@@ -65,8 +132,75 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     this.estI = 0;
     this.cellSize = 0;
     
-    this.initialize();
+    // 初期化を非同期で開始
+    this.initializeAsync();
   }  /**
+   * 非同期初期化（リトライ機能付き）
+   */
+  async initializeAsync() {
+    if (this.initializationInProgress) {
+      console.log('⏳ Initialization already in progress...');
+      return;
+    }
+    
+    this.initializationInProgress = true;
+    
+    try {
+      // 依存モジュールの読み込み完了を待機
+      await initializeWithRetry();
+      
+      // 実際の初期化処理を実行
+      await this.initialize();
+      
+      this.initialized = true;
+      this.initializationInProgress = false;
+      console.log('✅ Experiment12Manager initialized successfully');
+      
+    } catch (error) {
+      console.error('❌ Failed to initialize Experiment12Manager:', error);
+      this.initializationInProgress = false;
+      
+      // エラー時のフォールバック処理
+      this.showInitializationError();
+    }
+  }
+
+  /**
+   * 初期化エラー時の処理
+   */
+  showInitializationError() {
+    const errorMessage = document.createElement('div');
+    errorMessage.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 2px solid #dc3545;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      z-index: 10000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    `;
+    errorMessage.innerHTML = `
+      <h3 style="color: #dc3545; margin-top: 0;">初期化エラー</h3>
+      <p>実験システムの初期化に失敗しました。</p>
+      <p>ページを再読み込みしてください。</p>
+      <button onclick="location.reload()" style="
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-top: 10px;
+      ">ページを再読み込み</button>
+    `;
+    document.body.appendChild(errorMessage);
+  }
+
+  /**
    * 実験を初期化
    */  async initialize() {
     try {
