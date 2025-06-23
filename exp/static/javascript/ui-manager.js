@@ -35,7 +35,11 @@ export class UIManager {
     if (!isFirstTime) {
       dataManager.moveToNextScenario();
     }
-    this.resetBackGround();
+    
+    // 背景色をリセット - experimentAppを通じて呼び出し
+    if (window.experimentApp && typeof window.experimentApp.resetBackGround === 'function') {
+      window.experimentApp.resetBackGround();
+    }
 
     const currentIndex = dataManager.currentScenarioIndex;
     
@@ -206,7 +210,11 @@ export class UIManager {
     this.clearPage();
     
     document.getElementById('show_sample_area').style.display = "inline";
-    this.changeBackGround();
+    
+    // 背景色を変更 - experimentAppを通じて呼び出し
+    if (window.experimentApp && typeof window.experimentApp.changeBackGround === 'function') {
+      window.experimentApp.changeBackGround();
+    }
 
     // 前のシナリオのレスポンスチェックボックスとボタンをリセット
     // 実験タイプに応じて適切なチェックボックスIDを選択
@@ -528,20 +536,6 @@ export class UIManager {
     }
     
     return iconsPerRow;
-  }
-  
-  /**
-   * backgroundColorを変更する関数
-   */
-  changeBackGround() {
-    document.body.style.backgroundColor = config.getBgColorForIndex(dataManager.currentScenarioIndex);
-  }
-
-  /**
-   * backgroundColorをリセットする関数
-   */
-  resetBackGround() {
-    document.body.style.backgroundColor = 'Transparent';
   }
   
   /**

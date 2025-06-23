@@ -6,7 +6,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray } from './utilities.js';
 
 /**
  * 実験1の管理クラス
@@ -15,6 +15,9 @@ class ExperimentApp {
   constructor() {
     // 実験タイプを設定
     dataManager.setExperimentType('examine1');
+    
+    // 背景色を2色交互に設定（アイコンの色と被らないように）
+    this.bgcolors = ['#f8f9fa', '#fff8f0']; // 淡いグレーと淡いベージュ
     
     // 初期化フラグ
     this.initialized = false;
@@ -25,8 +28,24 @@ class ExperimentApp {
    */
   async initialize() {
     try {
-      // DataManagerを初期化
-      await dataManager.init();
+      // utilities.jsから統一されたユーザーID取得関数を使用
+      const { getOrCreateUserId } = await import('./utilities.js');
+      const userId = getOrCreateUserId({ 
+        urlParam: true, 
+        persistent: false 
+      });
+      
+      if (!userId) {
+        console.error('examine1: ユーザーIDの取得に失敗しました');
+        alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
+        window.location.href = '/';
+        return;
+      }
+      
+      console.log('examine1: ユーザーID:', userId);
+      
+      // DataManagerを初期化（ユーザーIDを渡す） - 重要: 確実に同じIDを使用
+      await dataManager.init(userId);
       
       // サーバーから実験条件（対称/非対称）を取得
       await dataManager.fetchSampleType();
@@ -69,6 +88,24 @@ class ExperimentApp {
   submitResponse() {
     eventHandler.submitResponseAndContinue();
   }
+  
+  /**
+   * 背景色を2色交互に変更（アイコンの色と被らないように）
+   */
+  changeBackGround() {
+    // シナリオインデックスに基づいて2色を交互に選択
+    const colorIndex = dataManager.currentScenarioIndex % 2;
+    const bgColor = this.bgcolors[colorIndex] || 'Transparent';
+    document.body.style.backgroundColor = bgColor;
+    console.log(`背景色変更: シナリオ${dataManager.currentScenarioIndex + 1} -> ${bgColor}`);
+  }
+
+  /**
+   * 背景色をリセット
+   */
+  resetBackGround() {
+    document.body.style.backgroundColor = 'Transparent';
+  }
 }
 
 // 実験アプリケーションのインスタンスを作成
@@ -82,10 +119,13 @@ function safeCall(fn, fnName) {
   try {
     if (!experimentApp.initialized) {
       console.warn(`examine1: ${fnName} called before initialization complete`);
+      // 初期化が完了していない場合は警告のみで実行を継続
     }
     return fn();
   } catch (error) {
     console.error(`examine1: Error in ${fnName}:`, error);
+    console.error('examine1: エラーの詳細:', error.stack);
+    alert(`操作中にエラーが発生しました: ${fnName}。ページを再読み込みしてください。`);
   }
 }
 
@@ -137,8 +177,10 @@ window.get_value_fin = async function() {
     await window.get_value();
     
     // 実験順序に基づいて次のページURLを決定
+    console.log('examine1: get_value_fin - ユーザーID:', dataManager.userId);
     const nextUrl = await getNextPageUrl('examine1', dataManager.userId);
     console.log('examine1: 次のページURL:', nextUrl);
+    console.log('examine1: 現在のユーザーID（確認）:', dataManager.userId);
     
     await dataManager.exportResults(nextUrl);
   } catch (error) {

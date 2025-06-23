@@ -9,23 +9,92 @@
  * @param {string} targetButtonId - 有効/無効を切り替えるボタンのID
  */
 export function validateCheckboxes(checkboxClass, targetButtonId) {
-  const checkboxes = document.getElementsByClassName(checkboxClass);
-  let checkedCount = 0;
-  
-  for (let i = 0; i < checkboxes.length; i++) {
-    if (checkboxes[i].checked) {
-      checkedCount++;
+  // DOM更新完了を確実に待機してからチェックボックス数をカウント
+  setTimeout(() => {
+    const checkboxes = document.getElementsByClassName(checkboxClass);
+    let checkedCount = 0;
+    
+    // デバッグ情報: DOM更新状況とチェックボックス総数
+    console.log(`validateCheckboxes: DOM更新待機完了 - 総チェックボックス数 = ${checkboxes.length}`);
+    console.log(`validateCheckboxes: DOM状況 - readyState: ${document.readyState}`);
+    
+    // 詳細なデバッグ情報: 各チェックボックスの状態
+    for (let i = 0; i < checkboxes.length; i++) {
+      const isChecked = checkboxes[i].checked;
+      console.log(`validateCheckboxes: チェックボックス${i + 1} (ID: ${checkboxes[i].id}) - チェック状態: ${isChecked}, 表示状態: ${checkboxes[i].style.display !== 'none' ? '表示' : '非表示'}`);
+      if (isChecked) {
+        checkedCount++;
+      }
     }
-  }
-  
-  const targetButton = document.getElementById(targetButtonId);
-  if (targetButton) {
-    if (checkedCount === checkboxes.length) {
-      targetButton.removeAttribute("disabled");
+    
+    // デバッグ情報: チェック済み数と総数の詳細
+    console.log(`validateCheckboxes: チェック済み数 = ${checkedCount}, 総数 = ${checkboxes.length}, 全チェック済み: ${checkedCount === checkboxes.length && checkboxes.length > 0}`);
+    
+    const targetButton = document.getElementById(targetButtonId);
+    if (targetButton) {
+      if (checkedCount === checkboxes.length && checkboxes.length > 0) {
+        targetButton.removeAttribute("disabled");
+        console.log(`validateCheckboxes: ボタン "${targetButtonId}" を有効化しました`);
+      } else {
+        targetButton.setAttribute("disabled", true);
+        console.log(`validateCheckboxes: ボタン "${targetButtonId}" を無効化しました (${checkedCount}/${checkboxes.length})`);
+      }
     } else {
-      targetButton.setAttribute("disabled", true);
+      console.warn(`validateCheckboxes: ターゲットボタン "${targetButtonId}" が見つかりません`);
+    }
+  }, 150); // DOM更新完了を確実に待機
+}
+
+/**
+ * チェックボックス確認機能の統一化（堅牢版）
+ * DOM更新の遅延に対応するため、複数回の検証を実行
+ * @param {string} checkboxClass - チェックボックスのクラス名
+ * @param {string} targetButtonId - 有効/無効を切り替えるボタンのID
+ */
+export function validateCheckboxesRobust(checkboxClass, targetButtonId) {
+  let attempts = 0;
+  const maxAttempts = 5; // より多くの再試行
+  
+  function performValidation() {
+    attempts++;
+    const checkboxes = document.getElementsByClassName(checkboxClass);
+    
+    console.log(`validateCheckboxesRobust: 試行 ${attempts}/${maxAttempts} - チェックボックス数: ${checkboxes.length}, DOM状態: ${document.readyState}`);
+    
+    // チェックボックスが見つからない場合は再試行
+    if (checkboxes.length === 0 && attempts < maxAttempts) {
+      console.log('validateCheckboxesRobust: チェックボックスが見つからない - 再試行します');
+      setTimeout(performValidation, 150);
+      return;
+    }
+    
+    let checkedCount = 0;
+    for (let i = 0; i < checkboxes.length; i++) {
+      const isChecked = checkboxes[i].checked;
+      console.log(`validateCheckboxesRobust: チェックボックス${i + 1} (ID: ${checkboxes[i].id}) - チェック状態: ${isChecked}, 可視性: ${checkboxes[i].offsetParent !== null ? '表示' : '非表示'}`);
+      if (isChecked) {
+        checkedCount++;
+      }
+    }
+    
+    console.log(`validateCheckboxesRobust: チェック済み数 = ${checkedCount}/${checkboxes.length}, 全チェック済み: ${checkedCount === checkboxes.length && checkboxes.length > 0}`);
+    
+    const targetButton = document.getElementById(targetButtonId);
+    if (targetButton) {
+      if (checkedCount === checkboxes.length && checkboxes.length > 0) {
+        targetButton.removeAttribute("disabled");
+        console.log(`validateCheckboxesRobust: ボタン "${targetButtonId}" を有効化しました`);
+      } else {
+        targetButton.setAttribute("disabled", true);
+        console.log(`validateCheckboxesRobust: ボタン "${targetButtonId}" を無効化しました`);
+      }
+    } else {
+      console.warn(`validateCheckboxesRobust: ターゲットボタン "${targetButtonId}" が見つかりません`);
     }
   }
+  
+  // 初回実行
+  setTimeout(performValidation, 100);
 }
 
 /**
@@ -224,3 +293,4 @@ export function setElementHTMLs(htmlSettings) {
     }
   }
 }
+

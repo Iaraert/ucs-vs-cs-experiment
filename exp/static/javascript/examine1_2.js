@@ -8,9 +8,10 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder } from './utilities.js';
 import { 
   validateCheckboxes, 
+  validateCheckboxesRobust,
   validateDataStructure, 
   validateScenarioData,
   setImagePaths,
@@ -34,11 +35,19 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     this.testOrder = {};  // オブジェクトとして初期化
     this.currentSampleSelection = [];
     this.estimations = [];
-    
-    // シナリオはconfig.jsから取得（ハードコードしない）
+      // シナリオはconfig.jsから取得（ハードコードしない）
     this.scenarios = null;  // 初期化時に設定される
-    this.stimuli = shuffleArray(['1','2','3','4','5','6']);
-    this.bgcolors = shuffleArray(['#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0','#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8']);
+    
+    // 刺激データの初期化（安全にチェック）
+    try {
+      this.stimuli = shuffleArray(['1','2','3','4','5','6']);
+      console.log('examine1_2: stimuli初期化完了:', this.stimuli);
+    } catch (error) {
+      console.error('examine1_2: stimuli初期化エラー:', error);
+      this.stimuli = ['1','2','3','4','5','6']; // フォールバック
+    }
+    // 背景色を2色交互に設定（アイコンの色と被らないように）
+    this.bgcolors = ['#f8f9fa', '#fff8f0']; // 淡いグレーと淡いベージュ
     
     this.imageType = ["p", "notp", "q", "notq"];
     this.imgCombination = {
@@ -61,19 +70,23 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    * 実験を初期化
    */  async initialize() {
     try {
-      // URLパラメータからユーザーIDを取得（examine1と同様）
-      const urlParams = new URLSearchParams(window.location.search);
-      this.userId = urlParams.get('id');
-        // ユーザーIDが取得できない場合は新規生成
+      // utilities.jsから統一されたユーザーID取得関数を使用
+      const { getOrCreateUserId } = await import('./utilities.js');
+      this.userId = getOrCreateUserId({ 
+        urlParam: true, 
+        persistent: false 
+      });
+      
       if (!this.userId) {
-        // utilities.jsのgenerateUniqueId()関数を使用して統一
-        const { generateUniqueId } = await import('./utilities.js');
-        this.userId = generateUniqueId();        console.warn('examine1_2: URLからユーザーIDを取得できませんでした。新規生成:', this.userId);
-      } else {
-        // console.log('examine1_2: URLからユーザーIDを取得:', this.userId);
+        console.error('examine1_2: ユーザーIDの取得に失敗しました');
+        alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
+        window.location.href = '/';
+        return;
       }
       
-      // DataManagerにユーザーIDを設定
+      console.log('examine1_2: ユーザーID:', this.userId);
+      
+      // DataManagerにユーザーIDを設定 - 重要: 確実に同じIDを使用
       dataManager.userId = this.userId;
       
       // サーバーから実験条件（対称/非対称）を取得
@@ -83,18 +96,24 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       // config.jsからexamine1_2用のシナリオを取得
       this.scenarios = config.setExperimentScenarios('examine1_2', this.userId);
       console.log('examine1_2: 配布されたシナリオ:', this.scenarios.join(', '));
-      
-      // データの読み込み
+        // データの読み込み
+      console.log('examine1_2: データファイルの読み込みを開始:', this.file);
       this.testOrder = await this.readJson(this.file);
+      console.log('examine1_2: データファイルの読み込み完了、キー数:', Object.keys(this.testOrder).length);
       this.estimations = new Array();
       
       // 共通サンプルデータの解決
+      console.log('examine1_2: 共通サンプルデータの解決を開始');
       await this.resolveCommonSamples();
+      console.log('examine1_2: 共通サンプルデータの解決完了');
       
       // 画像のプリロード
+      console.log('examine1_2: 画像のプリロードを開始');
       this.getImages();
+      console.log('examine1_2: 画像のプリロード完了');
       
       // 最初のシナリオ表示
+      console.log('examine1_2: 最初のシナリオ表示を開始');
       this.toNextScenarioDescription(true);
       
       // ページ離脱警告の設定
@@ -106,6 +125,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       console.log('examine1_2: 初期化完了');
     } catch (error) {
       console.error('examine1_2の初期化に失敗しました:', error);
+      console.error('エラーの詳細:', error.stack);
       uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
     }
   }/**
@@ -268,12 +288,20 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     if (!isFirstTime) {
       this.sceIdx++;
       
-      // 境界チェック: シナリオ数を超えていないか確認
+      // 境界チェック強化: シナリオ数を超えていないか確認
       if (this.sceIdx >= this.scenarios.length) {
         console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
-        alert('すべてのシナリオが完了しました。');
+        alert('すべてのシナリオが完了しました。実験終了画面に移動します。');
+        this.endExperiment();
         return;
       }
+    }
+    
+    // 境界チェック: 配列アクセス前の安全性確認
+    if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+      console.error(`シナリオインデックスが不正です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
+      return;
     }
     
     this.resetBackGround();
@@ -281,6 +309,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     const scenarioKey = this.scenarios[this.sceIdx];
     console.log(`シナリオ表示: インデックス=${this.sceIdx}, キー=${scenarioKey}`);
     
+    // シナリオデータの存在確認を7つ目のチェックボックス処理前に実行
     if (!validateScenarioData(this.testOrder, scenarioKey)) {
       console.error(`シナリオデータが見つかりません: ${scenarioKey}`);
       alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
@@ -299,21 +328,22 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
 
     document.getElementById('page').innerHTML = "<h4>" + (this.sceIdx + 1) + '/' + this.scenarios.length + "種類目</h4>";
     document.getElementById('scenario_title').innerHTML = "<h2>" + this.testOrder[scenarioKey]['title'] + "</h2>";
-      setElementsDisplay({
+
+    setElementsDisplay({
       'check_sentence': 'inline-block',
       'description_area': 'inline-block',
       'start_scenario_button': 'inline'
     });
-      setButtonStates({
+
+    setButtonStates({
       'start_scenario_button': false
     });
-      // 明示的にボタンを無効化
+
+    // 明示的にボタンを無効化
     const startButton = document.getElementById('start_scenario_button');
     if (startButton) {
       startButton.setAttribute('disabled', true);
-    }
-
-    // 条件に応じて説明文を選択
+    }    // 条件に応じて説明文を選択
     let descriptions;
     if (dataManager.sampleType === 'symmetric' && this.testOrder[scenarioKey]['descriptions_symmetric']) {
       descriptions = this.testOrder[scenarioKey]['descriptions_symmetric'];
@@ -322,15 +352,16 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       descriptions = this.testOrder[scenarioKey]['descriptions'];
       console.log('非対称条件の説明文を使用');
     }
-    
+
     // 説明文のHTML要素を動的に生成（examine1と同様）
     const scenarioDescriptionsContainer = document.getElementById('scenario_descriptions');
     if (scenarioDescriptionsContainer && descriptions && descriptions.length > 0) {
-      let html = '<form action="cgi-bin/abc.cgi" method="post">';
-      for (let i = 0; i < descriptions.length; i++) {
+      let html = '<form action="cgi-bin/abc.cgi" method="post">';      for (let i = 0; i < descriptions.length; i++) {
         html += `
           <p>
-            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" style="transform:scale(1.5)" onclick="check_description()" />
+            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" 
+                   style="transform:scale(1.5)" 
+                   onclick="check_description()" />
             <label for="checkbox${i + 1}" id="scenario_description${i + 1}">${descriptions[i]}</label>
           </p>`;
         if (i < descriptions.length - 1) {
@@ -339,68 +370,197 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       }
       html += '</form>';
       scenarioDescriptionsContainer.innerHTML = html;
+      
+      // DOM更新の同期化: チェックボックス動的生成後のsetTimeout待機時間を200ms以上に延長
+      setTimeout(() => {
+        console.log(`toNextScenarioDescription: DOM更新完了 - シナリオ${this.sceIdx + 1}, チェックボックス数: ${descriptions.length}`);
+        
+        // DOM更新完了の確認処理を追加
+        const checkboxes = document.getElementsByClassName("checkbox");
+        if (checkboxes.length !== descriptions.length) {
+          console.warn(`DOM更新完了確認: チェックボックス数が不一致 - 期待: ${descriptions.length}, 実際: ${checkboxes.length}`);
+          
+          // DOM更新が不完全な場合の追加待機
+          setTimeout(() => {
+            const recheckBoxes = document.getElementsByClassName("checkbox");
+            console.log(`追加確認後のチェックボックス数: ${recheckBoxes.length}`);            this.resetCheckboxes(recheckBoxes, descriptions.length);
+          }, 100);
+        } else {
+          this.resetCheckboxes(checkboxes, descriptions.length);
+        }
+      }, 250); // DOM更新完了を確実に待機（200ms以上に延長）
     } else {
       // 既存のラベル要素を使用（フォールバック）
-      if (descriptions && descriptions.length > 0) {
-        for (let i = 0; i < descriptions.length; i++) {
-          const element = document.getElementById('scenario_description' + String(i + 1));
-          if (element) {
-            element.innerHTML = descriptions[i];
-          }
+      this.handleFallbackScenarioDisplay(descriptions);
+    }
+  }
+    /**
+   * チェックボックスのリセット処理（ヘルパーメソッド）
+   */
+  resetCheckboxes(checkboxes, expectedCount) {
+    for (let i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = false;
+    }
+    console.log(`toNextScenarioDescription: チェックボックスリセット完了 - 実際の要素数: ${checkboxes.length}`);
+  }
+    /**
+   * フォールバック時のシナリオ表示処理（ヘルパーメソッド）
+   */
+  handleFallbackScenarioDisplay(descriptions) {
+    if (descriptions && descriptions.length > 0) {
+      for (let i = 0; i < descriptions.length; i++) {
+        const element = document.getElementById('scenario_description' + String(i + 1));
+        if (element) {
+          element.innerHTML = descriptions[i];
         }
       }
     }
     
-    // チェックボックスをリセット
-    const checkboxes = document.getElementsByClassName("checkbox");
-    for (let i = 0; i < checkboxes.length; i++) {
-      checkboxes[i].checked = false;
-    }
+    // フォールバック時もチェックボックスをリセット
+    setTimeout(() => {
+      const checkboxes = document.getElementsByClassName("checkbox");
+      for (let i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+      }
+      console.log(`フォールバック: チェックボックスリセット完了 - 要素数: ${checkboxes.length}`);
+    }, 200);
+  }
+    /**
+   * 実験終了処理（ヘルパーメソッド）
+   */
+  endExperiment() {
+    console.log('実験終了処理を開始します');
+    // 実験終了時の適切な処理をここに実装
+    // 必要に応じて結果送信や次のページへの遷移処理を追加
   }  /**
    * チェックボックスの確認
    */
   async checkDescription() {
-    validateCheckboxes("checkbox", "start_scenario_button");
+    console.log('checkDescription: 開始');
+    console.log('checkDescription: 現在のsceIdx:', this.sceIdx);
+    console.log('checkDescription: scenarios:', this.scenarios);
     
-    // examine1_2で6個目のシナリオの場合、実験形式変更通知を表示
-    await this.checkForExperimentFormatNotification();
-  }
-  
-  /**
-   * 実験形式変更通知をチェックして表示
-   */
-  async checkForExperimentFormatNotification() {
+    // this.sceIdxの境界チェックを追加して、配列範囲外アクセスを防止
+    if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+      console.error(`checkDescription: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
+      return;
+    }
+    
     try {
-      // 現在のシナリオが6個目（最後）かどうかチェック
-      if (this.sceIdx === this.scenarios.length - 1) {
-        // 実験順序を取得
-        const experimentOrder = await getExperimentOrder(this.userId, false);
-        
-        // order2の場合（examine1_2が最初の実験）のみ通知を表示
-        if (experimentOrder === 'order2') {
-          showExperimentFormatChangeNotification('examine1_2', experimentOrder);
+      // 通常のチェックボックス検証
+      console.log('checkDescription: validateCheckboxes実行前');
+      validateCheckboxes("checkbox", "start_scenario_button");
+      console.log('checkDescription: validateCheckboxes実行後');
+      
+      // 実験形式変更通知のチェック（全チェックボックス完了時に実行）
+      console.log('checkDescription: 実験形式変更通知チェック開始');
+      await this.checkFormatChangeNotification();
+      console.log('checkDescription: 実験形式変更通知チェック完了');
+    } catch (error) {
+      console.error('checkDescription: 検証中にエラーが発生しました:', error);
+      alert('チェックボックスの確認中にエラーが発生しました。ページを再読み込みしてください。');
+    }
+  }
+    /**
+   * 実験形式変更通知をチェックする
+   * 1つ目のシナリオで全チェックボックス完了時に通知を表示
+   */
+  async checkFormatChangeNotification() {
+    try {
+      console.log('checkFormatChangeNotification: 通知チェック開始');
+      console.log('checkFormatChangeNotification: 現在のsceIdx:', this.sceIdx);
+      console.log('checkFormatChangeNotification: scenarios:', this.scenarios);
+      
+      // シナリオ説明用のチェックボックスが全て完了しているかチェック
+      const checkboxes = document.getElementsByClassName("checkbox");
+      console.log('checkFormatChangeNotification: チェックボックス数:', checkboxes.length);
+      
+      let allChecked = true;
+      
+      // チェックボックスが存在しない場合は処理しない
+      if (checkboxes.length === 0) {
+        console.log('checkFormatChangeNotification: チェックボックスが存在しないため処理をスキップ');
+        return;
+      }
+      
+      // 各チェックボックスの状態をログ出力
+      for (let i = 0; i < checkboxes.length; i++) {
+        console.log(`checkFormatChangeNotification: チェックボックス${i + 1}: ${checkboxes[i].checked}`);
+        if (!checkboxes[i].checked) {
+          allChecked = false;
         }
       }
+      
+      console.log('checkFormatChangeNotification: 全チェックボックス完了状態:', allChecked);
+      
+      // 全チェックボックスが完了していない場合は処理しない
+      if (!allChecked) {
+        console.log('checkFormatChangeNotification: 全チェックボックスが完了していないため通知をスキップ');
+        return;
+      }
+      
+      // 1つ目のシナリオでない場合は処理しない
+      if (this.sceIdx !== 0) {
+        console.log(`checkFormatChangeNotification: 1つ目のシナリオではないため通知をスキップ (現在のインデックス: ${this.sceIdx})`);
+        return;
+      }
+      
+      console.log(`checkFormatChangeNotification: 通知処理開始 - ユーザーID: ${this.userId}, シナリオ: ${this.sceIdx}, ページ: examine1_2`);
+      
+      // 実験形式変更通知を呼び出し
+      const { checkAndShowFormatChangeNotification } = await import('./utilities.js');
+      await checkAndShowFormatChangeNotification(this.userId, this.sceIdx, 'examine1_2');
+      
+      console.log('checkFormatChangeNotification: 通知処理完了');
+      
     } catch (error) {
-      console.error('実験形式変更通知のチェック中にエラーが発生しました:', error);
-      // エラーが発生しても実験の進行に影響しないようにする
+      console.error('checkFormatChangeNotification: エラーが発生しました:', error);
     }
   }/**
    * 次のサンプル表示ページへ遷移
    */
   toNextNewSamplePage() {
-    if (!validateScenarioData(this.testOrder, null)) {
-      console.error('testOrderが初期化されていません');
-      return;
-    }
-    
-    // 境界チェック
-    if (this.sceIdx >= this.scenarios.length) {
-      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
-      alert('シナリオデータエラーが発生しました。');
-      return;
-    }
-    
+    try {
+      // 初期化チェック
+      if (!this.testOrder || Object.keys(this.testOrder).length === 0) {
+        console.error('toNextNewSamplePage: testOrderが初期化されていません');
+        alert('実験データの読み込みが完了していません。しばらく待ってから再度お試しください。');
+        return;
+      }
+      
+      if (!this.scenarios || this.scenarios.length === 0) {
+        console.error('toNextNewSamplePage: scenariosが初期化されていません');
+        alert('シナリオデータが読み込まれていません。ページを再読み込みしてください。');
+        return;
+      }
+        if (!this.stimuli || this.stimuli.length === 0) {
+        console.error('toNextNewSamplePage: stimuliが初期化されていません');
+        console.error('toNextNewSamplePage: 現在のstimuliの状態:', this.stimuli);
+        
+        // 緊急時フォールバック: 刺激データを再初期化
+        try {
+          this.stimuli = shuffleArray(['1','2','3','4','5','6']);
+          console.log('toNextNewSamplePage: stimuli緊急再初期化完了:', this.stimuli);
+        } catch (error) {
+          console.error('toNextNewSamplePage: 緊急再初期化も失敗:', error);
+          this.stimuli = ['1','2','3','4','5','6']; // 最終フォールバック
+          console.log('toNextNewSamplePage: 最終フォールバック適用:', this.stimuli);
+        }
+        
+        // 再度チェック
+        if (!this.stimuli || this.stimuli.length === 0) {
+          alert('刺激データが初期化されていません。ページを再読み込みしてください。');
+          return;
+        }
+      }
+      
+      // 境界チェック強化
+      if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+        console.error(`toNextNewSamplePage: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+        alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
+        return;
+      }    
     this.clearPage();
     let list = document.getElementsByClassName("checkbox");
     for (let index = 0; index < list.length; ++index) {
@@ -409,35 +569,63 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     this.currentTestPage = 0;
     document.getElementById('show_sample_area').style.display = "inline";
     document.getElementById('order').innerHTML = "実験の進捗状況";
-    this.changeBackGround();
-
-    // 提示するサンプルのリストを作り、サンプルサイズを求める
+    this.changeBackGround();    // 提示するサンプルのリストを作り、サンプルサイズを求める
     this.currentSampleSelection = [];
     this.sampleSize = 0;
     
     const scenarioKey = this.scenarios[this.sceIdx];
     const stimulusKey = this.stimuli[this.sceIdx];
     
-    console.log(`サンプル表示準備: シナリオ=${scenarioKey}, 刺激=${stimulusKey}`);
+    console.log(`サンプル表示準備: シナリオ=${scenarioKey}, 刺激=${stimulusKey}, sampleType=${dataManager.sampleType}`);
     
     // データ構造の存在確認
-    if (!validateScenarioData(this.testOrder, scenarioKey, [`samples.${stimulusKey}`])) {
+    if (!this.testOrder[scenarioKey]) {
+      console.error(`toNextNewSamplePage: シナリオ ${scenarioKey} のデータが存在しません`);
+      alert('シナリオデータが見つかりません。ページを再読み込みしてください。');
       return;
     }
     
-    const samples = this.testOrder[scenarioKey]['samples'][stimulusKey];
-    Object.keys(samples).forEach((elm) => {
-      if (samples[elm] > 0) {
-        this.sampleSize += samples[elm];
-        this.cellSize = samples[elm];
-        for (let i = 0; i < this.cellSize; i++) {
+    if (!this.testOrder[scenarioKey]['samples']) {
+      console.error(`toNextNewSamplePage: シナリオ ${scenarioKey} にsamplesデータが存在しません`);
+      alert('サンプルデータが見つかりません。ページを再読み込みしてください。');
+      return;
+    }
+    
+    // examine1_2では、samplesの構造が{stimulusKey: {a, b, c, d}}の形式
+    if (!this.testOrder[scenarioKey]['samples'][stimulusKey]) {
+      console.error(`toNextNewSamplePage: 刺激キー ${stimulusKey} のサンプルデータが存在しません`);
+      console.log('toNextNewSamplePage: 利用可能なstimulusKeys:', Object.keys(this.testOrder[scenarioKey]['samples']));
+      alert('刺激データが見つかりません。ページを再読み込みしてください。');
+      return;
+    }
+    
+    // 刺激データから{a, b, c, d}の値を取得
+    const stimulusData = this.testOrder[scenarioKey]['samples'][stimulusKey];
+    console.log(`toNextNewSamplePage: 刺激データ=`, stimulusData);
+    
+    // a,b,c,dの各値に基づいてサンプルを生成
+    Object.keys(stimulusData).forEach((elm) => {
+      const count = stimulusData[elm];
+      if (count > 0) {
+        this.sampleSize += count;
+        this.cellSize = count;
+        for (let i = 0; i < count; i++) {
           this.currentSampleSelection.push(elm);
         }
       }
     });
+    
+    // サンプルをシャッフル
     this.currentSampleSelection = shuffleArray(this.currentSampleSelection);
+    
+    console.log(`toNextNewSamplePage: サンプル数=${this.sampleSize}, サンプル配列の最初の3つ=[${this.currentSampleSelection.slice(0, 3).join(', ')}]...`);
 
     this.toNextSample();
+    
+    } catch (error) {
+      console.error('toNextNewSamplePage: エラーが発生しました:', error);
+      alert('サンプル表示の準備中にエラーが発生しました。ページを再読み込みしてください。');
+    }
   }
 
   /**
@@ -459,9 +647,10 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    * スライダーの質問文を設定
    */
   initializeSlider() {
-    // 境界チェック
-    if (this.sceIdx >= this.scenarios.length) {
-      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+    // 境界チェック強化
+    if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+      console.error(`initializeSlider: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
     
@@ -469,7 +658,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     const scenarioData = this.testOrder[scenarioKey];
     
     if (!scenarioData) {
-      console.error('シナリオデータが見つかりません:', scenarioKey);
+      console.error('initializeSlider: シナリオデータが見つかりません:', scenarioKey);
       alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
       return;
     }
@@ -512,10 +701,10 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       return;
     }
     
-    // 境界チェック
-    if (this.sceIdx >= this.scenarios.length) {
-      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
-      alert('シナリオデータエラーが発生しました。');
+    // 境界チェック強化
+    if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+      console.error(`showStimulation: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
     
@@ -583,10 +772,10 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
    * 推定画面を描画
    */
   drawEstimate(c) {
-    // 境界チェック
-    if (this.sceIdx >= this.scenarios.length) {
-      console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
-      alert('シナリオデータエラーが発生しました。');
+    // 境界チェック強化
+    if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
+      console.error(`drawEstimate: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
+      alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
     
@@ -595,7 +784,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     
     // 共通化されたデータ構造存在確認
     if (!validateScenarioData(this.testOrder, scenarioKey, ['result', 'min_result', 'max_result'])) {
-      console.error(`シナリオ "${scenarioKey}" の必要データが不足しています`);
+      console.error(`drawEstimate: シナリオ "${scenarioKey}" の必要データが不足しています`);
       alert('シナリオデータが不完全です。管理者にお問い合わせください。');
       return;
     }
@@ -650,7 +839,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     if (window.resetResponseFlow) {
       window.resetResponseFlow();
     }
-  }  /**
+  }/**
    * 推定値を取得
    */
   async getValue() {
@@ -711,8 +900,23 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     const scenarioKey = this.scenarios[this.sceIdx];
     const stimulusKey = this.stimuli[this.sceIdx];
     
-    // サンプルデータから各値を取得
-    const scenarioSamples = this.testOrder[scenarioKey]['samples'][stimulusKey];
+    console.log(`appendEstimation: currentSample=${currentSample}, scenarioKey=${scenarioKey}, stimulusKey=${stimulusKey}`);
+    
+    // examine1_2では、currentSampleが'a', 'b', 'c', 'd'のいずれかの文字列
+    // 対応するサンプル数を刺激データから取得
+    const stimulusData = this.testOrder[scenarioKey]['samples'][stimulusKey];
+    let a_value = 0, b_value = 0, c_value = 0, d_value = 0;
+    
+    if (stimulusData) {
+      a_value = stimulusData.a || 0;
+      b_value = stimulusData.b || 0;
+      c_value = stimulusData.c || 0;
+      d_value = stimulusData.d || 0;
+    } else {
+      console.error(`appendEstimation: 刺激データが見つかりません - scenarioKey=${scenarioKey}, stimulusKey=${stimulusKey}`);
+    }
+    
+    console.log(`appendEstimation: 刺激データ a=${a_value}, b=${b_value}, c=${c_value}, d=${d_value}`);
       // 実験順序を取得
     let experimentOrder = 'order1'; // デフォルト値
     try {
@@ -721,9 +925,9 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     } catch (error) {
       console.warn('実験順序の取得に失敗しました。デフォルト値を使用します:', error);
     }
-    
-    // is_first を 0/1 に変換
-    const isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+      // is_first を 0/1 に変換
+    // order2の場合にexamine1_2が最初の実験となる
+    const isFirstNumeric = experimentOrder === 'order2' ? 1 : 0;
     
     // is_symmetric を 0/1 に変換
     const isSymmetricNumeric = dataManager.sampleType === 'symmetric' ? 1 : 0;
@@ -731,10 +935,10 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     let data = {
       'user_id': this.userId,
       'cover_story': scenarioKey,
-      'a_value': scenarioSamples.a || 0,
-      'b_value': scenarioSamples.b || 0,
-      'c_value': scenarioSamples.c || 0,
-      'd_value': scenarioSamples.d || 0,
+      'a_value': a_value,
+      'b_value': b_value,
+      'c_value': c_value,
+      'd_value': d_value,
       'estimation': estimation,
       'is_first': isFirstNumeric,
       'is_symmetric': isSymmetricNumeric,
@@ -743,7 +947,7 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
     };
       this.estimations.push(data);
     console.log(`推定データを記録しました（最適化済み、is_first/is_symmetric は 0/1 形式）- 記録数: ${this.estimations.length}/${this.scenarios.length}:`, data);
-  }  /**
+  }/**
    * 結果をエクスポート
    */
   async exportResults() {
@@ -756,9 +960,10 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       this.userData.push(data);
       
       // 実験順序に基づいて次のページURLを決定
-      // console.log('examine1_2: exportResults - ユーザーID:', this.userId);
+      console.log('examine1_2: exportResults - ユーザーID:', this.userId);
       const nextUrl = await getNextPageUrl('examine1_2', this.userId);
       console.log('examine1_2: 次のページURL:', nextUrl);
+      console.log('examine1_2: 現在のユーザーID（確認）:', this.userId);
 
       // DataManagerのsendExamine12Resultsメソッドを使用
       await dataManager.sendExamine12Results(this.estimations, nextUrl);
@@ -770,13 +975,15 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
       // エラー時はボタンを再度有効化
       setButtonStates({ 'finish_all_scenarios': false });
     }
-  }
-  /**
-   * 背景色を変更（インデックスベース）
+  }  /**
+   * 背景色を2色交互に変更（アイコンの色と被らないように）
    */
   changeBackGround() {
-    const bgColor = this.bgcolors[this.sceIdx] || 'Transparent';
+    // シナリオインデックスに基づいて2色を交互に選択
+    const colorIndex = this.sceIdx % 2;
+    const bgColor = this.bgcolors[colorIndex] || 'Transparent';
     document.body.style.backgroundColor = bgColor;
+    console.log(`背景色変更: シナリオ${this.sceIdx + 1} -> ${bgColor}`);
   }
 
   /**
@@ -790,26 +997,71 @@ class Experiment12Manager {  constructor() {    // 実験タイプを設定
 // グローバル変数として実験インスタンスを保持
 let experimentManager;
 
-// 安全なアクセスのためのヘルパー関数
+// 安全なアクセスのためのヘルパー関数（エラーハンドリング強化版）
 function safeCall(methodName, ...args) {
   if (!experimentManager) {
     console.error(`experimentManager not initialized when calling ${methodName}`);
+    alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
     return;
   }
   if (typeof experimentManager[methodName] !== 'function') {
     console.error(`Method ${methodName} not found on experimentManager`);
+    alert('実験システムにエラーが発生しました。ページを再読み込みしてください。');
     return;
   }
-  return experimentManager[methodName](...args);
+  
+  // 初期化状態のチェック（toNextNewSamplePageの場合）
+  if (methodName === 'toNextNewSamplePage') {
+    if (!experimentManager.testOrder || Object.keys(experimentManager.testOrder).length === 0) {
+      console.error('safeCall: testOrderが初期化されていません');
+      alert('実験データの読み込みが完了していません。しばらく待ってから再度お試しください。');
+      return;
+    }
+    if (!experimentManager.scenarios || experimentManager.scenarios.length === 0) {
+      console.error('safeCall: scenariosが初期化されていません');
+      alert('シナリオデータが読み込まれていません。ページを再読み込みしてください。');
+      return;
+    }
+  }
+  
+  try {
+    return experimentManager[methodName](...args);
+  } catch (error) {
+    console.error(`Error executing ${methodName}:`, error);
+    alert(`${methodName}の実行中にエラーが発生しました。ページを再読み込みしてください。`);
+  }
 }
 
 // ページ読み込み時の初期化
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   try {
     experimentManager = new Experiment12Manager();
+    
+    // 初期化の完了を待つ
+    let initAttempts = 0;
+    const maxInitAttempts = 50; // 5秒間（100ms × 50回）
+    
+    while ((!experimentManager.testOrder || Object.keys(experimentManager.testOrder).length === 0 || 
+            !experimentManager.scenarios || experimentManager.scenarios.length === 0) && 
+           initAttempts < maxInitAttempts) {
+      console.log(`初期化を待機中... (${initAttempts + 1}/${maxInitAttempts})`);
+      await new Promise(resolve => setTimeout(resolve, 100));
+      initAttempts++;
+    }
+    
+    if (initAttempts >= maxInitAttempts) {
+      console.error('examine1_2: 初期化がタイムアウトしました');
+      alert('実験の準備に時間がかかっています。ページを再読み込みしてください。');
+      return;
+    }
+    
     console.log('examine1_2: experimentManager初期化完了');
+    console.log('testOrder keys:', Object.keys(experimentManager.testOrder));
+    console.log('scenarios:', experimentManager.scenarios);
+    
   } catch (error) {
     console.error('examine1_2: experimentManager初期化エラー:', error);
+    alert('実験システムの初期化に失敗しました。ページを再読み込みしてください。');
   }
 });
 
@@ -817,33 +1069,79 @@ window.addEventListener('DOMContentLoaded', () => {
 window.check_description = async () => {
   if (!experimentManager) {
     console.error('experimentManager not initialized when calling check_description');
+    alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
     return;
   }
   if (typeof experimentManager.checkDescription !== 'function') {
     console.error('Method checkDescription not found on experimentManager');
+    alert('実験システムにエラーが発生しました。ページを再読み込みしてください。');
     return;
   }
-  return await experimentManager.checkDescription();
+  try {
+    return await experimentManager.checkDescription();
+  } catch (error) {
+    console.error('check_description execution error:', error);
+    alert('チェックボックスの確認中にエラーが発生しました。ページを再読み込みしてください。');
+  }
 };
-window.to_next_new_sample_page = () => safeCall('toNextNewSamplePage');
+window.to_next_new_sample_page = () => {
+  console.log('to_next_new_sample_page called');
+  
+  // 追加のチェック: experimentManagerの初期化状態を確認
+  if (!experimentManager) {
+    console.error('to_next_new_sample_page: experimentManager is not initialized');
+    alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
+    return;
+  }
+  
+  // データの存在確認
+  if (!experimentManager.testOrder || Object.keys(experimentManager.testOrder).length === 0) {
+    console.error('to_next_new_sample_page: testOrder is not ready');
+    alert('実験データの読み込みが完了していません。しばらく待ってから再度お試しください。');
+    return;
+  }
+  
+  if (!experimentManager.scenarios || experimentManager.scenarios.length === 0) {
+    console.error('to_next_new_sample_page: scenarios is not ready');
+    alert('シナリオデータが読み込まれていません。ページを再読み込みしてください。');
+    return;
+  }
+  
+  safeCall('toNextNewSamplePage');
+};
 window.to_next_sample = () => safeCall('toNextSample');
 window.draw_estimate = (c) => safeCall('drawEstimate', c);
 window.get_value = async () => {
   if (!experimentManager) {
     console.error('experimentManager not initialized when calling get_value');
+    alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
     return;
   }
-  return await experimentManager.getValue();
+  try {
+    return await experimentManager.getValue();
+  } catch (error) {
+    console.error('get_value execution error:', error);
+    alert('回答の記録中にエラーが発生しました。もう一度お試しください。');
+  }
 };
 window.get_value_fin = async () => {
   if (!experimentManager) {
     console.error('experimentManager not initialized when calling get_value_fin');
+    alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
     return;
   }
-  return await experimentManager.getValueFin();
+  try {
+    return await experimentManager.getValueFin();
+  } catch (error) {
+    console.error('get_value_fin execution error:', error);
+    alert('最終回答の送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+  }
 };
 window.check_estimate = () => safeCall('checkEstimate');
 window.to_next_scenario_description = (isFirstTime) => safeCall('toNextScenarioDescription', isFirstTime);
 window.showStimulation = () => safeCall('showStimulation');
+
+// experimentManagerをグローバルに公開（HTMLからアクセス可能にする）
+window.experimentManager = experimentManager;
 
 // checkResponseCheckbox関数はHTMLファイル内で定義されています

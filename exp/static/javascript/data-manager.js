@@ -110,14 +110,22 @@ export class DataManager {
 
   /**
    * データマネージャーの初期化
+   * @param {string|null} userId - 既存のユーザーID（オプション）
    * @returns {Promise} 初期化処理のPromise
    */
-  async init() {
+  async init(userId = null) {
     this.startTime = getNow();
     try {
       await this.loadExperimentData();
       this.estimations = [];
-      this.loadOrGenerateUserId();
+      
+      // ユーザーIDが指定されている場合はそれを使用、そうでなければ生成/復元
+      if (userId) {
+        this.userId = userId;
+        console.log(`指定されたユーザーIDを使用: ${this.userId}`);
+      } else {
+        this.loadOrGenerateUserId();
+      }
       
       // 実験タイプが設定されている場合、シナリオを設定
       if (this.experimentType && this.userId) {
@@ -318,7 +326,17 @@ export class DataManager {
     }
 
     // is_first を 0/1 に変換
-    const isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+    // examine1: order1の場合に最初 (examine1 → examine1_2)
+    // examine1_2: order2の場合に最初 (examine1_2 → examine1)
+    let isFirstNumeric;
+    if (this.experimentType === 'examine1') {
+      isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+    } else if (this.experimentType === 'examine1_2') {
+      isFirstNumeric = experimentOrder === 'order2' ? 1 : 0;
+    } else {
+      // デフォルト（examine1のロジック）
+      isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
+    }
     
     // is_symmetric を 0/1 に変換
     const isSymmetricNumeric = this.sampleType === 'symmetric' ? 1 : 0;
@@ -402,6 +420,9 @@ export class DataManager {
     // 送信開始イベントを通知
     eventBus.emit('results:exporting', { userId: this.userId });
     
+    console.log('exportResults: 開始 - ユーザーID:', this.userId);
+    console.log('exportResults: 遷移先URL:', nextUrl);
+    
     const data = {
       'user_id': this.userId,
       'start_time': this.startTime,
@@ -428,7 +449,11 @@ export class DataManager {
         nextUrl: nextUrl
       });
       
+      console.log(`exportResults: リダイレクト先URL: ${nextUrl}`);
+      console.log(`exportResults: 現在のユーザーID: ${this.userId}`);
+      
       if (nextUrl) {
+        console.log(`exportResults: ページ遷移実行 - ${nextUrl}`);
         location.href = nextUrl;
       }
       
@@ -505,6 +530,9 @@ export class DataManager {
     });
     
     try {
+      console.log('sendExamine12Results: 開始 - ユーザーID:', this.userId);
+      console.log('sendExamine12Results: 遷移先URL:', nextUrl);
+      
       // ユーザーデータを準備
       const userData = [{
         'user_id': this.userId,
@@ -532,6 +560,7 @@ export class DataManager {
       console.log(`sendExamine12Results: 現在のユーザーID: ${this.userId}`);
       
       if (nextUrl) {
+        console.log(`sendExamine12Results: ページ遷移実行 - ${nextUrl}`);
         location.href = nextUrl;
       }
       

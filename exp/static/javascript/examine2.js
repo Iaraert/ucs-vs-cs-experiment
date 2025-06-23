@@ -4,7 +4,7 @@
  */
 import dataManager from './data-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getUserIdFromUrl } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getOrCreateUserId } from './utilities.js';
 
 /**
  * IMC実験アプリケーションを管理するクラス
@@ -23,14 +23,19 @@ class IMCExperiment {
    */
   init() {
     try {
-      // ユーザーID取得
-      dataManager.userId = getUserIdFromUrl();
+      console.log('🟦 examine2.js - init() started');
+      
+      // ユーザーID取得（改良版を使用）
+      dataManager.userId = getOrCreateUserId();
+      console.log('🟦 examine2.js - User ID retrieved:', dataManager.userId);
+      
       if (!dataManager.userId) {
-        console.warn('Warning: user_id not found');
+        console.error('🔴 examine2.js - User ID not found');
         alert("ユーザーIDが取得できません。対応しますのでクラウドワークスから不具合を報告してください。");
         return;
       }
-      // console.log('User ID:', dataManager.userId); // デバッグ用
+      
+      console.log('🟦 examine2.js - Initialize completed successfully');
       
       // ページ離脱警告を設定
       setupPageLeaveWarning(true);
@@ -38,7 +43,7 @@ class IMCExperiment {
       // ブラウザバックを禁止
       preventBrowserBack();
     } catch (error) {
-      console.error('初期化エラー:', error);
+      console.error('🔴 examine2.js - 初期化エラー:', error);
     }
   }
   

@@ -1,7 +1,7 @@
 /**
  * ユーザーイベント処理
  */
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, showExperimentFormatChangeNotification, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder } from './utilities.js';
 import { validateCheckboxes } from './common-utils.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
@@ -45,36 +45,110 @@ export class EventHandler {
     // 共通ユーティリティ関数を使用してチェックボックス確認ロジックを統一化
     validateCheckboxes("checkbox", "start_scenario_button");
     
-    // examine1で6個目のシナリオの場合、実験形式変更通知を表示
-    this.checkForExperimentFormatNotification();
+    // 実験形式変更通知のチェック（全チェックボックス完了時に実行）
+    this.checkFormatChangeNotification();
   }
   
   /**
-   * 実験形式変更通知をチェックして表示
+   * 実験形式変更通知をチェックする
+   * 1つ目のシナリオで全チェックボックス完了時に通知を表示
    */
-  async checkForExperimentFormatNotification() {
+  async checkFormatChangeNotification() {
     try {
-      // dataManagerが初期化されていることを確認
-      if (!dataManager || !dataManager.userId) {
+      // シナリオ説明用のチェックボックスが全て完了しているかチェック
+      const checkboxes = document.getElementsByClassName("checkbox");
+      let allChecked = true;
+      
+      // チェックボックスが存在しない場合は処理しない
+      if (checkboxes.length === 0) {
+        console.log('checkFormatChangeNotification: チェックボックスが存在しないため処理をスキップ');
         return;
       }
       
-      // 現在のシナリオが6個目（最後）かどうかチェック
-      const currentScenarioIndex = dataManager.currentScenarioIndex;
-      const totalScenarios = dataManager.scenarios ? dataManager.scenarios.length : (config && config.scenarios ? config.scenarios.length : 6);
-      
-      if (currentScenarioIndex === totalScenarios - 1) {
-        // 実験順序を取得
-        const experimentOrder = await getExperimentOrder(dataManager.userId, false);
-        
-        // order1の場合（examine1が最初の実験）のみ通知を表示
-        if (experimentOrder === 'order1') {
-          showExperimentFormatChangeNotification('examine1', experimentOrder);
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (!checkboxes[i].checked) {
+          allChecked = false;
+          break;
         }
       }
+      
+      // 全チェックボックスが完了していない場合は処理しない
+      if (!allChecked) {
+        console.log('checkFormatChangeNotification: 全チェックボックスが完了していないため通知をスキップ');
+        return;
+      }
+      
+      // 現在のシナリオインデックスを取得
+      let currentIndex = -1;
+      
+      // examine1の場合: dataManagerから取得
+      if (window.dataManager && typeof window.dataManager.getScenarioAssignment === 'function') {
+        const scenarioInfo = window.dataManager.getScenarioAssignment();
+        currentIndex = scenarioInfo.currentIndex;
+        console.log('checkFormatChangeNotification: dataManagerから現在のシナリオインデックスを取得:', currentIndex);
+      } else if (typeof dataManager !== 'undefined' && typeof dataManager.getScenarioAssignment === 'function') {
+        const scenarioInfo = dataManager.getScenarioAssignment();
+        currentIndex = scenarioInfo.currentIndex;
+        console.log('checkFormatChangeNotification: グローバルdataManagerから現在のシナリオインデックスを取得:', currentIndex);
+      }
+      // examine1_2の場合: experimentManagerから取得
+      else if (window.experimentManager && typeof window.experimentManager.sceIdx !== 'undefined') {
+        currentIndex = window.experimentManager.sceIdx;
+        console.log('checkFormatChangeNotification: experimentManagerから現在のシナリオインデックスを取得:', currentIndex);
+      } else if (typeof experimentManager !== 'undefined' && typeof experimentManager.sceIdx !== 'undefined') {
+        currentIndex = experimentManager.sceIdx;
+        console.log('checkFormatChangeNotification: グローバルexperimentManagerから現在のシナリオインデックスを取得:', currentIndex);
+      }
+      // フォールバック: HTMLから推定
+      else {
+        const pageElement = document.getElementById('page');
+        if (pageElement && pageElement.innerHTML) {
+          const match = pageElement.innerHTML.match(/(\d+)\/\d+/);
+          if (match) {
+            currentIndex = parseInt(match[1]) - 1; // 0ベースのインデックスに変換
+            console.log('checkFormatChangeNotification: HTMLから現在のシナリオインデックスを推定:', currentIndex);
+          }
+        }
+      }
+      
+      // 1つ目のシナリオでない場合は処理しない
+      if (currentIndex !== 0) {
+        console.log(`checkFormatChangeNotification: 1つ目のシナリオではないため通知をスキップ (現在のインデックス: ${currentIndex})`);
+        return;
+      }
+      
+      // ユーザーIDを取得
+      let userId = null;
+      if (window.dataManager && window.dataManager.userId) {
+        userId = window.dataManager.userId;
+      } else if (window.experimentManager && window.experimentManager.userId) {
+        userId = window.experimentManager.userId;
+      } else if (typeof dataManager !== 'undefined' && dataManager.userId) {
+        userId = dataManager.userId;
+      } else if (typeof experimentManager !== 'undefined' && experimentManager.userId) {
+        userId = experimentManager.userId;
+      } else {
+        // URLからユーザーIDを取得を試みる
+        const urlParams = new URLSearchParams(window.location.search);
+        userId = urlParams.get('id');
+      }
+      
+      if (!userId) {
+        console.log('checkFormatChangeNotification: ユーザーIDが取得できないため通知をスキップ');
+        return;
+      }
+      
+      // 現在のページを判定
+      const currentPage = window.location.pathname.includes('examine1_2') ? 'examine1_2' : 'examine1';
+      
+      console.log(`checkFormatChangeNotification: 通知処理開始 - ユーザーID: ${userId}, シナリオ: ${currentIndex}, ページ: ${currentPage}`);
+      
+      // 実験形式変更通知を呼び出し
+      const { checkAndShowFormatChangeNotification } = await import('./utilities.js');
+      await checkAndShowFormatChangeNotification(userId, currentIndex, currentPage);
+      
     } catch (error) {
-      console.error('実験形式変更通知のチェック中にエラーが発生しました:', error);
-      // エラーが発生しても実験の進行に影響しないようにする
+      console.error('checkFormatChangeNotification: エラーが発生しました:', error);
     }
   }
   
@@ -119,16 +193,24 @@ export class EventHandler {
   }
   
   handleIMCSubmit() {
+    console.log('🟦 event-handler.js - handleIMCSubmit() started');
+    console.log('🟦 event-handler.js - Current user ID:', dataManager.userId);
+    
     const selectedOptions = [];
     document.querySelectorAll('input[name="sports"]:checked').forEach(function(checkbox) {
       selectedOptions.push(checkbox.value);
     });
 
+    console.log('🟦 event-handler.js - Selected options:', selectedOptions);
+
     const validSelection = ["野球", "水泳", "その他"];
     const result = selectedOptions.length === validSelection.length &&
                   selectedOptions.every(option => validSelection.includes(option));
     
+    console.log('🟦 event-handler.js - IMC result:', result);
+    
     if (!dataManager.userId) {
+      console.error('🔴 event-handler.js - User ID not found during IMC submit');
       uiManager.showErrorMessage("ユーザーIDが取得できません。");
       return;
     }
@@ -138,15 +220,18 @@ export class EventHandler {
       result: result
     }];
 
+    console.log('🟦 event-handler.js - IMC data to send:', data);
+
     document.getElementById('finish_all_scenarios').setAttribute('disabled', true);
     
     const nextUrl = `/examine3?id=${encodeURIComponent(dataManager.userId)}`;
+    console.log('🟦 event-handler.js - Next URL for examine3:', nextUrl);
     
     setupPageLeaveWarning(false);
     
     dataManager.sendTestResults(data, 'exp2', nextUrl)
       .catch(error => {
-        console.error('IMC結果の送信に失敗しました:', error);
+        console.error('🔴 event-handler.js - IMC結果の送信に失敗しました:', error);
         uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。');
         document.getElementById('finish_all_scenarios').removeAttribute("disabled");
       });

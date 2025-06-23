@@ -47,24 +47,12 @@ export function preventBrowserBack() {
 /**
  * URLパラメータからユーザーIDを取得（検証付き）
  * end.html以外では取得後にURLパラメータを隠す
+ * @param {boolean} hideParams - URLパラメータを隠すかどうか（デフォルト: true）
  * @returns {string|null} 検証済みのユーザーIDまたはnull
  */
-export function getUserIdFromUrl() {
+export function getUserIdFromUrl(hideParams = true) {
   const urlParams = new URLSearchParams(window.location.search);
   const rawId = urlParams.get('id');
-  
-  // end.html以外でURLパラメータを隠す
-  if (!window.location.pathname.includes('/end')) {
-    try {
-      const cleanUrl = window.location.protocol + '//' + 
-                      window.location.host + 
-                      window.location.pathname;
-      window.history.replaceState({}, document.title, cleanUrl);
-      console.log('utilities.js: URLパラメータを非表示にしました');
-    } catch (error) {
-      console.error('utilities.js: URLパラメータの非表示に失敗しました:', error);
-    }
-  }
   
   if (!rawId) return null;
   
@@ -75,6 +63,19 @@ export function getUserIdFromUrl() {
   if (!validateUserId(sanitizedId)) {
     console.warn('Invalid user ID detected from URL:', rawId);
     return null;
+  }
+  
+  // end.html以外でURLパラメータを隠す（但し、IDを取得した後）
+  if (hideParams && !window.location.pathname.includes('/end')) {
+    try {
+      const cleanUrl = window.location.protocol + '//' + 
+                      window.location.host + 
+                      window.location.pathname;
+      window.history.replaceState({}, document.title, cleanUrl);
+      console.log('utilities.js: URLパラメータを非表示にしました');
+    } catch (error) {
+      console.error('utilities.js: URLパラメータの非表示に失敗しました:', error);
+    }
   }
   
   return sanitizedId;
@@ -120,12 +121,26 @@ export function getOrCreateUserId(options = {}) {
     persistent = false 
   } = options;
   
-  // URLからのID取得を試みる
+  // URLからのID取得を試みる（URLパラメータはまだ隠さない）
   if (urlParam) {
-    const urlId = getUserIdFromUrl();
+    const urlId = getUserIdFromUrl(false); // URLパラメータは隠さずにIDを取得
     if (urlId) {
       const savedId = saveUserId(urlId, persistent);
-      if (savedId) return savedId;
+      if (savedId) {
+        // IDの保存に成功したら、URLパラメータを隠す
+        try {
+          if (!window.location.pathname.includes('/end')) {
+            const cleanUrl = window.location.protocol + '//' + 
+                            window.location.host + 
+                            window.location.pathname;
+            window.history.replaceState({}, document.title, cleanUrl);
+            console.log('getOrCreateUserId: URLパラメータを非表示にしました');
+          }
+        } catch (error) {
+          console.error('getOrCreateUserId: URLパラメータの非表示に失敗しました:', error);
+        }
+        return savedId;
+      }
     }
   }
   
@@ -281,7 +296,7 @@ export function loadPageStyles(pageName) {
  */
 export async function getExperimentOrder(userId, reallocate = false) {
   if (!userId) {
-    console.warn('ユーザーIDが指定されていないため、デフォルトの順序（order1）を使用します');
+    console.warn('getExperimentOrder: ユーザーIDが指定されていないため、デフォルトの順序（order1）を使用します');
     return Promise.resolve('order1');
   }
   
@@ -289,7 +304,7 @@ export async function getExperimentOrder(userId, reallocate = false) {
     // サーバーから実験経路を取得
     // reallocateパラメータを明示的に設定
     const url = `/getExperimentPath?user_id=${encodeURIComponent(userId)}&reallocate=${reallocate}`;
-    // console.log(`実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
+    console.log(`getExperimentOrder: 実験経路を取得中: ユーザーID=${userId}, reallocate=${reallocate}`);
     const response = await fetch(url);
     
     if (!response.ok) {
@@ -297,12 +312,16 @@ export async function getExperimentOrder(userId, reallocate = false) {
     }
     
     const data = await response.json();
-    console.log('実験経路取得結果:', data);
+    console.log('getExperimentOrder: 実験経路取得結果:', data);
     
-    return data.pathType || 'order1';
+    const pathType = data.pathType || 'order1';
+    console.log(`getExperimentOrder: 返却する実験順序: ${pathType} (ユーザーID: ${userId})`);
+    
+    return pathType;
   } catch (error) {
-    console.error('実験経路の取得に失敗しました:', error);
+    console.error('getExperimentOrder: 実験経路の取得に失敗しました:', error);
     // エラー時はデフォルトの順序を返す
+    console.log('getExperimentOrder: エラーのためデフォルト順序（order1）を使用');
     return 'order1';
   }
 }
@@ -314,31 +333,44 @@ export async function getExperimentOrder(userId, reallocate = false) {
  * @returns {Promise<string>} - 次のページへのURLを含むPromise
  */
 export async function getNextPageUrl(currentPage, userId) {
+  if (!userId) {
+    console.error('getNextPageUrl: ユーザーIDが指定されていません');
+    return `../examine2?id=${encodeURIComponent('unknown')}`;
+  }
+  
   // reallocate=falseを明示的に設定して既存の経路を尊重するようにする
   const experimentOrder = await getExperimentOrder(userId, false);
   
-  // console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
+  console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
   
   if (currentPage === 'examine1') {
     if (experimentOrder === 'order1') {
-      // examine1 → examine1_2 → examine2の順序
+      // order1: examine1 → examine1_2 → examine2の順序
       console.log('order1: examine1 → examine1_2への遷移');
       return `../examine1_2?id=${encodeURIComponent(userId)}`;
-    } else {
+    } else if (experimentOrder === 'order2') {
       // order2: examine1_2 → examine1 → examine2の順序（examine1が最後）
       console.log('order2: examine1 → examine2への遷移（examine1が最後）');
       return `../examine2?id=${encodeURIComponent(userId)}`;
+    } else {
+      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでexamine1_2へ遷移`);
+      return `../examine1_2?id=${encodeURIComponent(userId)}`;
     }
   } else if (currentPage === 'examine1_2') {
     if (experimentOrder === 'order1') {
       // order1: examine1 → examine1_2 → examine2の順序（examine1_2が最後）
       console.log('order1: examine1_2 → examine2への遷移（examine1_2が最後）');
       return `../examine2?id=${encodeURIComponent(userId)}`;
-    } else {
+    } else if (experimentOrder === 'order2') {
       // order2: examine1_2 → examine1 → examine2の順序
       console.log('order2: examine1_2 → examine1への遷移');
       return `../examine1?id=${encodeURIComponent(userId)}`;
+    } else {
+      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでexamine2へ遷移`);
+      return `../examine2?id=${encodeURIComponent(userId)}`;
     }
+  } else {
+    console.warn(`getNextPageUrl: 不明な現在ページ: ${currentPage}, デフォルトでexamine2へ遷移`);
   }
   
   // デフォルトはexamine2
@@ -346,120 +378,7 @@ export async function getNextPageUrl(currentPage, userId) {
   return `../examine2?id=${encodeURIComponent(userId)}`;
 }
 
-/**
- * 実験形式変更通知を表示する
- * @param {string} currentExperiment - 現在の実験タイプ ('examine1' または 'examine1_2')
- * @param {string} experimentOrder - 実験順序 ('order1' または 'order2')
- * @param {number} currentScenarioIndex - 現在のシナリオインデックス（0ベース）
- * @param {number} totalScenarios - 総シナリオ数
- * @returns {Promise} - 通知処理の完了を示すPromise
- */
-export function showExperimentFormatChangeNotification(currentExperiment, experimentOrder, currentScenarioIndex = 5, totalScenarios = 6) {
-  return new Promise((resolve) => {
-    try {
-      // 6個目のシナリオ（インデックス5）の時のみ通知を表示
-      const isLastScenario = currentScenarioIndex === totalScenarios - 1;
-      
-      // 通知が必要なタイミングかチェック
-      const shouldShowNotification = isLastScenario && (
-        (experimentOrder === 'order1' && currentExperiment === 'examine1') ||
-        (experimentOrder === 'order2' && currentExperiment === 'examine1_2')
-      );
-      
-      if (!shouldShowNotification) {
-        resolve();
-        return;
-      }
-      
-      // 既に通知が表示されているかチェック
-      if (document.getElementById('experiment-format-notification')) {
-        resolve();
-        return;
-      }
-      
-      // モーダル形式の通知を表示
-      const notification = document.createElement('div');
-      notification.id = 'experiment-format-notification';
-      notification.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-        font-family: Arial, sans-serif;
-      `;
-      
-      const modal = document.createElement('div');
-      modal.style.cssText = `
-        background-color: white;
-        padding: 30px;
-        border-radius: 10px;
-        text-align: center;
-        max-width: 500px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-      `;
-      
-      // 次の実験の形式を決定
-      const nextExperiment = experimentOrder === 'order1' ? 'examine1_2' : 'examine1';
-      const formatDescription = nextExperiment === 'examine1_2' ? 
-        '次の実験では、複数の事例を観察した後に評価を行う形式になります。' :
-        '次の実験では、1つの事例を観察した後に評価を行う形式になります。';
-      
-      modal.innerHTML = `
-        <h3 style="color: #2c5282; margin-bottom: 20px;">実験形式の変更について</h3>
-        <p style="margin-bottom: 20px; line-height: 1.6;">
-          これまでの実験お疲れ様でした。<br>
-          ${formatDescription}
-        </p>
-        <p style="margin-bottom: 30px; font-weight: bold; color: #e53e3e;">
-          実験の進め方が変わりますので、次のページの説明をよくお読みください。
-        </p>
-        <button id="notification-ok-btn" style="
-          background-color: #2c5282;
-          color: white;
-          border: none;
-          padding: 12px 30px;
-          border-radius: 5px;
-          font-size: 16px;
-          cursor: pointer;
-          transition: background-color 0.3s;
-        " onmouseover="this.style.backgroundColor='#2a4db7'" onmouseout="this.style.backgroundColor='#2c5282'">
-          了解しました
-        </button>
-      `;
-      
-      notification.appendChild(modal);
-      document.body.appendChild(notification);
-      
-      // ボタンクリックでモーダルを閉じる
-      const okButton = document.getElementById('notification-ok-btn');
-      okButton.addEventListener('click', () => {
-        document.body.removeChild(notification);
-        resolve();
-      });
-      
-      // 自動削除（30秒後）
-      setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification);
-          resolve();
-        }
-      }, 30000);
-      
-      console.log(`実験形式変更通知を表示: ${currentExperiment} → ${nextExperiment} (${experimentOrder}), シナリオ: ${currentScenarioIndex + 1}/${totalScenarios}`);
-      
-    } catch (error) {
-      console.error('実験形式変更通知の表示中にエラーが発生しました:', error);
-      // エラーが発生しても実験の進行に影響しないようにする
-      resolve();
-    }
-  });
-}
+
 
 /**
  * ユーザーIDの妥当性を検証
@@ -497,4 +416,209 @@ export function sanitizeUserId(userId) {
     .substring(0, 50) // 最大長制限
     .replace(/[<>'"&=;()|]/g, '') // 危険な文字を削除
     .replace(/[\x00-\x1F\x7F]/g, ''); // 制御文字を削除
+}
+
+/**
+ * 実験形式変更通知機能
+ * 1つ目のシナリオで全チェックボックス完了時に次の実験形式について通知
+ * @param {string} userId - ユーザーID
+ * @param {number} currentIndex - 現在のシナリオインデックス
+ * @param {string} currentPage - 現在のページ名（'examine1'または'examine1_2'）
+ * @returns {Promise<void>}
+ */
+export async function checkAndShowFormatChangeNotification(userId, currentIndex, currentPage) {
+  try {
+    // 1つ目のシナリオでない場合は処理しない
+    if (currentIndex !== 0) {
+      console.log('checkAndShowFormatChangeNotification: 1つ目のシナリオではないため通知をスキップ');
+      return;
+    }
+    
+    // 通知フラグを確認（一度だけ表示）
+    // シナリオ単位で通知を管理（シナリオ説明チェックボックスとスライダー確認チェックボックスの重複を防ぐ）
+    const notificationKey = `format_change_notification_${userId}_${currentPage}_scenario_${currentIndex}`;
+    const hasShownNotification = sessionStorage.getItem(notificationKey);
+    
+    if (hasShownNotification) {
+      console.log(`checkAndShowFormatChangeNotification: 既に通知済みのため表示をスキップ (キー: ${notificationKey})`);
+      return;
+    }
+    
+    // 実験順序を取得
+    const experimentOrder = await getExperimentOrder(userId, false);
+    console.log(`checkAndShowFormatChangeNotification: 実験順序=${experimentOrder}, 現在のページ=${currentPage}`);
+    
+    let shouldShowNotification = false;
+    let nextExperimentType = '';
+    
+    // 実験順序と現在のページに基づいて通知が必要かどうかを判定
+    if (experimentOrder === 'order1' && currentPage === 'examine1_2') {
+      // order1: examine1 → examine1_2 → examine2
+      // examine1_2の1つ目のシナリオで通知（次はexamine2）
+      shouldShowNotification = true;
+      nextExperimentType = 'examine2';
+    } else if (experimentOrder === 'order2' && currentPage === 'examine1') {
+      // order2: examine1_2 → examine1 → examine2
+      // examine1の1つ目のシナリオで通知（次はexamine2）
+      shouldShowNotification = true;
+      nextExperimentType = 'examine2';
+    }
+    
+    if (shouldShowNotification) {
+      // 通知を表示
+      const notificationMessage = `
+        📢 次の実験では形式が変更されます
+
+        次のページから、実験の形式や表示方法が変わりますが、引き続きご協力をお願いいたします。
+        このメッセージは一度だけ表示されます。
+      `.trim();
+      
+      console.log('checkAndShowFormatChangeNotification: 実験形式変更通知を表示');
+      console.log(`checkAndShowFormatChangeNotification: 通知内容 - 次の実験: ${nextExperimentType}`);
+      
+      // モーダルスタイルの通知を表示
+      showModalNotification('実験形式変更のお知らせ', notificationMessage);
+      
+      // 通知済みフラグを設定
+      sessionStorage.setItem(notificationKey, 'true');
+      console.log(`checkAndShowFormatChangeNotification: 通知済みフラグを設定: ${notificationKey}`);
+    } else {
+      console.log(`checkAndShowFormatChangeNotification: 通知条件に該当しないため表示をスキップ (実験順序: ${experimentOrder}, ページ: ${currentPage})`);
+    }
+    
+  } catch (error) {
+    console.error('checkAndShowFormatChangeNotification: エラーが発生しました:', error);
+  }
+}
+
+/**
+ * モーダル通知を表示する関数
+ * @param {string} title - 通知のタイトル
+ * @param {string} message - 通知メッセージ
+ */
+export function showModalNotification(title, message) {
+  try {
+    // 既存のモーダルがあれば削除
+    const existingModal = document.getElementById('format-change-modal');
+    if (existingModal) {
+      existingModal.remove();
+    }
+    
+    // モーダル要素を作成
+    const modal = document.createElement('div');
+    modal.id = 'format-change-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    `;
+    
+    // モーダルコンテンツを作成
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      position: relative;
+    `;
+    
+    // タイトル
+    const titleElement = document.createElement('h3');
+    titleElement.textContent = title;
+    titleElement.style.cssText = `
+      margin: 0 0 20px 0;
+      color: #333;
+      font-size: 20px;
+      font-weight: bold;
+    `;
+    
+    // メッセージ
+    const messageElement = document.createElement('p');
+    messageElement.textContent = message.trim();
+    messageElement.style.cssText = `
+      margin: 0 0 25px 0;
+      color: #555;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-line;
+    `;
+    
+    // 閉じるボタン
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '理解しました';
+    closeButton.style.cssText = `
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    `;
+    
+    // ボタンホバーエフェクト
+    closeButton.addEventListener('mouseenter', () => {
+      closeButton.style.background = '#0056b3';
+    });
+    closeButton.addEventListener('mouseleave', () => {
+      closeButton.style.background = '#007bff';
+    });
+    
+    // 閉じるボタンのクリックイベント
+    closeButton.addEventListener('click', () => {
+      modal.remove();
+    });
+    
+    // モーダルの外側クリックで閉じる
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
+    
+    // ESCキーで閉じる
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        modal.remove();
+        document.removeEventListener('keydown', handleEscape);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // 要素を組み立て
+    modalContent.appendChild(titleElement);
+    modalContent.appendChild(messageElement);
+    modalContent.appendChild(closeButton);
+    modal.appendChild(modalContent);
+    
+    // DOMに追加
+    document.body.appendChild(modal);
+    
+    // アニメーション効果
+    modal.style.opacity = '0';
+    setTimeout(() => {
+      modal.style.transition = 'opacity 0.3s ease-in-out';
+      modal.style.opacity = '1';
+    }, 10);
+    
+    console.log('showModalNotification: モーダル通知を表示しました');
+    
+  } catch (error) {
+    console.error('showModalNotification: モーダル表示でエラーが発生しました:', error);
+    // フォールバック: 通常のアラート
+    alert(`${title}\n\n${message}`);
+  }
 }

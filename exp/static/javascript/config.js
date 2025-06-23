@@ -66,8 +66,6 @@ export class ExperimentConfig {
    * 設定を初期化する
    */
   init() {
-    this.bgColors = shuffleArray(['#f0ffff','#f0fff0','#f5f5dc','#e0ffff','#fffaf0','#f8f8ff','#fffafa','#f5f5f5','#f0f8ff','#ffe4e1','#d8bfd8']);
-    
     // デフォルトでは全シナリオをシャッフル（後で実験タイプに応じて分割）
     this.scenarios = shuffleArray([...this.allScenarios]);
     return this;
@@ -139,15 +137,6 @@ export class ExperimentConfig {
     return shuffled;
   }
 
-  /**
-   * 指定されたインデックスの背景色を取得
-   * @param {number} index - シナリオのインデックス
-   * @returns {string} 対応する背景色
-   */
-  getBgColorForIndex(index) {
-    return this.bgColors[index % this.bgColors.length];
-  }
-  
   /**
    * 現在のシナリオ名を取得
    * @param {number} index - シナリオのインデックス

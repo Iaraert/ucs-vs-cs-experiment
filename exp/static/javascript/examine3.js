@@ -5,7 +5,7 @@
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getUserIdFromUrl, validateInput } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getOrCreateUserId, validateInput } from './utilities.js';
 
 /**
  * CRT実験アプリケーションを管理するクラス
@@ -26,11 +26,18 @@ class CRTExperiment {
     if (this.initialized) return;
     
     try {
-      // ユーザーIDを取得（一度だけ）
-      dataManager.userId = getUserIdFromUrl();
+      console.log('🟦 examine3.js - init() started');
+      
+      // ユーザーID取得（改良版を使用）
+      dataManager.userId = getOrCreateUserId();
+      console.log('🟦 examine3.js - User ID retrieved:', dataManager.userId);
+      
       if (!dataManager.userId) {
+        console.error('🔴 examine3.js - User ID not found');
         console.warn('Warning: user_id not found in CRT test');
       }
+      
+      console.log('🟦 examine3.js - Initialize completed successfully');
       
       // イベントリスナーを設定
       this.setupEventListeners();
@@ -40,7 +47,7 @@ class CRTExperiment {
       
       this.initialized = true;
     } catch (error) {
-      console.error('初期化エラー:', error);
+      console.error('🔴 examine3.js - 初期化エラー:', error);
     }
   }
   

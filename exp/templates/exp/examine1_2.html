@@ -132,13 +132,12 @@
                 sliderMoved = true;
                 document.getElementById('slider_confirmation_checkbox').disabled = false;
                 updateSubmitButtonState();
-            });              // チェックボックスがチェックされたら送信ボタンの状態を更新
+            });            // チェックボックスがチェックされたら送信ボタンの状態を更新
             document.getElementById('slider_confirmation_checkbox').addEventListener('change', function() {
+                console.log('スライダー確認チェックボックスの状態が変更されました:', this.checked);
                 updateSubmitButtonState();
-                // 実験形式変更通知をチェック（slider_confirmation_checkboxの場合のみ）
-                if (this.checked && this.id === 'slider_confirmation_checkbox') {
-                    checkResponseCheckbox();
-                }
+                // チェックボックス処理も実行
+                checkResponseCheckbox(this);
             });
               // スライダー操作とチェックボックスの状態に基づいて送信ボタンの有効/無効を設定
             function updateSubmitButtonState() {
@@ -150,8 +149,7 @@
                         button.disabled = !(sliderMoved && isChecked);
                     }
                 });
-            }
-              // リセット関数：シナリオ切り替え時に呼び出し
+            }            // リセット関数：シナリオ切り替え時に呼び出し
             window.resetResponseFlow = function() {
                 sliderMoved = false;
                 const cb = document.getElementById('slider_confirmation_checkbox');
@@ -182,36 +180,115 @@
                         slider.disabled = false;
                         waitMessage.style.display = 'none';
                     }
-                }, 3000);
-            };
-              // チェックボックスがチェックされた際の処理（スライダー用チェックボックスのみ対象）
+                }, 3000);            };            // チェックボックスがチェックされた際の処理（修正版）
             async function checkResponseCheckbox(sourceElement) {
                 try {
+                    console.log('checkResponseCheckbox: 関数が呼び出されました');
+                    
                     // 呼び出し元が指定されていない場合は、イベントターゲットを確認
                     const target = sourceElement || event.target;
-                      // スライダー用のチェックボックス（slider_confirmation_checkbox）以外では通知しない
-                    if (!target || target.id !== 'slider_confirmation_checkbox') {
-                        console.log('checkResponseCheckbox: 対象外のチェックボックスからの呼び出しをスキップ');
+                    console.log('checkResponseCheckbox: ターゲット要素:', target ? target.id : 'なし');
+                    
+                    // 通常のチェックボックス検証を呼び出し
+                    console.log('checkResponseCheckbox: 通常の検証関数を呼び出し');
+                    if (typeof check_description === 'function') {
+                        await check_description();
+                    }
+                    
+                    // スライダー用のチェックボックス（slider_confirmation_checkbox）の処理
+                    if (target && target.id === 'slider_confirmation_checkbox') {
+                        console.log('checkResponseCheckbox: スライダー確認チェックボックスの処理開始, チェック状態:', target.checked);
+                        
+                        // チェックボックスがチェックされていない場合は処理を終了
+                        if (!target.checked) {
+                            console.log('checkResponseCheckbox: チェックボックスがチェックされていないため処理を終了');
+                            return;
+                        }
+                        
+                        // グローバルのexperimentManagerまたはwindow.experimentManagerから現在のシナリオ情報を取得
+                        let currentIndex = -1;
+                        
+                        // デバッグ: experimentManagerの状態を確認
+                        console.log('checkResponseCheckbox: window.experimentManager:', window.experimentManager);
+                        console.log('checkResponseCheckbox: experimentManager (グローバル):', typeof experimentManager !== 'undefined' ? experimentManager : '未定義');
+                        
+                        // experimentManagerが利用可能になるまで少し待つ
+                        let maxRetries = 10;
+                        let retryCount = 0;
+                        
+                        while ((!window.experimentManager || typeof window.experimentManager.sceIdx === 'undefined') && retryCount < maxRetries) {
+                            console.log(`checkResponseCheckbox: experimentManagerを待機中... (${retryCount + 1}/${maxRetries})`);
+                            await new Promise(resolve => setTimeout(resolve, 100)); // 100ms待機
+                            retryCount++;
+                        }
+                        
+                        if (typeof window.experimentManager !== 'undefined' && window.experimentManager && typeof window.experimentManager.sceIdx !== 'undefined') {
+                            currentIndex = window.experimentManager.sceIdx;
+                            console.log('checkResponseCheckbox: experimentManagerから現在のシナリオインデックスを取得:', currentIndex);
+                        } else if (typeof experimentManager !== 'undefined' && experimentManager && typeof experimentManager.sceIdx !== 'undefined') {
+                            currentIndex = experimentManager.sceIdx;
+                            console.log('checkResponseCheckbox: グローバルexperimentManagerから現在のシナリオインデックスを取得:', currentIndex);
+                        } else {
+                            // フォールバック: HTMLから直接インデックスを推定
+                            console.log('checkResponseCheckbox: experimentManagerが見つからないため、HTMLからインデックスを推定');
+                            const pageElement = document.getElementById('page');
+                            console.log('checkResponseCheckbox: pageElement:', pageElement);
+                            if (pageElement && pageElement.innerHTML) {
+                                console.log('checkResponseCheckbox: pageElement.innerHTML:', pageElement.innerHTML);
+                                const match = pageElement.innerHTML.match(/(\d+)\/\d+/);
+                                if (match) {
+                                    currentIndex = parseInt(match[1]) - 1; // 0ベースのインデックスに変換
+                                    console.log('checkResponseCheckbox: HTMLから現在のシナリオインデックスを推定:', currentIndex);
+                                }
+                            }
+                        }
+                        
+                        // インデックスを取得できない場合は処理を終了
+                        if (currentIndex === -1) {
+                            console.warn('checkResponseCheckbox: シナリオインデックスを取得できませんでした');
+                            return;
+                        }
+                          // 実験形式変更通知のチェック（1つ目のシナリオの場合）
+                        // 注意: スライダー確認チェックボックス用の通知処理
+                        // シナリオ説明チェックボックスの通知はexperimentManager.checkDescription()で処理される
+                        if (currentIndex === 0) {
+                            try {
+                                // ユーザーIDを取得
+                                let userId = null;
+                                if (window.experimentManager && window.experimentManager.userId) {
+                                    userId = window.experimentManager.userId;
+                                } else if (typeof experimentManager !== 'undefined' && experimentManager.userId) {
+                                    userId = experimentManager.userId;
+                                } else {
+                                    // URLからユーザーIDを取得を試みる
+                                    const urlParams = new URLSearchParams(window.location.search);
+                                    userId = urlParams.get('id');
+                                }
+                                
+                                if (userId) {
+                                    // utilities.jsから実験形式変更通知関数をインポート
+                                    const { checkAndShowFormatChangeNotification } = await import('../static/javascript/utilities.js');
+                                    await checkAndShowFormatChangeNotification(userId, currentIndex, 'examine1_2');
+                                    console.log('checkResponseCheckbox: スライダー確認チェックボックス用の実験形式変更通知を実行');
+                                } else {
+                                    console.log('checkResponseCheckbox: ユーザーIDが取得できないため実験形式変更通知をスキップ');
+                                }
+                            } catch (notificationError) {
+                                console.warn('checkResponseCheckbox: 実験形式変更通知でエラーが発生しました:', notificationError);
+                                // エラーが発生しても処理は継続
+                            }
+                        }
+                        
+                        // 通常のチェックボックス処理
+                        console.log(`checkResponseCheckbox: シナリオインデックス=${currentIndex}, チェック状態=${target.checked}`);
                         return;
                     }
                     
-                    // experimentManagerから現在のシナリオ情報を取得
-                    if (!window.experimentManager) {
-                        console.warn('experimentManager not available');
-                        return;
-                    }
+                    // その他のチェックボックスの場合は何もしない
+                    console.log('checkResponseCheckbox: 対象外のチェックボックスからの呼び出しをスキップ');
                     
-                    const currentIndex = window.experimentManager.sceIdx;
-                    const totalCount = window.experimentManager.scenarios.length;
-                    
-                    // 実験順序を取得
-                    const { getExperimentOrder, showExperimentFormatChangeNotification } = await import('/static/javascript/utilities.js');
-                    const experimentOrder = await getExperimentOrder(window.experimentManager.userId, false);
-                    
-                    // 通知を表示（最後のシナリオの場合のみ）
-                    await showExperimentFormatChangeNotification('examine1_2', experimentOrder, currentIndex, totalCount);
                 } catch (error) {
-                    console.error('チェックボックス処理中にエラーが発生しました:', error);
+                    console.error('checkResponseCheckbox: チェックボックス処理中にエラーが発生しました:', error);
                 }
             }
         </script>
