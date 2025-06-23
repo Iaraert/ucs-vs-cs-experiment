@@ -62,22 +62,22 @@
         }
     },
     "2": {
-        "title": "「水中探索ソナー」の使用と沈没した貨物の発見に関わる観察報告",
+        "title": "「水中探索ソナー」の使用と海底資源の発見に関わる観察報告",
         "descriptions": [
-            "新型の水中探索ソナーは海底に沈んだ貨物の発見率を高める可能性があると考えられています。",
-            "複数の潜水調査チームにソナーを使用させ、沈没の発見率を個別に観察する実験が行われました。",
-            "貨物発見はソナーと関係なく偶然起こりうるため、ソナーを使用していないチームも観察されました。",
+            "新型の水中探索ソナーは海底の資源の発見率を高める可能性があると考えられています。",
+            "複数の海洋調査チームにソナーを使用させ、海底資源の発見率を個別に観察する実験が行われました。",
+            "資源発見はソナーと関係なく偶然起こりうるため、ソナーを使用していないチームも観察されました。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、ソナーと沈没貨物発見の関係について評価をお願いします。",
-            "ソナーの使用が沈没貨物の発見率をどの程度高めるかを判定してください。"
+            "実験結果をご確認いただき、ソナーと海底資源発見の関係について評価をお願いします。",
+            "ソナーの使用が海底資源の発見率をどの程度高めるかを判定してください。"
         ],
         "descriptions_symmetric": [
-            "「X式ソナー」と「Y式ソナー」のどちらが海底に沈んだ貨物の発見率を高めるのか比較する研究が進められています。",
-            "複数の潜水調査チームにX式ソナーかY式ソナーのいずれかを使用させ、貨物の発見率を個別に観察する実験が行われました。",
-            "各チームはX式かY式のどちらか一方だけを使用し、両方を使用したチームや何も使用しなかったチームはありません。",
+            "「A式ソナー」と「B式ソナー」のどちらが海底の資源の発見率を高めるのか比較する研究が進められています。",
+            "複数の海洋調査チームにA式ソナーかB式ソナーのいずれかを使用させ、海底資源の発見率を個別に観察する実験が行われました。",
+            "各チームはA式かB式のどちらか一方だけを使用し、両方を使用したチームや何も使用しなかったチームはありません。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、X式ソナーとY式ソナーの効果について評価をお願いします。",
-            "X式ソナーがY式ソナーと比べて貨物発見をどの程度引き起こすかを判定してください。"
+            "実験結果をご確認いただき、A式ソナーとB式ソナーの効果について評価をお願いします。",
+            "A式ソナーがB式ソナーと比べて海底資源発見をどの程度引き起こすかを判定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/2/success.png",
@@ -91,36 +91,36 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/2/x_sonar.png",
-            "notp": "static/images/scenarios/2/no_sonar.png",
+            "p": "static/images/scenarios/2/a_sonar.png",
+            "notp": "static/images/scenarios/2/b_sonar.png",
             "q": "static/images/scenarios/2/success.png",
             "notq": "static/images/scenarios/2/failure.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
-            "a": "ソナーを使用した、貨物が発見された",
-            "b": "ソナーを使用した、貨物は発見されなかった",
-            "c": "ソナーを使用しなかった、貨物が発見された",
-            "d": "ソナーを使用しなかった、貨物は発見されなかった"
+            "a": "ソナーを使用した、海底資源が発見された",
+            "b": "ソナーを使用した、海底資源は発見されなかった",
+            "c": "ソナーを使用しなかった、海底資源が発見された",
+            "d": "ソナーを使用しなかった、海底資源は発見されなかった"
         },
         "sentences_symmetric": {
-            "a": "X式ソナーを使用した、貨物が発見された",
-            "b": "X式ソナーを使用した、貨物は発見されなかった",
-            "c": "Y式ソナーを使用した、貨物が発見された",
-            "d": "Y式ソナーを使用した、貨物は発見されなかった"
+            "a": "A式ソナーを使用した、海底資源が発見された",
+            "b": "A式ソナーを使用した、海底資源は発見されなかった",
+            "c": "B式ソナーを使用した、海底資源が発見された",
+            "d": "B式ソナーを使用した、海底資源は発見されなかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "ソナーを使用する事は、沈んだ貨物の発見をどの程度引き起こすか",
-        "result_symmetric": "X式ソナーの使用は、Y式ソナーと比べて沈没貨物の発見をどの程度引き起こすか",
+        "result": "ソナーを使用する事は、海底資源の発見をどの程度引き起こすか",
+        "result_symmetric": "A式ソナーの使用は、B式ソナーと比べて海底資源の発見をどの程度引き起こすか",
         "frame_descriptions": {
-            "top": "ソナーを使用していないチームの貨物の発見状況",
-            "bottom": "ソナーを使用したチームの貨物の発見状況"
+            "top": "ソナーを使用していないチームの海底資源の発見状況",
+            "bottom": "ソナーを使用したチームの海底資源の発見状況"
         },
         "frame_descriptions_symmetric": {
-            "top": "Y式ソナーを使用したチームの貨物の発見状況",
-            "bottom": "X式ソナーを使用したチームの貨物の発見状況"
+            "top": "B式ソナーを使用したチームの海底資源の発見状況",
+            "bottom": "A式ソナーを使用したチームの海底資源の発見状況"
         }
     },
     "3": {
@@ -456,7 +456,7 @@
             "negative": "static/images/scenarios/8/unchanged.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/8/system_a.png",
+            "p": "static/images/scenarios/8/new_system.png",
             "notp": "static/images/scenarios/8/no_system.png",
             "q": "static/images/scenarios/8/improved.png",
             "notq": "static/images/scenarios/8/unchanged.png",
@@ -518,7 +518,7 @@
             "negative": "static/images/scenarios/9/no_growth.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/9/equipment_a.png",
+            "p": "static/images/scenarios/9/equipment.png",
             "notp": "static/images/scenarios/9/old_equipment.png",
             "q": "static/images/scenarios/9/muscle_growth.png",
             "notq": "static/images/scenarios/9/no_growth.png",
@@ -576,21 +576,21 @@
             "補助ツールAが補助ツールBと比べて理解度向上をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/10/extended.png",
-            "negative": "static/images/scenarios/10/on_time.png"
+            "positive": "static/images/scenarios/10/understood.png",
+            "negative": "static/images/scenarios/10/confused.png"
         },
         "images1_2": {
             "p": "static/images/scenarios/10/tool_on.png",
             "notp": "static/images/scenarios/10/tool_off.png",
-            "q": "static/images/scenarios/10/extended.png",
-            "notq": "static/images/scenarios/10/on_time.png",
+            "q": "static/images/scenarios/10/understood.png",
+            "notq": "static/images/scenarios/10/confused.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/10/tool_a.png",
             "notp": "static/images/scenarios/10/tool_b.png",
-            "q": "static/images/scenarios/10/extended.png",
-            "notq": "static/images/scenarios/10/on_time.png",
+            "q": "static/images/scenarios/10/understood.png",
+            "notq": "static/images/scenarios/10/confused.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -638,21 +638,21 @@
             "色温度Aの照明が色温度Bの照明と比べて睡眠の質向上をどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/lighting/good_sleep.png",
-            "negative": "static/images/scenarios/lighting/poor_sleep.png"
+            "positive": "static/images/scenarios/11/good_sleep.png",
+            "negative": "static/images/scenarios/11/poor_sleep.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/lighting/dim_light.png",
-            "notp": "static/images/scenarios/lighting/bright_light.png",
-            "q": "static/images/scenarios/lighting/good_sleep.png",
-            "notq": "static/images/scenarios/lighting/poor_sleep.png",
+            "p": "static/images/scenarios/11/dim_light.png",
+            "notp": "static/images/scenarios/11/bright_light.png",
+            "q": "static/images/scenarios/11/good_sleep.png",
+            "notq": "static/images/scenarios/11/poor_sleep.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/lighting/warm_light.png",
-            "notp": "static/images/scenarios/lighting/cool_light.png",
-            "q": "static/images/scenarios/lighting/good_sleep.png",
-            "notq": "static/images/scenarios/lighting/poor_sleep.png",
+            "p": "static/images/scenarios/11/light_a.png",
+            "notp": "static/images/scenarios/11/light_b.png",
+            "q": "static/images/scenarios/11/good_sleep.png",
+            "notq": "static/images/scenarios/11/poor_sleep.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
@@ -700,21 +700,21 @@
             "楽曲Aが楽曲Bと比べて集中力向上をどの程度促進するかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/class/focused.png",
-            "negative": "static/images/scenarios/class/unfocused.png"
+            "positive": "static/images/scenarios/12/focused.png",
+            "negative": "static/images/scenarios/12/unfocused.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/music/listening.png",
-            "notp": "static/images/scenarios/music/not_listening.png",
-            "q": "static/images/scenarios/class/focused.png",
-            "notq": "static/images/scenarios/class/unfocused.png",
+            "p": "static/images/scenarios/12/listening.png",
+            "notp": "static/images/scenarios/12/not_listening.png",
+            "q": "static/images/scenarios/12/focused.png",
+            "notq": "static/images/scenarios/12/unfocused.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/music/classical_music.png",
-            "notp": "static/images/scenarios/music/jazz_music.png",
-            "q": "static/images/scenarios/class/focused.png",
-            "notq": "static/images/scenarios/class/unfocused.png",
+            "p": "static/images/scenarios/12/music_a.png",
+            "notp": "static/images/scenarios/12/music_b.png",
+            "q": "static/images/scenarios/12/focused.png",
+            "notq": "static/images/scenarios/12/unfocused.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
