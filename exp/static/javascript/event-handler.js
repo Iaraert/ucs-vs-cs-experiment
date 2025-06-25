@@ -165,6 +165,8 @@ export class EventHandler {
     await dataManager.recordResponse(sliderValue);
     
     if (dataManager.isExperimentComplete()) {
+      // ページ遷移前に警告を解除
+      window.onbeforeunload = null;
       setupPageLeaveWarning(false);
       
       // 現在のページがexamine1であることを指定し、ユーザーIDに基づいて次のページを決定（非同期）
@@ -224,7 +226,10 @@ export class EventHandler {
     console.log('🟦 event-handler.js - IMC data to send:', data);
 
     document.getElementById('finish_all_scenarios').setAttribute('disabled', true);
-    
+
+    // ページ遷移前に警告を解除
+    window.onbeforeunload = null;
+
     const nextUrl = `/examine3?id=${encodeURIComponent(dataManager.userId)}`;
     console.log('🟦 event-handler.js - Next URL for examine3:', nextUrl);
     
@@ -274,6 +279,9 @@ export class EventHandler {
     }
     
     const nextUrl = dataManager.userId ? `/end?id=${encodeURIComponent(dataManager.userId)}` : '/end';
+
+    // ページ遷移前に警告を解除
+    window.onbeforeunload = null;
 
     setupPageLeaveWarning(false);
     
@@ -344,18 +352,28 @@ export class EventHandler {
       
       switch (e.target.id) {
         case 'finish_all_scenarios':
+          // ページ遷移前に警告を解除
+          window.onbeforeunload = null;
           experimentManager.handleExportResults();
           break;
         case 'next_scenario':
+          // ページ遷移前に警告を解除
+          window.onbeforeunload = null;
           experimentManager.handleNextScenario();
           break;
         case 'continue_scenario':
+          // ページ遷移前に警告を解除
+          window.onbeforeunload = null;
           experimentManager.handleContinueScenario();
           break;
         case 'next_sample':
+          // ページ遷移前に警告を解除
+          window.onbeforeunload = null;
           experimentManager.toNextSample();
           break;
         case 'start_scenario_button':
+          // ページ遷移前に警告を解除
+          window.onbeforeunload = null;
           experimentManager.toNextNewSamplePage();
           break;
       }

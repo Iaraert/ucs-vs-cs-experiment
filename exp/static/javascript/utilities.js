@@ -313,10 +313,18 @@ export async function getExperimentOrder(userId, reallocate = false) {
     
     const data = await response.json();
     console.log('getExperimentOrder: 実験経路取得結果:', data);
-    
+
     const pathType = data.pathType || 'order1';
+    // --- ここでlocalStorageにorderを保存 ---
+    try {
+      if (userId && pathType) {
+        localStorage.setItem(`experiment_order_${userId}`, pathType);
+      }
+    } catch (e) {
+      // 保存失敗時は何もしない
+    }
     console.log(`getExperimentOrder: 返却する実験順序: ${pathType} (ユーザーID: ${userId})`);
-    
+
     return pathType;
   } catch (error) {
     console.error('getExperimentOrder: 実験経路の取得に失敗しました:', error);
@@ -636,11 +644,31 @@ export function clearProgressToken() {
 /**
  * サーバーから進捗/order情報を取得し、順序違反ならリダイレクト
  * @param {string} userId
- * @param {string} currentPage - 'examine1' | 'examine1_2' | 'examine2'
+ * @param {string} currentPage - 'examine1' | 'examine1_2' | 'examine2' | 'examine3'
  * @returns {Promise<{ok: boolean, redirectPage?: string, progressToken?: string, order?: string, allowed: boolean}>}
  */
 export async function checkProgressAndRedirect(userId, currentPage) {
   try {
+    // --- 追加: クライアント側でも進捗条件を厳密にチェック ---
+    if (typeof window !== 'undefined' && window.dataManager && typeof window.dataManager.isPageSubmissionValid === 'function') {
+      if (!window.dataManager.isPageSubmissionValid(currentPage)) {
+        alert('ページのスキップやURLの書き換えはできません。\n必ず順番通りに進めてください。');
+        // examine1_2未送信ならexamine1_2へリダイレクト
+        if (currentPage === 'examine2' || currentPage === 'examine3') {
+          window.location.href = `/examine1_2?id=${encodeURIComponent(userId)}`;
+          return { ok: false, redirectPage: '/examine1_2' };
+        }
+        // examine1未送信ならexamine1へ
+        if (currentPage === 'examine1_2') {
+          window.location.href = `/examine1?id=${encodeURIComponent(userId)}`;
+          return { ok: false, redirectPage: '/examine1' };
+        }
+        // デフォルト
+        window.location.href = `/?id=${encodeURIComponent(userId)}`;
+        return { ok: false, redirectPage: '/' };
+      }
+    }
+    // ...既存のサーバーAPIチェック...
     const token = getProgressToken();
     const res = await fetch(`/api/progress?user_id=${encodeURIComponent(userId)}&page=${encodeURIComponent(currentPage)}${token ? `&progress_token=${encodeURIComponent(token)}` : ''}`);
     if (!res.ok) throw new Error('進捗APIエラー');
@@ -694,6 +722,7 @@ export function isPageSubmissionValid(page) {
   try {
     // dataManagerを動的import（循環参照対策）
     if (typeof window !== 'undefined' && window.dataManager && typeof window.dataManager.isPageSubmissionValid === 'function') {
+      // order2: examine1_2が6件送信済みでexamine1が未送信ならexamine1進入OK
       return window.dataManager.isPageSubmissionValid(page);
     } else {
       // 必要ならimport

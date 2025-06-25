@@ -202,7 +202,10 @@
                 // フォームにイベントリスナーを追加（送信前に遷移先変更）
                 document.getElementById('experiment-form').addEventListener('submit', function(e) {
                     e.preventDefault(); // デフォルトの送信をキャンセル
-                    
+
+                    // ページ遷移前に警告を解除
+                    window.onbeforeunload = null;
+
                     // 実験ページに遷移（ユーザーIDをURLパラメータに付与）
                     const url = `${firstExperimentPage}?id=${encodeURIComponent(userId)}`;
                     console.log(`遷移先: ${url}`);

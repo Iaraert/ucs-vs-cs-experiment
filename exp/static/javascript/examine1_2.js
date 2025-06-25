@@ -1039,7 +1039,17 @@ class Experiment12Manager {  constructor() {
     }
     try {
       // examine1と同様のエラーハンドリングを追加
-      await this.exportResults();
+      // await this.exportResults();
+      // ここでdataManagerのestimationsにデータをコピーしてexportResultsを使う
+      import('./data-manager.js').then(async ({ default: dataManager }) => {
+        dataManager.estimations = this.estimations;
+        dataManager.userData = this.userData;
+        dataManager.userId = this.userId;
+        dataManager.experimentType = 'examine1_2';
+        const { getNextPageUrl } = await import('./utilities.js');
+        const nextUrl = await getNextPageUrl('examine1_2', this.userId);
+        await dataManager.exportResults(nextUrl);
+      });
     } catch (error) {
       console.error('結果送信に失敗しました:', error);
       alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");

@@ -25,6 +25,8 @@
 <script>
 // end.htmlでは完了IDとしてURLパラメータを表示するため、URLの変更は行わない
 function copy(){
+    // コピー時は警告を解除
+    window.onbeforeunload = null;
     document.getElementById('complete_code').select();
     return document.execCommand("copy");
 }

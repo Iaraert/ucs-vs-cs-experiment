@@ -121,3 +121,37 @@ class DataHandler:
             "backup_dir": backup_dir,
             "files": backup_files
         }
+
+    def get_progress_counts(self, user_id):
+        """
+        各ページ（examine1, examine1_2, examine2, examine3）の送信済み件数を返す。
+        戻り値: dict { 'examine1': int, 'examine1_2': int, 'examine2': int, 'examine3': int }
+        """
+        import sqlite3
+        db_path = "experiment.db"  # 実際のDBパスに合わせて修正
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        result = {}
+        try:
+            # examine1
+            cursor.execute(
+                "SELECT COUNT(*) FROM estimations WHERE user_id=? AND file_name_suffix='exp1'", (user_id,))
+            result['examine1'] = cursor.fetchone()[0]
+            # examine1_2
+            cursor.execute(
+                "SELECT COUNT(*) FROM estimations WHERE user_id=? AND file_name_suffix='exp1_2'", (user_id,))
+            result['examine1_2'] = cursor.fetchone()[0]
+            # examine2
+            cursor.execute(
+                "SELECT COUNT(*) FROM user_data WHERE user_id=? AND file_name_suffix='exp2'", (user_id,))
+            result['examine2'] = cursor.fetchone()[0]
+            # examine3
+            cursor.execute(
+                "SELECT COUNT(*) FROM user_data WHERE user_id=? AND file_name_suffix='exp3'", (user_id,))
+            result['examine3'] = cursor.fetchone()[0]
+        except Exception as e:
+            # 必要に応じてロギング
+            result = {'examine1': 0, 'examine1_2': 0, 'examine2': 0, 'examine3': 0}
+        finally:
+            conn.close()
+        return result

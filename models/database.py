@@ -445,3 +445,8 @@ class Database:
             return True
         except Exception as e:
             raise Exception(f"Database connection failed: {e}")
+
+    def get_progress_counts(self, user_id):
+        from utils.data_handler import DataHandler
+        handler = DataHandler()
+        return handler.get_progress_counts(user_id)

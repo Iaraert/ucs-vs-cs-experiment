@@ -259,6 +259,7 @@ def get_experiment_path():
     try:
         user_id = request.args.get('user_id', str(datetime.datetime.now().timestamp()))
         reallocate = request.args.get('reallocate', 'false').lower() == 'true'
+        logger.debug(f"パラメータ - user_id={user_id}, reallocate={reallocate}, type={type(reallocate)}")
         logger.info(f"実験経路割り当てリクエスト: user_id={user_id}, reallocate={reallocate}")
         
         if not user_id:
@@ -272,6 +273,7 @@ def get_experiment_path():
         
         # クライアントからのreallocateパラメータを使用
         result = db.get_experiment_path_assignment(user_id, reallocate)
+        logger.debug(f"実験経路割り当て結果: {result}")
         logger.info(f"実験経路割り当て結果: {result}")
         
         if not result:
@@ -345,33 +347,93 @@ def health_check():
             'timestamp': datetime.datetime.now().isoformat()
         }), 500
 
-@app.route('/api/progress', methods=['GET'])
+# 進捗API
+@app.route('/api/progress')
 def api_progress():
     """
-    クライアントの進捗/orderチェックAPI
+    examine1, examine1_2, examine2, examine3 の進捗/order検証API
     """
-    user_id = request.args.get('user_id')
-    page = request.args.get('page')
-    progress_token = request.args.get('progress_token')
-    # --- 進捗/order違反の例示的な判定 ---
-    allowed = True
-    redirect_page = None
-    order = "order1"
-    # examine1_2に進む場合、examine1が未完了ならリダイレクト
-    if page == "examine1_2":
-        # ここでexamine1の進捗を確認する必要がある
-        # 例: dbやセッションでuser_idのexamine1進捗を確認
-        # ここではダミーでallowed=Falseにする例
-        allowed = False
-        redirect_page = "/examine1"
-    # examine2に進む場合、examine1, examine1_2両方完了しているか確認
-    # ...他のページも同様に判定...
-    return jsonify({
-        "allowed": allowed,
-        "progressToken": progress_token or "",
-        "order": order,
-        "redirectPage": redirect_page
-    })
+    try:
+        user_id = request.args.get('user_id')
+        page = request.args.get('page')
+        progress_token = request.args.get('progress_token')
+        if not user_id or not page:
+            return jsonify({
+                "allowed": False,
+                "redirectPage": "/",
+                "error": "missing_parameters"
+            }), 400
+
+        path_info = db.get_experiment_path_assignment(user_id, reallocate=False)
+        path_type = path_info.get('pathType', 'order1')  # 'order1' or 'order2'
+
+        allowed = True
+        redirect_page = None
+
+        examine1_count = 0
+        examine1_2_count = 0
+        try:
+            progress_info = data_handler.get_progress_counts(user_id)
+            examine1_count = progress_info.get('examine1', 0)
+            examine1_2_count = progress_info.get('examine1_2', 0)
+        except Exception as e:
+            logger.warning(f"進捗情報取得失敗: {e}")
+
+        logger.debug(f"進捗判定: user_id={user_id}, page={page}, path_type={path_type}, examine1_count={examine1_count}, examine1_2_count={examine1_2_count}")
+
+        # --- 進入許可ロジック（order1/order2で統一, 0件時は必ず進入可） ---
+        if path_type == 'order1':
+            if page == 'examine1':
+                if examine1_count == 0:
+                    allowed = True
+                    redirect_page = None
+                elif examine1_count >= 6:
+                    allowed = False
+                    redirect_page = '/examine1_2'
+            elif page == 'examine1_2':
+                if examine1_2_count == 0:
+                    allowed = True
+                    redirect_page = None
+                elif examine1_count < 6:
+                    allowed = False
+                    redirect_page = '/examine1'
+                elif examine1_2_count >= 6:
+                    allowed = False
+                    redirect_page = '/examine2'
+        elif path_type == 'order2':
+            if page == 'examine1_2':
+                if examine1_2_count == 0:
+                    allowed = True
+                    redirect_page = None
+                elif examine1_2_count >= 6:
+                    allowed = False
+                    redirect_page = '/examine1'
+            elif page == 'examine1':
+                if examine1_count == 0:
+                    allowed = True
+                    redirect_page = None
+                elif examine1_2_count < 6:
+                    allowed = False
+                    redirect_page = '/examine1_2'
+                elif examine1_count >= 6:
+                    allowed = False
+                    redirect_page = '/examine2'
+        # 他ページは特に制限しない
+
+        return jsonify({
+            "allowed": allowed,
+            "redirectPage": redirect_page,
+            "progressToken": progress_token or "",
+            "order": path_type
+        })
+    except Exception as e:
+        import traceback
+        print(traceback.format_exc())
+        return jsonify({
+            "allowed": False,
+            "redirectPage": "/",
+            "error": str(e)
+        }), 500
 
 @app.route('/api/validate-progress', methods=['POST'])
 def api_validate_progress():

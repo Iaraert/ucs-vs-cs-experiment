@@ -434,10 +434,26 @@ export class DataManager {
     this.userData.push(data);
 
     try {
+      // examine1_2の場合はfile_name_suffixをexp1_2にする
+      let fileNameSuffix = 'exp1';
+      if (this.experimentType === 'examine1_2') {
+        fileNameSuffix = 'exp1_2';
+      }
+      // --- ここでlocalStorageに6件分のデータを保存 ---
+      try {
+        if (this.experimentType === 'examine1') {
+          localStorage.setItem(`estimations_examine1_${this.userId}`, JSON.stringify(this.estimations));
+        } else if (this.experimentType === 'examine1_2') {
+          localStorage.setItem(`estimations_examine1_2_${this.userId}`, JSON.stringify(this.estimations));
+        }
+      } catch (e) {
+        // 保存失敗時は何もしない
+        console.warn('estimationsのlocalStorage保存に失敗:', e);
+      }
       const response = await postData('/send', {
         'user_data': JSON.stringify(this.userData),
         'estimations': JSON.stringify(this.estimations),
-        'file_name_suffix': 'exp1',
+        'file_name_suffix': fileNameSuffix,
         'progress_token': getProgressToken()
       }, {
         timeout: 50000
@@ -542,6 +558,12 @@ export class DataManager {
         'user_agent': window.navigator.userAgent
       }];
       
+      // --- ここでlocalStorageに6件分のデータを保存 ---
+      try {
+        localStorage.setItem(`estimations_examine1_2_${this.userId}`, JSON.stringify(estimations));
+      } catch (e) {
+        console.warn('estimations_examine1_2のlocalStorage保存に失敗:', e);
+      }
       const response = await postData('/send', {
         'user_data': JSON.stringify(userData),
         'estimations': JSON.stringify(estimations),
@@ -586,15 +608,67 @@ export class DataManager {
    * @returns {boolean}
    */
   isPageSubmissionValid(page) {
-    if (page === 'examine1' || page === 'examine1_2') {
-      // 6件送信済みか
-      return Array.isArray(this.estimations) && this.estimations.length === 6;
+    try {
+      const userId = this.userId;
+      const getCount = (key) => {
+        try {
+          const arr = JSON.parse(localStorage.getItem(key) || '[]');
+          return Array.isArray(arr) ? arr.length : 0;
+        } catch {
+          return 0;
+        }
+      };
+      const examine1Count = getCount(`estimations_examine1_${userId}`);
+      const examine12Count = getCount(`estimations_examine1_2_${userId}`);
+      // examine2/3はuserDataの送信有無で判定
+      const examine2Sent = getCount(`estimations_examine2_${userId}`) > 0 || (Array.isArray(this.userData) && this.userData.length > 0);
+
+      // order1: examine1→examine1_2→examine2
+      // order2: examine1_2→examine1→examine2
+      let experimentOrder = 'order1';
+      if (userId) {
+        const orderKey = `experiment_order_${userId}`;
+        const storedOrder = localStorage.getItem(orderKey);
+        if (storedOrder) experimentOrder = storedOrder;
+      }
+
+      if (page === 'examine1') {
+        if (experimentOrder === 'order2') {
+          // examine1_2が6件以上送信済みで、examine1が未送信ならOK
+          return examine12Count >= 6 && examine1Count < 6;
+        }
+        // order1: examine1が未送信ならOK
+        return examine1Count < 6;
+      }
+      if (page === 'examine1_2') {
+        if (experimentOrder === 'order1') {
+          // 修正: examine1が「6件送信済み」かつexamine1_2が未送信ならOK
+          return examine1Count === 6 && examine12Count < 6;
+        }
+        if (experimentOrder === 'order2') {
+          // examine1_2が未送信ならOK
+          return examine12Count < 6;
+        }
+        // デフォルト: 6件未満なら進入OK
+        return examine12Count < 6;
+      }
+      if (page === 'examine2') {
+        // examine1, examine1_2両方が6件送信済みでなければ進入不可
+        // examine1_2が6件未満なら進入不可
+        // examine1が6件未満でも進入不可
+        return examine1Count === 6 && examine12Count === 6;
+      }
+      if (page === 'examine3') {
+        // examine2の送信がなければ進入不可
+        // examine1_2が6件未満なら進入不可
+        // examine1が6件未満でも進入不可
+        return examine2Sent && examine12Count === 6 && examine1Count === 6;
+      }
+      return false;
+    } catch (e) {
+      // 何かあれば従来通り
+      return false;
     }
-    if (page === 'examine2' || page === 'examine3') {
-      // 送信済みか（userDataが1件以上あるか）
-      return Array.isArray(this.userData) && this.userData.length > 0;
-    }
-    return false;
   }
 }
 

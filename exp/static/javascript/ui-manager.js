@@ -46,7 +46,23 @@ export class UIManager {
     // 境界チェック
     if (currentIndex >= config.scenarios.length) {
       console.error(`シナリオインデックスが範囲外です: ${currentIndex}/${config.scenarios.length}`);
-      alert('すべてのシナリオが完了しました。');
+      // ここでデータ送信と遷移を行う
+      import('./utilities.js').then(async ({ getNextPageUrl, getProgressToken, validateProgressOnSubmit }) => {
+        try {
+          const nextUrl = await getNextPageUrl(dataManager.experimentType, dataManager.userId);
+          const progressToken = getProgressToken();
+          const valid = await validateProgressOnSubmit(dataManager.userId, dataManager.experimentType, progressToken);
+          if (!valid) {
+            alert('不正な進行順序です。最初からやり直してください。');
+            window.location.href = '/';
+            return;
+          }
+          await dataManager.exportResults(nextUrl);
+        } catch (error) {
+          console.error('結果送信に失敗しました:', error);
+          alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");
+        }
+      });
       return;
     }
     
