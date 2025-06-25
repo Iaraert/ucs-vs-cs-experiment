@@ -217,7 +217,7 @@
         "images_symmetric1_2": {
             "p": "static/images/scenarios/4/led_type_a.png",
             "notp": "static/images/scenarios/4/led_type_b.png",
-            "q": "static/images/scenarios/4/growthd.png",
+            "q": "static/images/scenarios/4/growth.png",
             "notq": "static/images/scenarios/4/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
         },
@@ -464,22 +464,22 @@
         },
         "images_symmetric1_2": {
             "p": "static/images/scenarios/8/system_a.png",
-            "notp": "static/images/scenarios/8/system_b.png.png",
+            "notp": "static/images/scenarios/8/system_b.png",
             "q": "static/images/scenarios/8/improved.png",
             "notq": "static/images/scenarios/8/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
             "a": "新管理システムを導入した、運営効率が改善した",
-            "b": "新管理システムを導入した、運営効率は変化なかった",
+            "b": "新管理システムを導入した、運営効率は変化がなかった",
             "c": "新管理システムを導入しなかった、運営効率が改善した",
-            "d": "新管理システムを導入しなかった、運営効率は変化なかった"
+            "d": "新管理システムを導入しなかった、運営効率は変化がなかった"
         },
         "sentences_symmetric": {
             "a": "システムタイプAを導入した、運営効率が改善した",
-            "b": "システムタイプAを導入した、運営効率は変化なかった",
+            "b": "システムタイプAを導入した、運営効率は変化がなかった",
             "c": "システムタイプBを導入した、運営効率が改善した",
-            "d": "システムタイプBを導入した、運営効率は変化なかった"
+            "d": "システムタイプBを導入した、運営効率は変化がなかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
@@ -558,65 +558,65 @@
         }
     },
     "10": {
-        "title": "「プレゼンテーション補助ツール」と理解度向上に関わる観察報告",
+        "title": "「化学物質」と燃費・走行距離の向上に関わる観察報告",
         "descriptions": [
-            "プレゼンテーション時の補助ツールが聴衆の理解度向上に影響を与える可能性があると考えられています。",
-            "複数のプレゼンターに補助ツールを使用してもらい、聴衆の理解度を個別に観察する実験が行われました。",
-            "理解度の向上は補助ツールと関係なく起こりうるため、補助ツールを使用しないプレゼンターも観察されました。",
+            "自動車の燃料に特定の化学物質を加えると、燃費や走行距離が向上する可能性があると考えられています。",
+            "複数の車両の燃料に特定の化学物質を使用し、燃費・走行距離の向上を個別に観察する実験が行われました。",
+            "燃費の向上は特定の化学物質と関係なく起こりうるため、特定の物質を使用しない車両も観察されました。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、補助ツールと理解度向上の関係について評価をお願いします。",
-            "補助ツールの使用が理解度向上をどの程度引き起こすかを判定してください。"
+            "実験結果をご確認いただき、特定の物質と燃費向上の関係について評価をお願いします。",
+            "特定の物質の使用が燃費・走行距離の向上をどの程度引き起こすかを判定してください。"
         ],
         "descriptions_symmetric": [
-            "「補助ツールA」と「補助ツールB」のどちらがプレゼンテーションでの理解度向上を促進するのか比較する研究が進められています。",
-            "複数のプレゼンターに補助ツールAか補助ツールBのいずれかを使用してもらい、聴衆の理解度を個別に観察する実験が行われました。",
-            "各プレゼンターは補助ツールAか補助ツールBのどちらか一方だけを使用し、両方を使用したプレゼンターや補助ツールを使用しなかったプレゼンターはいません。",
+            "「化学物質A」と「化学物質B」のどちらが、燃料に加えた際に自動車の燃費・走行距離向上を促進するのか比較する研究が進められています。",
+            "複数の車両に化学物質Aか化学物質Bのいずれかを使用してもらい、燃費・走行距離の向上を個別に観察する実験が行われました。",
+            "各車両は化学物質Aか化学物質Bのどちらか一方だけを使用し、両方を使用した車両や化学物質を使用しなかった車両はありません。",
             "これから、実験の結果が提示されます。",
-            "実験結果をご確認いただき、補助ツールAと補助ツールBの効果について評価をお願いします。",
-            "補助ツールAが補助ツールBと比べて理解度向上をどの程度引き起こすかを判定してください。"
+            "実験結果をご確認いただき、化学物質Aと化学物質Bの効果について評価をお願いします。",
+            "化学物質Aが化学物質Bと比べて燃費・走行距離向上をどの程度引き起こすかを判定してください。"
         ],
         "images": {
-            "positive": "static/images/scenarios/10/understood.png",
-            "negative": "static/images/scenarios/10/confused.png"
+            "positive": "static/images/scenarios/10/good_mileage.png",
+            "negative": "static/images/scenarios/10/poor_mileage.png"
         },
         "images1_2": {
-            "p": "static/images/scenarios/10/tool_on.png",
-            "notp": "static/images/scenarios/10/tool_off.png",
-            "q": "static/images/scenarios/10/understood.png",
-            "notq": "static/images/scenarios/10/confused.png",
+            "p": "static/images/scenarios/10/fuel_additive.png",
+            "notp": "static/images/scenarios/10/no_additive.png",
+            "q": "static/images/scenarios/10/good_mileage.png",
+            "notq": "static/images/scenarios/10/poor_mileage.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/10/tool_a.png",
-            "notp": "static/images/scenarios/10/tool_b.png",
-            "q": "static/images/scenarios/10/understood.png",
-            "notq": "static/images/scenarios/10/confused.png",
+            "p": "static/images/scenarios/10/additive_a.png",
+            "notp": "static/images/scenarios/10/additive_b.png",
+            "q": "static/images/scenarios/10/good_mileage.png",
+            "notq": "static/images/scenarios/10/poor_mileage.png",
             "arrow": "static/images/yajirushi_right.png"
         },
         "sentences": {
-            "a": "補助ツールを使用した、理解度が向上した",
-            "b": "補助ツールを使用した、理解度は変化なかった",
-            "c": "補助ツールを使用しなかった、理解度が向上した",
-            "d": "補助ツールを使用しなかった、理解度は変化なかった"
+            "a": "化学物質を使用した、燃費が向上した",
+            "b": "化学物質を使用した、燃費は変化なかった",
+            "c": "化学物質を使用しなかった、燃費が向上した",
+            "d": "化学物質を使用しなかった、燃費は変化なかった"
         },
         "sentences_symmetric": {
-            "a": "補助ツールAを使用した、理解度が向上した",
-            "b": "補助ツールAを使用した、理解度は変化なかった",
-            "c": "補助ツールBを使用した、理解度が向上した",
-            "d": "補助ツールBを使用した、理解度は変化なかった"
+            "a": "化学物質Aを使用した、燃費が向上した",
+            "b": "化学物質Aを使用した、燃費は変化なかった",
+            "c": "化学物質Bを使用した、燃費が向上した",
+            "d": "化学物質Bを使用した、燃費は変化なかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
-        "result": "補助ツールの使用は、理解度向上をどの程度引き起こす",
-        "result_symmetric": "補助ツールAの使用は、補助ツールBと比べて理解度向上をどの程度引き起こす",
+        "result": "化学物質の使用は、燃費・走行距離向上をどの程度引き起こす",
+        "result_symmetric": "化学物質Aの使用は、化学物質Bと比べて燃費・走行距離向上をどの程度引き起こす",
         "frame_descriptions": {
-            "top": "補助ツールを使用しなかった場合の理解度状況",
-            "bottom": "補助ツールを使用した場合の理解度状況"
+            "top": "化学物質を使用しなかった場合の燃費状況",
+            "bottom": "化学物質を使用した場合の燃費状況"
         },
         "frame_descriptions_symmetric": {
-            "top": "補助ツールBを使用した場合の理解度状況",
-            "bottom": "補助ツールAを使用した場合の理解度状況"
+            "top": "化学物質Bを使用した場合の燃費状況",
+            "bottom": "化学物質Aを使用した場合の燃費状況"
         }
     },
     "11": {
