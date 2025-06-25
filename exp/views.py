@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-from flask import render_template, request, Response, redirect, jsonify, current_app
+from flask import render_template, request, Response, redirect, jsonify, current_app, Blueprint
 from exp import app
 from exp.config import LOG_LEVEL, LOG_DIR
 from utils.logger import setup_logger, error_logger, UserFriendlyError
@@ -131,6 +131,23 @@ def send():
                 recovery_path="/examine1"
             )
         
+        # examine1, examine1_2で6件送信済みか判定
+        if suffix in ["exp1", "exp1_2"]:
+            estimations = raw_data.get("estimations")
+            import json
+            try:
+                est_list = json.loads(estimations) if estimations else []
+            except Exception:
+                est_list = []
+            if not isinstance(est_list, list) or len(est_list) != 6:
+                logger.warning(f"進捗違反: {suffix} で6件未満のデータ送信: {len(est_list)}件")
+                return jsonify({
+                    "error": True,
+                    "message": "進捗条件を満たしていません（6件のデータが必要です）。",
+                    "error_code": "PROGRESS_VIOLATION",
+                    "status_code": 400
+                }), 400
+
         # DataHandlerクラスを使用してデータを保存
         results = data_handler.save_experiment_data(raw_data, suffix)
         logger.info(f"データ保存結果: {results}")
@@ -138,7 +155,7 @@ def send():
         return Response(status=200)
     
     except UserFriendlyError as e:
-        error_logger.log_api_error(request, e, e.status_code)
+        error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
@@ -168,6 +185,24 @@ def send_imc():
                 recovery_path="/examine2"
             )
         
+        # examine2, examine3で送信済みか判定
+        if suffix in ["exp2", "exp3"]:
+            # 必須データが1件以上あるか
+            key = "user_data" if suffix == "exp2" else "crt_data"
+            import json
+            try:
+                datalist = json.loads(raw_data.get(key, "[]"))
+            except Exception:
+                datalist = []
+            if not isinstance(datalist, list) or len(datalist) == 0:
+                logger.warning(f"進捗違反: {suffix} でデータ未送信")
+                return jsonify({
+                    "error": True,
+                    "message": "進捗条件を満たしていません（データが必要です）。",
+                    "error_code": "PROGRESS_VIOLATION",
+                    "status_code": 400
+                }), 400
+
         # DataHandlerクラスを使用してデータを保存
         results = data_handler.save_imc_data(raw_data, suffix)
         logger.info(f"データ保存結果: {results}")
@@ -309,3 +344,45 @@ def health_check():
             'message': 'ヘルスチェックでエラーが発生しました',
             'timestamp': datetime.datetime.now().isoformat()
         }), 500
+
+@app.route('/api/progress', methods=['GET'])
+def api_progress():
+    """
+    クライアントの進捗/orderチェックAPI
+    """
+    user_id = request.args.get('user_id')
+    page = request.args.get('page')
+    progress_token = request.args.get('progress_token')
+    # --- 進捗/order違反の例示的な判定 ---
+    allowed = True
+    redirect_page = None
+    order = "order1"
+    # examine1_2に進む場合、examine1が未完了ならリダイレクト
+    if page == "examine1_2":
+        # ここでexamine1の進捗を確認する必要がある
+        # 例: dbやセッションでuser_idのexamine1進捗を確認
+        # ここではダミーでallowed=Falseにする例
+        allowed = False
+        redirect_page = "/examine1"
+    # examine2に進む場合、examine1, examine1_2両方完了しているか確認
+    # ...他のページも同様に判定...
+    return jsonify({
+        "allowed": allowed,
+        "progressToken": progress_token or "",
+        "order": order,
+        "redirectPage": redirect_page
+    })
+
+@app.route('/api/validate-progress', methods=['POST'])
+def api_validate_progress():
+    """
+    データ送信時の進捗/order検証API（ダミー実装: 常にOKを返す）
+    """
+    data = request.get_json(force=True)
+    user_id = data.get('user_id')
+    page = data.get('page')
+    progress_token = data.get('progress_token')
+    # 必要ならここで進捗/orderチェックのロジックを追加
+    return jsonify({
+        "allowed": True
+    })

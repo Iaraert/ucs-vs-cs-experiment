@@ -435,10 +435,8 @@ export async function checkAndShowFormatChangeNotification(userId, currentIndex,
     }
     
     // 通知フラグを確認（一度だけ表示）
-    // シナリオ単位で通知を管理（シナリオ説明チェックボックスとスライダー確認チェックボックスの重複を防ぐ）
     const notificationKey = `format_change_notification_${userId}_${currentPage}_scenario_${currentIndex}`;
     const hasShownNotification = sessionStorage.getItem(notificationKey);
-    
     if (hasShownNotification) {
       console.log(`checkAndShowFormatChangeNotification: 既に通知済みのため表示をスキップ (キー: ${notificationKey})`);
       return;
@@ -451,7 +449,7 @@ export async function checkAndShowFormatChangeNotification(userId, currentIndex,
     let shouldShowNotification = false;
     let nextExperimentType = '';
     
-    // 実験順序と現在のページに基づいて通知が必要かどうかを判定
+    // --- 通知条件ロジック修正 ---
     if (experimentOrder === 'order1' && currentPage === 'examine1_2') {
       // order1: examine1 → examine1_2 → examine2
       // examine1_2の1つ目のシナリオで通知（次はexamine2）
@@ -463,7 +461,8 @@ export async function checkAndShowFormatChangeNotification(userId, currentIndex,
       shouldShowNotification = true;
       nextExperimentType = 'examine2';
     }
-    
+    // order2 で examine1_2 の1つ目では通知しない
+
     if (shouldShowNotification) {
       // 通知を表示
       const notificationMessage = `
@@ -478,8 +477,6 @@ export async function checkAndShowFormatChangeNotification(userId, currentIndex,
       
       // モーダルスタイルの通知を表示
       showModalNotification('実験形式変更のお知らせ', notificationMessage);
-      
-      // 通知済みフラグを設定
       sessionStorage.setItem(notificationKey, 'true');
       console.log(`checkAndShowFormatChangeNotification: 通知済みフラグを設定: ${notificationKey}`);
     } else {
@@ -620,5 +617,89 @@ export function showModalNotification(title, message) {
     console.error('showModalNotification: モーダル表示でエラーが発生しました:', error);
     // フォールバック: 通常のアラート
     alert(`${title}\n\n${message}`);
+  }
+}
+
+/**
+ * 進捗トークンをlocalStorageで管理
+ */
+export function saveProgressToken(token) {
+  if (token) localStorage.setItem('exp_progress_token', token);
+}
+export function getProgressToken() {
+  return localStorage.getItem('exp_progress_token');
+}
+export function clearProgressToken() {
+  localStorage.removeItem('exp_progress_token');
+}
+
+/**
+ * サーバーから進捗/order情報を取得し、順序違反ならリダイレクト
+ * @param {string} userId
+ * @param {string} currentPage - 'examine1' | 'examine1_2' | 'examine2'
+ * @returns {Promise<{ok: boolean, redirectPage?: string, progressToken?: string, order?: string, allowed: boolean}>}
+ */
+export async function checkProgressAndRedirect(userId, currentPage) {
+  try {
+    const token = getProgressToken();
+    const res = await fetch(`/api/progress?user_id=${encodeURIComponent(userId)}&page=${encodeURIComponent(currentPage)}${token ? `&progress_token=${encodeURIComponent(token)}` : ''}`);
+    if (!res.ok) throw new Error('進捗APIエラー');
+    const data = await res.json();
+
+    // サーバーが進捗トークンを返したら保存
+    if (data.progressToken) saveProgressToken(data.progressToken);
+
+    // allowed: falseならリダイレクト
+    if (!data.allowed && data.redirectPage) {
+      alert('ページのスキップやURLの書き換えはできません。\n必ず順番通りに進めてください。');
+      window.location.href = `${data.redirectPage}?id=${encodeURIComponent(userId)}`;
+      return { ok: false, redirectPage: data.redirectPage };
+    }
+    return { ok: true, ...data };
+  } catch (e) {
+    console.error('進捗チェック失敗:', e);
+    alert('進捗情報の取得に失敗しました。ページを再読み込みしてください。');
+    return { ok: false };
+  }
+}
+
+/**
+ * データ送信時の進捗検証API
+ * @param {string} userId
+ * @param {string} currentPage
+ * @param {string} progressToken
+ * @returns {Promise<boolean>} サーバーがOKならtrue
+ */
+export async function validateProgressOnSubmit(userId, currentPage, progressToken) {
+  try {
+    const res = await fetch('/api/validate-progress', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, page: currentPage, progress_token: progressToken })
+    });
+    const data = await res.json();
+    return !!data.allowed;
+  } catch (e) {
+    console.error('進捗検証API失敗:', e);
+    return false;
+  }
+}
+
+/**
+ * 指定ページで進捗条件を満たしているか判定（dataManagerを利用）
+ * @param {string} page - 'examine1' | 'examine1_2' | 'examine2' | 'examine3'
+ * @returns {boolean}
+ */
+export function isPageSubmissionValid(page) {
+  try {
+    // dataManagerを動的import（循環参照対策）
+    if (typeof window !== 'undefined' && window.dataManager && typeof window.dataManager.isPageSubmissionValid === 'function') {
+      return window.dataManager.isPageSubmissionValid(page);
+    } else {
+      // 必要ならimport
+      return false;
+    }
+  } catch (e) {
+    return false;
   }
 }

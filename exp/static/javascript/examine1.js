@@ -6,7 +6,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit } from './utilities.js';
 
 /**
  * 実験1の管理クラス
@@ -34,7 +34,11 @@ class ExperimentApp {
         urlParam: true, 
         persistent: false 
       });
-      
+
+      // 進捗/order検証
+      const progressCheck = await checkProgressAndRedirect(userId, 'examine1');
+      if (!progressCheck.ok) return; // リダイレクト済み
+
       if (!userId) {
         console.error('examine1: ユーザーIDの取得に失敗しました');
         alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
@@ -182,6 +186,14 @@ window.get_value_fin = async function() {
     console.log('examine1: 次のページURL:', nextUrl);
     console.log('examine1: 現在のユーザーID（確認）:', dataManager.userId);
     
+    // データ送信前に進捗検証
+    const progressToken = getProgressToken();
+    const valid = await validateProgressOnSubmit(dataManager.userId, 'examine1', progressToken);
+    if (!valid) {
+      alert('不正な進行順序です。最初からやり直してください。');
+      window.location.href = '/';
+      return;
+    }
     await dataManager.exportResults(nextUrl);
   } catch (error) {
     console.error('結果送信に失敗しました:', error);

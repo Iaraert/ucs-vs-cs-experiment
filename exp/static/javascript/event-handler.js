@@ -161,6 +161,7 @@ export class EventHandler {
     
     const sliderValue = sliderElement.value;
     
+    // ここで回答を記録してから完了判定
     await dataManager.recordResponse(sliderValue);
     
     if (dataManager.isExperimentComplete()) {
@@ -317,7 +318,15 @@ export class EventHandler {
   setupExamine12Events(experimentManager) {
     // 基本イベントセットアップ
     this.setupEventHandlers();
-    
+
+    // ★ 進捗/order検証を追加
+    import('./utilities.js').then(({ checkProgressAndRedirect, getOrCreateUserId }) => {
+      const userId = getOrCreateUserId({ urlParam: true, persistent: false });
+      checkProgressAndRedirect(userId, 'examine1_2').then(progressCheck => {
+        if (!progressCheck.ok) return; // リダイレクト済み
+      });
+    });
+
     // examine1_2固有のスライダーイベント
     const estimateSlider = document.getElementById('estimate_slider');
     if (estimateSlider) {

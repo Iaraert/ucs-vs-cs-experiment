@@ -4,7 +4,7 @@
  */
 import dataManager from './data-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getOrCreateUserId } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getOrCreateUserId, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit } from './utilities.js';
 
 /**
  * IMC実験アプリケーションを管理するクラス
@@ -34,6 +34,14 @@ class IMCExperiment {
         alert("ユーザーIDが取得できません。対応しますのでクラウドワークスから不具合を報告してください。");
         return;
       }
+      
+      // 進捗/order検証
+      checkProgressAndRedirect(dataManager.userId, 'examine2').then(progressCheck => {
+        if (!progressCheck.ok) return; // リダイレクト済み
+        console.log('🟦 examine2.js - Progress checked and OK');
+      }).catch(error => {
+        console.error('🔴 examine2.js - 進捗検証エラー:', error);
+      });
       
       console.log('🟦 examine2.js - Initialize completed successfully');
       
@@ -74,7 +82,16 @@ class IMCExperiment {
    * 結果を送信する
    */
   exportResults() {
-    eventHandler.handleIMCSubmit();
+    // データ送信前に進捗検証
+    const progressToken = getProgressToken();
+    validateProgressOnSubmit(dataManager.userId, 'examine2', progressToken).then(valid => {
+      if (!valid) {
+        alert('不正な進行順序です。最初からやり直してください。');
+        window.location.href = '/';
+        return;
+      }
+      eventHandler.handleIMCSubmit();
+    });
   }
 }
 

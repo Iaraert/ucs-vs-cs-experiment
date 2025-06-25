@@ -1,7 +1,7 @@
 /**
  * data-manager.js - 実験データの管理と送信を担当するモジュール
  */
-import { getNow, getOrCreateUserId } from './utilities.js';
+import { getNow, getOrCreateUserId, getProgressToken } from './utilities.js';
 import { fetchJson, fetchWithRetry, handleAjaxError, postData } from './ajax-utils.js';
 import config from './config.js';
 import eventBus from './event-bus.js';
@@ -386,7 +386,7 @@ export class DataManager {
    * @returns {boolean} 全シナリオ終了時はtrue
    */
   isExperimentComplete() {
-    return this.currentScenarioIndex >= config.scenarios.length - 1;
+    return this.currentScenarioIndex >= config.scenarios.length;
   }
 
   /**
@@ -437,7 +437,8 @@ export class DataManager {
       const response = await postData('/send', {
         'user_data': JSON.stringify(this.userData),
         'estimations': JSON.stringify(this.estimations),
-        'file_name_suffix': 'exp1'
+        'file_name_suffix': 'exp1',
+        'progress_token': getProgressToken()
       }, {
         timeout: 50000
       });
@@ -544,7 +545,8 @@ export class DataManager {
       const response = await postData('/send', {
         'user_data': JSON.stringify(userData),
         'estimations': JSON.stringify(estimations),
-        'file_name_suffix': 'exp1_2'  // examine1_2専用のサフィックス
+        'file_name_suffix': 'exp1_2',
+        'progress_token': getProgressToken()
       }, {
         timeout: 50000
       });
@@ -576,6 +578,23 @@ export class DataManager {
       
       throw error;
     }
+  }
+  
+  /**
+   * 指定ページで進捗条件を満たしているか判定
+   * @param {string} page - 'examine1' | 'examine1_2' | 'examine2' | 'examine3'
+   * @returns {boolean}
+   */
+  isPageSubmissionValid(page) {
+    if (page === 'examine1' || page === 'examine1_2') {
+      // 6件送信済みか
+      return Array.isArray(this.estimations) && this.estimations.length === 6;
+    }
+    if (page === 'examine2' || page === 'examine3') {
+      // 送信済みか（userDataが1件以上あるか）
+      return Array.isArray(this.userData) && this.userData.length > 0;
+    }
+    return false;
   }
 }
 

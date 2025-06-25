@@ -13,7 +13,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit } from './utilities.js';
 import { 
   validateCheckboxes, 
   validateCheckboxesRobust,
@@ -39,7 +39,7 @@ function checkModulesLoaded() {
       dataManager: dataManager,
       uiManager: uiManager,
       eventHandler: eventHandler,
-      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder },
+      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit },
       commonUtils: { validateCheckboxes, validateCheckboxesRobust, validateDataStructure, validateScenarioData, setImagePaths, createImageMapping, setElementsDisplay, setButtonStates, setElementTexts, setElementHTMLs, setElementAttributes }
     };
     
@@ -148,7 +148,21 @@ class Experiment12Manager {  constructor() {
     try {
       // 依存モジュールの読み込み完了を待機
       await initializeWithRetry();
-      
+
+      // utilities.jsから統一されたユーザーID取得関数を使用
+      const { getOrCreateUserId, checkProgressAndRedirect } = await import('./utilities.js');
+      this.userId = getOrCreateUserId({ 
+        urlParam: true, 
+        persistent: false 
+      });
+
+      // ★ 進捗/order検証を初期化時に追加
+      const progressCheck = await checkProgressAndRedirect(this.userId, 'examine1_2');
+      if (!progressCheck.ok) {
+        this.initializationInProgress = false;
+        return; // リダイレクト済み
+      }
+
       // 実際の初期化処理を実行
       await this.initialize();
       
@@ -210,7 +224,12 @@ class Experiment12Manager {  constructor() {
         urlParam: true, 
         persistent: false 
       });
-      
+
+      // 進捗/order検証
+      const progressCheck = await checkProgressAndRedirect(this.userId, 'examine1_2');
+      if (!progressCheck.ok) return; // リダイレクト済み
+
+      // ユーザーIDの確認
       if (!this.userId) {
         console.error('examine1_2: ユーザーIDの取得に失敗しました');
         alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
@@ -776,7 +795,7 @@ class Experiment12Manager {  constructor() {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 500);
+    }, 10);
   }  /**
    * スライダーの質問文を設定
    */
@@ -1010,6 +1029,14 @@ class Experiment12Manager {  constructor() {
     }
       console.log(`getValueFin(): 安全チェック通過 - 推定データ: ${this.estimations.length} 件`);
     
+    // データ送信前に進捗検証
+    const progressToken = getProgressToken();
+    const valid = await validateProgressOnSubmit(this.userId, 'examine1_2', progressToken);
+    if (!valid) {
+      alert('不正な進行順序です。最初からやり直してください。');
+      window.location.href = '/';
+      return;
+    }
     try {
       // examine1と同様のエラーハンドリングを追加
       await this.exportResults();
