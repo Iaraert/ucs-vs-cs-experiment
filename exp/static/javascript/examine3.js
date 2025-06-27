@@ -5,7 +5,7 @@
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getOrCreateUserId, validateInput, checkProgressAndRedirect } from './utilities.js';
+import { preventBrowserBack, getOrCreateUserId, validateInput } from './utilities.js';
 
 /**
  * CRT実験アプリケーションを管理するクラス
@@ -36,14 +36,6 @@ class CRTExperiment {
         console.error('🔴 examine3.js - User ID not found');
         console.warn('Warning: user_id not found in CRT test');
       }
-
-      // ★ 進捗/order検証を追加
-      checkProgressAndRedirect(dataManager.userId, 'examine3').then(progressCheck => {
-        if (!progressCheck.ok) return; // リダイレクト済み
-        console.log('🟦 examine3.js - Progress checked and OK');
-      }).catch(error => {
-        console.error('🔴 examine3.js - 進捗検証エラー:', error);
-      });
 
       console.log('🟦 examine3.js - Initialize completed successfully');
       

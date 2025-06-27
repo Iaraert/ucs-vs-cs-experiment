@@ -20,6 +20,10 @@ class DataHandler:
                 continue
 
             data = json.loads(raw_data[data_name])
+            if not isinstance(data, list) or len(data) == 0:
+                # 空リストの場合はスキップし、件数0で記録
+                results[data_name] = 0
+                continue
             file_name = f"{data_name}_{suffix}.csv"
             filepath = os.path.join(self.data_dir, file_name)  # dataディレクトリに保存
 
@@ -133,13 +137,13 @@ class DataHandler:
         cursor = conn.cursor()
         result = {}
         try:
-            # examine1
+            # examine1: distinct cover_story数
             cursor.execute(
-                "SELECT COUNT(*) FROM estimations WHERE user_id=? AND file_name_suffix='exp1'", (user_id,))
+                "SELECT COUNT(DISTINCT cover_story) FROM estimations WHERE user_id=? AND file_name_suffix='exp1'", (user_id,))
             result['examine1'] = cursor.fetchone()[0]
-            # examine1_2
+            # examine1_2: distinct cover_story数
             cursor.execute(
-                "SELECT COUNT(*) FROM estimations WHERE user_id=? AND file_name_suffix='exp1_2'", (user_id,))
+                "SELECT COUNT(DISTINCT cover_story) FROM estimations WHERE user_id=? AND file_name_suffix='exp1_2'", (user_id,))
             result['examine1_2'] = cursor.fetchone()[0]
             # examine2
             cursor.execute(

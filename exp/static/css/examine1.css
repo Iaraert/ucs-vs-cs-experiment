@@ -368,6 +368,13 @@ input[type="submit"]:disabled,
     margin: 0 auto;
 }
 
+/* examine1アイコン画像サイズを拡大 */
+.group-icons img,
+.icon-image {
+    max-width: 60px !important;
+    max-height: 60px !important;
+}
+
 /***************************************
  * 分割表示レイアウト
  * 実験結果を上下に分けて表示する設定

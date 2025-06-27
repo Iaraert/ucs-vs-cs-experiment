@@ -164,11 +164,13 @@ export class EventHandler {
     // ここで回答を記録してから完了判定
     await dataManager.recordResponse(sliderValue);
     
-    if (dataManager.isExperimentComplete()) {
+    // --- 進捗ログを追加 ---
+    console.log(`[eventHandler.submitResponseAndContinue] currentScenarioIndex=${dataManager.currentScenarioIndex}`);
+    // 6つ目のシナリオで送信時のみ、orderに従った次ページへの進入許可を判定
+    if (dataManager.estimations.length === 6) {
       // ページ遷移前に警告を解除
       window.onbeforeunload = null;
       setupPageLeaveWarning(false);
-      
       // 現在のページがexamine1であることを指定し、ユーザーIDに基づいて次のページを決定（非同期）
       getNextPageUrl('examine1', dataManager.userId)
         .then(nextUrl => {

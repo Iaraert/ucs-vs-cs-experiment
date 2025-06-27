@@ -33,9 +33,11 @@ export class UIManager {
     this.clearPage();
     
     if (!isFirstTime) {
-      dataManager.moveToNextScenario();
+      // moveToNextScenario()の戻り値で進捗判定
+      const idx = dataManager.moveToNextScenario();
+      // --- 進捗ログを追加 ---
+      console.log(`[uiManager.displayScenarioDescription] ページ移動: currentScenarioIndex=${dataManager.currentScenarioIndex}`);
     }
-    
     // 背景色をリセット - experimentAppを通じて呼び出し
     if (window.experimentApp && typeof window.experimentApp.resetBackGround === 'function') {
       window.experimentApp.resetBackGround();
@@ -494,8 +496,8 @@ export class UIManager {
       imageElement.src = `../${imagePath}`;
       imageElement.alt = altText;
       imageElement.className = 'icon-image';
-      imageElement.style.maxHeight = '30px';
-      imageElement.style.maxWidth = '30px';
+      imageElement.style.maxHeight = '60px';
+      imageElement.style.maxWidth = '60px';
       
       // データ属性を追加して識別を容易に
       gridItem.dataset.iconType = altText.toLowerCase();

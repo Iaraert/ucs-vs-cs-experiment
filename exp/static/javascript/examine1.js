@@ -6,7 +6,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray } from './utilities.js';
 
 /**
  * 実験1の管理クラス
@@ -28,28 +28,21 @@ class ExperimentApp {
    */
   async initialize() {
     try {
-      // utilities.jsから統一されたユーザーID取得関数を使用
+      // utilities.jsからユーザーID取得
       const { getOrCreateUserId } = await import('./utilities.js');
-      const userId = getOrCreateUserId({ 
-        urlParam: true, 
-        persistent: false 
-      });
-
-      // 進捗/order検証
-      const progressCheck = await checkProgressAndRedirect(userId, 'examine1');
-      if (!progressCheck.ok) return; // リダイレクト済み
-
-      if (!userId) {
+      this.userId = getOrCreateUserId({ urlParam: true, persistent: false });
+      // 進捗/order検証は削除（ページ表示時は判定しない）
+      if (!this.userId) {
         console.error('examine1: ユーザーIDの取得に失敗しました');
         alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
         window.location.href = '/';
         return;
       }
       
-      console.log('examine1: ユーザーID:', userId);
+      console.log('examine1: ユーザーID:', this.userId);
       
       // DataManagerを初期化（ユーザーIDを渡す） - 重要: 確実に同じIDを使用
-      await dataManager.init(userId);
+      await dataManager.init(this.userId);
       
       // サーバーから実験条件（対称/非対称）を取得
       await dataManager.fetchSampleType();
@@ -83,6 +76,8 @@ class ExperimentApp {
    * シナリオ説明から実験画面へ
    */
   startScenario() {
+    // --- 進捗ログを追加 ---
+    console.log(`[examine1.startScenario] currentScenarioIndex=${dataManager.currentScenarioIndex}`);
     uiManager.displaySamplePage();
   }
   
@@ -90,7 +85,35 @@ class ExperimentApp {
    * 回答を送信して次へ
    */
   submitResponse() {
-    eventHandler.submitResponseAndContinue();
+    // --- 進捗ログを追加 ---
+    console.log(`[examine1.submitResponse] currentScenarioIndex=${dataManager.currentScenarioIndex}`);
+    // 6つ目のシナリオで送信時のみ、orderに従った次ページへの進入許可を判定
+    if (dataManager.estimations.length === 6) {
+      // ページ遷移前に警告を解除
+      window.onbeforeunload = null;
+      setupPageLeaveWarning(false);
+      getNextPageUrl('examine1', dataManager.userId)
+        .then(nextUrl => {
+          dataManager.exportResults(nextUrl)
+            .catch(error => {
+              console.error('結果の送信に失敗しました:', error);
+              uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+              document.getElementById('submit_response').removeAttribute("disabled");
+            });
+        })
+        .catch(error => {
+          console.error('次のページURLの取得に失敗しました:', error);
+          const defaultNextUrl = `../examine1_2?id=${encodeURIComponent(dataManager.userId)}`;
+          dataManager.exportResults(defaultNextUrl)
+            .catch(exportError => {
+              console.error('結果の送信に失敗しました:', exportError);
+              uiManager.showErrorMessage('回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+              document.getElementById('submit_response').removeAttribute("disabled");
+            });
+        });
+    } else {
+      eventHandler.submitResponseAndContinue();
+    }
   }
   
   /**
@@ -177,27 +200,11 @@ window.get_value = async function() {
 
 window.get_value_fin = async function() {
   try {
-    // 最終回答の記録と送信
     await window.get_value();
-    
-    // 実験順序に基づいて次のページURLを決定
-    console.log('examine1: get_value_fin - ユーザーID:', dataManager.userId);
     const nextUrl = await getNextPageUrl('examine1', dataManager.userId);
-    console.log('examine1: 次のページURL:', nextUrl);
-    console.log('examine1: 現在のユーザーID（確認）:', dataManager.userId);
-    
-    // データ送信前に進捗検証
-    const progressToken = getProgressToken();
-    const valid = await validateProgressOnSubmit(dataManager.userId, 'examine1', progressToken);
-    if (!valid) {
-      alert('不正な進行順序です。最初からやり直してください。');
-      window.location.href = '/';
-      return;
-    }
     await dataManager.exportResults(nextUrl);
   } catch (error) {
-    console.error('結果送信に失敗しました:', error);
-    alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");
+    console.error(error);
   }
 };
 
@@ -221,3 +228,25 @@ window.showStimulation = function() {
 window.preventBrowserBack = function() {
   preventBrowserBack();
 };
+
+// ページロード時に進捗/orderチェックを追加。不正な場合は警告＋リダイレクト。
+window.addEventListener('DOMContentLoaded', async function() {
+  try {
+    // ユーザーID取得（localStorage優先、なければURL）
+    let userId = null;
+    try {
+      userId = localStorage.getItem('exp_user_id_persistent');
+    } catch (e) {}
+    if (!userId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      userId = urlParams.get('id');
+    }
+    if (!userId) {
+      alert('ユーザーIDが取得できません。最初からやり直してください。');
+      window.location.href = '/top1_2';
+      return;
+    }
+  } catch (e) {
+    window.location.href = '/top1_2';
+  }
+});

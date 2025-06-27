@@ -1,7 +1,7 @@
 import datetime
 import json
 import os
-from flask import render_template, request, Response, redirect, jsonify, current_app, Blueprint
+from flask import render_template, request, Response, redirect, jsonify, current_app, Blueprint, session, abort
 from exp import app
 from exp.config import LOG_LEVEL, LOG_DIR
 from utils.logger import setup_logger, error_logger, UserFriendlyError
@@ -12,6 +12,7 @@ from utils.data_handler import DataHandler
 
 # セキュリティ機能のインポート
 from exp.security_handlers import security_bp, analyze_security_patterns
+from exp.utils import requires_step, require_exact_step
 
 # インスタンスを初期化
 db = Database()
@@ -48,23 +49,35 @@ def top1_2():
 
 @app.route('/examine1')
 def examine1():
+    user_id = request.args.get("id")
+    if not user_id:
+        return redirect('/')
     logger.debug("examine1ページが表示されました")
-    return render_template('exp/examine1.html')
+    return render_template('exp/examine1.html', user_id=user_id)
 
 @app.route('/examine1_2')
 def examine1_2():
+    user_id = request.args.get("id")
+    if not user_id:
+        return redirect('/')
     logger.debug("examine1_2ページが表示されました")
-    return render_template('exp/examine1_2.html')
+    return render_template('exp/examine1_2.html', user_id=user_id)
 
 @app.route('/examine2')
 def examine2():
+    user_id = request.args.get("id")
+    if not user_id:
+        return redirect('/')
     logger.debug("examine2ページが表示されました")
-    return render_template('exp/examine2.html')
+    return render_template('exp/examine2.html', user_id=user_id)
 
 @app.route('/examine3')
 def examine3():
+    user_id = request.args.get("id")
+    if not user_id:
+        return redirect('/')
     logger.debug("examine3ページが表示されました")
-    return render_template('exp/examine3.html')
+    return render_template('exp/examine3.html', user_id=user_id)
 
 @app.route('/end')
 def end():
@@ -119,6 +132,12 @@ def send():
     try:
         raw_data = request.form.to_dict()
         suffix = raw_data.get("file_name_suffix", "exp")
+        user_id = raw_data.get("user_id")
+        page = None
+        if suffix == "exp1":
+            page = "examine1"
+        elif suffix == "exp1_2":
+            page = "examine1_2"
         
         logger.info(f"実験データの保存リクエスト: suffix={suffix}")
         
@@ -131,23 +150,6 @@ def send():
                 recovery_path="/examine1"
             )
         
-        # examine1, examine1_2で6件送信済みか判定
-        if suffix in ["exp1", "exp1_2"]:
-            estimations = raw_data.get("estimations")
-            import json
-            try:
-                est_list = json.loads(estimations) if estimations else []
-            except Exception:
-                est_list = []
-            if not isinstance(est_list, list) or len(est_list) != 6:
-                logger.warning(f"進捗違反: {suffix} で6件未満のデータ送信: {len(est_list)}件")
-                return jsonify({
-                    "error": True,
-                    "message": "進捗条件を満たしていません（6件のデータが必要です）。",
-                    "error_code": "PROGRESS_VIOLATION",
-                    "status_code": 400
-                }), 400
-
         # DataHandlerクラスを使用してデータを保存
         results = data_handler.save_experiment_data(raw_data, suffix)
         logger.info(f"データ保存結果: {results}")
@@ -210,7 +212,7 @@ def send_imc():
         return jsonify({"status": "success"})
     
     except UserFriendlyError as e:
-        error_logger.log_api_error(request, e, e.status_code)
+        error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
@@ -242,7 +244,7 @@ def set_sample_type():
         return jsonify({"status": "success", "sample_type": sample_type})
     
     except UserFriendlyError as e:
-        error_logger.log_api_error(request, e, e.status_code)
+        error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
@@ -347,104 +349,57 @@ def health_check():
             'timestamp': datetime.datetime.now().isoformat()
         }), 500
 
-# 進捗API
-@app.route('/api/progress')
-def api_progress():
-    """
-    examine1, examine1_2, examine2, examine3 の進捗/order検証API
-    """
-    try:
-        user_id = request.args.get('user_id')
-        page = request.args.get('page')
-        progress_token = request.args.get('progress_token')
-        if not user_id or not page:
-            return jsonify({
-                "allowed": False,
-                "redirectPage": "/",
-                "error": "missing_parameters"
-            }), 400
+# /api/validate-progressは不要なため削除
 
-        path_info = db.get_experiment_path_assignment(user_id, reallocate=False)
-        path_type = path_info.get('pathType', 'order1')  # 'order1' or 'order2'
+# --- ステップ順序制御付きルーティング ---
+@app.route('/step/<int:n>', methods=['POST'])
+@require_exact_step  # デコレータは引数付きで使うため、下で明示的に呼ぶ
 
-        allowed = True
-        redirect_page = None
-
-        examine1_count = 0
-        examine1_2_count = 0
+def step_page(n):
+    # --- ステップ順序チェック ---
+    check = require_exact_step(n)
+    resp = check(lambda: None)()
+    if resp is not None:
+        return resp
+    # --- ページ表示・データ保存処理 ---
+    raw_data = request.form.to_dict()
+    suffix = raw_data.get("file_name_suffix", "exp")
+    user_id = raw_data.get("user_id")
+    page = None
+    if suffix == "exp1":
+        page = "examine1"
+    elif suffix == "exp1_2":
+        page = "examine1_2"
+    logger.info(f"実験データの保存リクエスト: suffix={suffix}")
+    if not raw_data:
+        raise UserFriendlyError(
+            message="データが空です",
+            user_message="送信データが空です。必要な情報を入力してください。",
+            status_code=400,
+            error_code="EMPTY_DATA",
+            recovery_path="/examine1"
+        )
+    # DataHandlerクラスを使用してデータを保存
+    results = data_handler.save_experiment_data(raw_data, suffix)
+    logger.info(f"データ保存結果: {results}")
+    # ステップ進行
+    exp_id = session.get('exp_id')
+    if exp_id:
+        # 単調増加でcurrent_stepを更新
+        rows = db.update_experiment_session(exp_id, current_step=n+1, expected=n)
+        if rows == 0:
+            raise RuntimeError("step desync")
+    # 次のステップ番号を hidden で受け取る
+    next_step = raw_data.get('next_step')
+    if next_step is not None:
         try:
-            progress_info = data_handler.get_progress_counts(user_id)
-            examine1_count = progress_info.get('examine1', 0)
-            examine1_2_count = progress_info.get('examine1_2', 0)
-        except Exception as e:
-            logger.warning(f"進捗情報取得失敗: {e}")
+            next_step = int(next_step)
+            return redirect(f'/step/{next_step}')
+        except Exception:
+            pass
+    # デフォルトはendへ
+    return redirect('/end')
 
-        logger.debug(f"進捗判定: user_id={user_id}, page={page}, path_type={path_type}, examine1_count={examine1_count}, examine1_2_count={examine1_2_count}")
-
-        # --- 進入許可ロジック（order1/order2で統一, 0件時は必ず進入可） ---
-        if path_type == 'order1':
-            if page == 'examine1':
-                if examine1_count == 0:
-                    allowed = True
-                    redirect_page = None
-                elif examine1_count >= 6:
-                    allowed = False
-                    redirect_page = '/examine1_2'
-            elif page == 'examine1_2':
-                if examine1_2_count == 0:
-                    allowed = True
-                    redirect_page = None
-                elif examine1_count < 6:
-                    allowed = False
-                    redirect_page = '/examine1'
-                elif examine1_2_count >= 6:
-                    allowed = False
-                    redirect_page = '/examine2'
-        elif path_type == 'order2':
-            if page == 'examine1_2':
-                if examine1_2_count == 0:
-                    allowed = True
-                    redirect_page = None
-                elif examine1_2_count >= 6:
-                    allowed = False
-                    redirect_page = '/examine1'
-            elif page == 'examine1':
-                if examine1_count == 0:
-                    allowed = True
-                    redirect_page = None
-                elif examine1_2_count < 6:
-                    allowed = False
-                    redirect_page = '/examine1_2'
-                elif examine1_count >= 6:
-                    allowed = False
-                    redirect_page = '/examine2'
-        # 他ページは特に制限しない
-
-        return jsonify({
-            "allowed": allowed,
-            "redirectPage": redirect_page,
-            "progressToken": progress_token or "",
-            "order": path_type
-        })
-    except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({
-            "allowed": False,
-            "redirectPage": "/",
-            "error": str(e)
-        }), 500
-
-@app.route('/api/validate-progress', methods=['POST'])
-def api_validate_progress():
-    """
-    データ送信時の進捗/order検証API（ダミー実装: 常にOKを返す）
-    """
-    data = request.get_json(force=True)
-    user_id = data.get('user_id')
-    page = data.get('page')
-    progress_token = data.get('progress_token')
-    # 必要ならここで進捗/orderチェックのロジックを追加
-    return jsonify({
-        "allowed": True
-    })
+@app.route('/step/<int:n>', methods=['GET'])
+def step_page_get(n):
+    abort(405)

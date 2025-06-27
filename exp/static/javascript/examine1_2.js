@@ -13,7 +13,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder } from './utilities.js';
 import { 
   validateCheckboxes, 
   validateCheckboxesRobust,
@@ -39,7 +39,7 @@ function checkModulesLoaded() {
       dataManager: dataManager,
       uiManager: uiManager,
       eventHandler: eventHandler,
-      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, checkProgressAndRedirect, getProgressToken, validateProgressOnSubmit },
+      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder },
       commonUtils: { validateCheckboxes, validateCheckboxesRobust, validateDataStructure, validateScenarioData, setImagePaths, createImageMapping, setElementsDisplay, setButtonStates, setElementTexts, setElementHTMLs, setElementAttributes }
     };
     
@@ -88,7 +88,8 @@ async function initializeWithRetry() {
 /**
  * 実験1.2を管理するクラス
  */
-class Experiment12Manager {  constructor() {
+class Experiment12Manager {  
+  constructor() {
     // 初期化状態管理
     this.initialized = false;
     this.initializationInProgress = false;
@@ -142,38 +143,24 @@ class Experiment12Manager {  constructor() {
       console.log('⏳ Initialization already in progress...');
       return;
     }
-    
     this.initializationInProgress = true;
-    
     try {
       // 依存モジュールの読み込み完了を待機
       await initializeWithRetry();
-
       // utilities.jsから統一されたユーザーID取得関数を使用
-      const { getOrCreateUserId, checkProgressAndRedirect } = await import('./utilities.js');
+      const { getOrCreateUserId } = await import('./utilities.js');
       this.userId = getOrCreateUserId({ 
         urlParam: true, 
         persistent: false 
       });
-
-      // ★ 進捗/order検証を初期化時に追加
-      const progressCheck = await checkProgressAndRedirect(this.userId, 'examine1_2');
-      if (!progressCheck.ok) {
-        this.initializationInProgress = false;
-        return; // リダイレクト済み
-      }
-
       // 実際の初期化処理を実行
       await this.initialize();
-      
       this.initialized = true;
       this.initializationInProgress = false;
       console.log('✅ Experiment12Manager initialized successfully');
-      
     } catch (error) {
       console.error('❌ Failed to initialize Experiment12Manager:', error);
       this.initializationInProgress = false;
-      
       // エラー時のフォールバック処理
       this.showInitializationError();
     }
@@ -224,12 +211,7 @@ class Experiment12Manager {  constructor() {
         urlParam: true, 
         persistent: false 
       });
-
-      // 進捗/order検証
-      const progressCheck = await checkProgressAndRedirect(this.userId, 'examine1_2');
-      if (!progressCheck.ok) return; // リダイレクト済み
-
-      // ユーザーIDの確認
+      // 進捗/order検証は削除（ページ表示時は判定しない）
       if (!this.userId) {
         console.error('examine1_2: ユーザーIDの取得に失敗しました');
         alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
@@ -440,13 +422,11 @@ class Experiment12Manager {  constructor() {
     this.clearPage();
     if (!isFirstTime) {
       this.sceIdx++;
-      
-      // 境界チェック強化: シナリオ数を超えていないか確認
-      if (this.sceIdx >= this.scenarios.length) {
-        console.error(`シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
-        alert('すべてのシナリオが完了しました。実験終了画面に移動します。');
-        this.endExperiment();
-        return;
+      // --- 進捗ログを追加 ---
+      if (window.dataManager) {
+        console.log(`[examine1_2.toNextScenarioDescription] ページ移動: sceIdx=${this.sceIdx}, currentScenarioIndex=${window.dataManager.currentScenarioIndex}`);
+      } else {
+        console.log(`[examine1_2.toNextScenarioDescription] ページ移動: sceIdx=${this.sceIdx}`);
       }
     }
     
@@ -795,7 +775,7 @@ class Experiment12Manager {  constructor() {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 10);
+    }, 1500);
   }  /**
    * スライダーの質問文を設定
    */
@@ -1001,61 +981,8 @@ class Experiment12Manager {  constructor() {
       document.getElementById('estimate_slider').value
     );
     console.log(`getValue(): 回答記録完了 - 総記録数: ${this.estimations.length} 件`);
-  }/**
-   * 最終的な値を取得
-   */
-  async getValueFin() {
-    // 安全チェック：6つのシナリオがすべて完了しているかを確認
-    if (this.sceIdx !== this.scenarios.length - 1) {
-      alert(`警告: まだすべてのシナリオが完了していません。現在 ${this.sceIdx + 1}/${this.scenarios.length} です。`);
-      console.warn(`getValueFin(): 不正な送信試行 - 現在のシナリオ: ${this.sceIdx + 1}, 総シナリオ数: ${this.scenarios.length}`);
-      return;
-    }
-    
-    console.log(`getValueFin(): 最終シナリオの回答記録開始 - シナリオ: ${this.sceIdx + 1}/${this.scenarios.length}, 現在の推定データ: ${this.estimations.length} 件`);
-    
-    // 回答送信ボタンの連打防止
-    setButtonStates({ 'finish_all_scenarios': true });
-    
-    // 最後の回答値を記録（非同期処理完了を待つ）
-    await this.getValue();
-    
-    // 最後の回答記録後の安全チェック
-    if (this.estimations.length < this.scenarios.length) {
-      alert(`警告: 推定データが不十分です。${this.estimations.length}/${this.scenarios.length} 件しか記録されていません。`);
-      console.warn(`getValueFin(): 推定データ不足 - 記録数: ${this.estimations.length}, 期待数: ${this.scenarios.length}`);
-      setButtonStates({ 'finish_all_scenarios': false }); // ボタンを再度有効化
-      return;
-    }
-      console.log(`getValueFin(): 安全チェック通過 - 推定データ: ${this.estimations.length} 件`);
-    
-    // データ送信前に進捗検証
-    const progressToken = getProgressToken();
-    const valid = await validateProgressOnSubmit(this.userId, 'examine1_2', progressToken);
-    if (!valid) {
-      alert('不正な進行順序です。最初からやり直してください。');
-      window.location.href = '/';
-      return;
-    }
-    try {
-      // examine1と同様のエラーハンドリングを追加
-      // await this.exportResults();
-      // ここでdataManagerのestimationsにデータをコピーしてexportResultsを使う
-      import('./data-manager.js').then(async ({ default: dataManager }) => {
-        dataManager.estimations = this.estimations;
-        dataManager.userData = this.userData;
-        dataManager.userId = this.userId;
-        dataManager.experimentType = 'examine1_2';
-        const { getNextPageUrl } = await import('./utilities.js');
-        const nextUrl = await getNextPageUrl('examine1_2', this.userId);
-        await dataManager.exportResults(nextUrl);
-      });
-    } catch (error) {
-      console.error('結果送信に失敗しました:', error);
-      alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");
-      setButtonStates({ 'finish_all_scenarios': false }); // ボタンを再度有効化
-    }
-  }/**
+  }
+  /**
    * 推定画面のチェック確認
    * HTMLのonclick呼び出しを無効化し、スライダー操作に基づく自動処理のみを行う
    */
@@ -1141,7 +1068,7 @@ class Experiment12Manager {  constructor() {
       
     } catch (error) {
       console.error('結果送信に失敗しました:', error);
-      alert("回答送信中にエラーが発生しました。もう一度終了ボタンを押してください。");
+      alert("回答送信中にエラーが発生しました。もう一度送信ボタンを押してください。");
       
       // エラー時はボタンを再度有効化
       setButtonStates({ 'finish_all_scenarios': false });
@@ -1204,35 +1131,25 @@ function safeCall(methodName, ...args) {
 }
 
 // ページ読み込み時の初期化
-window.addEventListener('DOMContentLoaded', async () => {
+window.addEventListener('DOMContentLoaded', async function() {
   try {
-    experimentManager = new Experiment12Manager();
-    
-    // 初期化の完了を待つ
-    let initAttempts = 0;
-    const maxInitAttempts = 50; // 5秒間（100ms × 50回）
-    
-    while ((!experimentManager.testOrder || Object.keys(experimentManager.testOrder).length === 0 || 
-            !experimentManager.scenarios || experimentManager.scenarios.length === 0) && 
-           initAttempts < maxInitAttempts) {
-      console.log(`初期化を待機中... (${initAttempts + 1}/${maxInitAttempts})`);
-      await new Promise(resolve => setTimeout(resolve, 100));
-      initAttempts++;
+    // ユーザーID取得（localStorage優先、なければURL）
+    let userId = null;
+    try {
+      userId = localStorage.getItem('exp_user_id_persistent');
+    } catch (e) {}
+    if (!userId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      userId = urlParams.get('id');
     }
-    
-    if (initAttempts >= maxInitAttempts) {
-      console.error('examine1_2: 初期化がタイムアウトしました');
-      alert('実験の準備に時間がかかっています。ページを再読み込みしてください。');
+    if (!userId) {
+      alert('ユーザーIDが取得できません。最初からやり直してください。');
+      window.location.href = '/top1_2';
       return;
     }
-    
-    console.log('examine1_2: experimentManager初期化完了');
-    console.log('testOrder keys:', Object.keys(experimentManager.testOrder));
-    console.log('scenarios:', experimentManager.scenarios);
-    
-  } catch (error) {
-    console.error('examine1_2: experimentManager初期化エラー:', error);
-    alert('実験システムの初期化に失敗しました。ページを再読み込みしてください。');
+  } catch (e) {
+    alert('進捗情報の取得に失敗しました。');
+    window.location.href = '/top1_2';
   }
 });
 
@@ -1295,24 +1212,33 @@ window.get_value = async () => {
     alert('回答の記録中にエラーが発生しました。もう一度お試しください。');
   }
 };
-window.get_value_fin = async () => {
+window.check_estimate = () => safeCall('checkEstimate');
+window.to_next_scenario_description = (isFirstTime) => safeCall('toNextScenarioDescription', isFirstTime);
+window.showStimulation = () => safeCall('showStimulation');
+window.get_value_fin = async function() {
   if (!experimentManager) {
-    console.error('experimentManager not initialized when calling get_value_fin');
     alert('実験システムの初期化が完了していません。ページを再読み込みしてください。');
     return;
   }
   try {
-    return await experimentManager.getValueFin();
+    await window.get_value();
+    // validateProgressOnSubmitによる進行順序チェックは不要になったため削除
+    await experimentManager.exportResults();
   } catch (error) {
-    console.error('get_value_fin execution error:', error);
-    alert('最終回答の送信中にエラーが発生しました。もう一度送信ボタンを押してください。');
+    alert('進捗情報の取得に失敗しました。ページを再読み込みしてください。');
+    console.error(error);
   }
 };
-window.check_estimate = () => safeCall('checkEstimate');
-window.to_next_scenario_description = (isFirstTime) => safeCall('toNextScenarioDescription', isFirstTime);
-window.showStimulation = () => safeCall('showStimulation');
 
-// experimentManagerをグローバルに公開（HTMLからアクセス可能にする）
-window.experimentManager = experimentManager;
-
-// checkResponseCheckbox関数はHTMLファイル内で定義されています
+// ページロード時に初期化を必ず実行
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    experimentManager = new Experiment12Manager();
+    window.experimentManager = experimentManager;
+    await experimentManager.initializeAsync();
+    console.log('examine1_2: ページ初期化完了');
+  } catch (e) {
+    alert('ページ初期化に失敗しました。再読み込みしてください。');
+    console.error('examine1_2: 初期化エラー', e);
+  }
+});

@@ -358,10 +358,9 @@ export class DataManager {
     
     this.estimations.push(data);
     console.log("回答を記録しました（最適化済み、is_first/is_symmetric は 0/1 形式）:", data);
-    
+
     // 回答記録イベントを通知（Observerパターン）
     eventBus.emit('response:recorded', { responseData: data });
-    
     return data;
   }
   
@@ -369,23 +368,26 @@ export class DataManager {
    * 次のシナリオに進む
    */
   moveToNextScenario() {
+    // シナリオを1つ進める
     this.currentScenarioIndex++;
-    
+    // --- 進捗ログを追加 ---
+    console.log(`[moveToNextScenario] currentScenarioIndex=${this.currentScenarioIndex}`);
     // シナリオ変更イベントを通知（Observerパターン）
     eventBus.emit('scenario:changed', { 
       index: this.currentScenarioIndex,
       key: this.getCurrentScenarioKey(),
       isComplete: this.isExperimentComplete() 
     });
-    
     return this.currentScenarioIndex;
   }
-  
+
   /**
    * シナリオが全て終了したかチェック
    * @returns {boolean} 全シナリオ終了時はtrue
    */
   isExperimentComplete() {
+    // --- 進捗ログを追加 ---
+    console.log(`[isExperimentComplete] currentScenarioIndex=${this.currentScenarioIndex}, total=${config.scenarios.length}`);
     return this.currentScenarioIndex >= config.scenarios.length;
   }
 
@@ -458,6 +460,12 @@ export class DataManager {
       }, {
         timeout: 50000
       });
+      // 送信成功時にフラグ保存
+      if (this.experimentType === 'examine1') {
+        localStorage.setItem(`examine1_sent_${this.userId}`, 'sent');
+      } else if (this.experimentType === 'examine1_2') {
+        localStorage.setItem(`examine1_2_sent_${this.userId}`, 'sent');
+      }
       
       // 送信成功イベントを通知（Observerパターン）
       eventBus.emit('results:exported', { 
@@ -506,6 +514,12 @@ export class DataManager {
       }, {
         timeout: 50000
       });
+      // 送信成功時にフラグ保存
+      if (suffix === 'exp2') {
+        localStorage.setItem(`examine2_sent_${this.userId}`, 'sent');
+      } else if (suffix === 'exp3') {
+        localStorage.setItem(`examine3_sent_${this.userId}`, 'sent');
+      }
       
       // テスト結果送信成功イベントを通知（Observerパターン）
       eventBus.emit('testResults:sent', { 
@@ -572,6 +586,8 @@ export class DataManager {
       }, {
         timeout: 50000
       });
+      // 送信成功時にフラグ保存
+      localStorage.setItem(`examine1_2_sent_${this.userId}`, 'sent');
       
       // 実験結果送信成功イベントを通知
       eventBus.emit('examine12Results:sent', { 
@@ -609,64 +625,18 @@ export class DataManager {
    */
   isPageSubmissionValid(page) {
     try {
-      const userId = this.userId;
-      const getCount = (key) => {
-        try {
-          const arr = JSON.parse(localStorage.getItem(key) || '[]');
-          return Array.isArray(arr) ? arr.length : 0;
-        } catch {
-          return 0;
-        }
-      };
-      const examine1Count = getCount(`estimations_examine1_${userId}`);
-      const examine12Count = getCount(`estimations_examine1_2_${userId}`);
-      // examine2/3はuserDataの送信有無で判定
-      const examine2Sent = getCount(`estimations_examine2_${userId}`) > 0 || (Array.isArray(this.userData) && this.userData.length > 0);
-
-      // order1: examine1→examine1_2→examine2
-      // order2: examine1_2→examine1→examine2
-      let experimentOrder = 'order1';
-      if (userId) {
-        const orderKey = `experiment_order_${userId}`;
-        const storedOrder = localStorage.getItem(orderKey);
-        if (storedOrder) experimentOrder = storedOrder;
+      // 6つ目のシナリオで送信時のみ、orderに従った次ページへの進入許可を判定
+      // それ以外の判定方法は削除
+      if (page === 'examine1' || page === 'examine1_2') {
+        // 6件目の回答時のみ許可
+        return this.estimations.length === 6;
       }
-
-      if (page === 'examine1') {
-        if (experimentOrder === 'order2') {
-          // examine1_2が6件以上送信済みで、examine1が未送信ならOK
-          return examine12Count >= 6 && examine1Count < 6;
-        }
-        // order1: examine1が未送信ならOK
-        return examine1Count < 6;
-      }
-      if (page === 'examine1_2') {
-        if (experimentOrder === 'order1') {
-          // 修正: examine1が「6件送信済み」かつexamine1_2が未送信ならOK
-          return examine1Count === 6 && examine12Count < 6;
-        }
-        if (experimentOrder === 'order2') {
-          // examine1_2が未送信ならOK
-          return examine12Count < 6;
-        }
-        // デフォルト: 6件未満なら進入OK
-        return examine12Count < 6;
-      }
-      if (page === 'examine2') {
-        // examine1, examine1_2両方が6件送信済みでなければ進入不可
-        // examine1_2が6件未満なら進入不可
-        // examine1が6件未満でも進入不可
-        return examine1Count === 6 && examine12Count === 6;
-      }
-      if (page === 'examine3') {
-        // examine2の送信がなければ進入不可
-        // examine1_2が6件未満なら進入不可
-        // examine1が6件未満でも進入不可
-        return examine2Sent && examine12Count === 6 && examine1Count === 6;
+      // examine2, examine3はorderに従った進入許可のみ（送信済みフラグ等は判定しない）
+      if (page === 'examine2' || page === 'examine3') {
+        return true;
       }
       return false;
     } catch (e) {
-      // 何かあれば従来通り
       return false;
     }
   }

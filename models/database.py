@@ -4,6 +4,16 @@ import threading
 import datetime
 import re
 
+class ExperimentSession:
+    def __init__(self, id, current_step=0, finished=False, order=None):
+        self.id = id
+        self.current_step = current_step
+        self.finished = finished
+        self.order = order  # order1/order2 など
+
+    def __repr__(self):
+        return f'<ExperimentSession id={self.id} step={self.current_step} finished={self.finished} order={self.order}>'
+
 class Database:
     """
     データベース操作をカプセル化するクラス
@@ -110,6 +120,15 @@ class Database:
             user_id TEXT NOT NULL UNIQUE,
             path_type TEXT NOT NULL,
             timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
+        # 実験セッション管理テーブルを作成
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS experiment_session (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            current_step INTEGER NOT NULL DEFAULT 0,
+            finished BOOLEAN NOT NULL DEFAULT 0
         )
         ''')
 
@@ -450,3 +469,49 @@ class Database:
         from utils.data_handler import DataHandler
         handler = DataHandler()
         return handler.get_progress_counts(user_id)
+
+    def get_experiment_session(self, exp_id):
+        """
+        experiment_session テーブルからセッション情報を取得
+        Args:
+            exp_id (int): セッションID
+        Returns:
+            ExperimentSession or None
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, current_step, finished FROM experiment_session WHERE id = ?", (exp_id,))
+            row = cursor.fetchone()
+            if not row:
+                conn.close()
+                return None
+            # order情報も取得（experiment_path_historyから）
+            cursor.execute("SELECT path_type FROM experiment_path_history WHERE id = ?", (exp_id,))
+            order_row = cursor.fetchone()
+            order = order_row[0] if order_row else None
+            conn.close()
+            return ExperimentSession(id=row[0], current_step=row[1], finished=bool(row[2]), order=order)
+
+    def update_experiment_session(self, exp_id, current_step=None, finished=None, expected=None):
+        """
+        experiment_session テーブルの current_step/finished を更新
+        current_stepはexpected一致時のみ進める（単調増加）
+        """
+        with self.db_lock:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            rows = 0
+            if current_step is not None:
+                if expected is not None:
+                    # current_stepがexpectedのときのみ進める
+                    cursor.execute("UPDATE experiment_session SET current_step = ? WHERE id = ? AND current_step = ?", (current_step, exp_id, expected))
+                    rows = cursor.rowcount
+                else:
+                    cursor.execute("UPDATE experiment_session SET current_step = ? WHERE id = ?", (current_step, exp_id))
+                    rows = cursor.rowcount
+            if finished is not None:
+                cursor.execute("UPDATE experiment_session SET finished = ? WHERE id = ?", (int(bool(finished)), exp_id))
+            conn.commit()
+            conn.close()
+            return rows
