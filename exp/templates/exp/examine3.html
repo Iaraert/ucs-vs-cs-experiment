@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/examine3.js') }}"></script>
-    <script type="module" src="{{ url_for('static', filename='javascript/url-cleaner.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/url-cleaner-secure.js') }}"></script>
     <script>
         // ページ読み込み時にURLパラメータを隠す
         window.addEventListener('DOMContentLoaded', function() {
@@ -17,12 +17,9 @@
                                 window.location.host + 
                                 window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
-                // パスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
-                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
-                window.history.replaceState({}, document.title, fakePathUrl);
                 console.log('examine3: URLパラメータとパスを/expに見せかけました');
-            } catch (error) {
-                console.error('examine3: URLパラメータまたはパスの非表示に失敗しました:', error);
+            } catch (e) {
+                console.warn('URLクリーン処理でエラー:', e);
             }
         });
     </script>

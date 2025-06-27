@@ -395,6 +395,51 @@ class AdvancedScreeningSystem:
         
         return False
 
+    def _aggregate_id_usage(self, submissions):
+        """
+        IDの使用状況を集計する内部関数
+        
+        Args:
+            submissions (list): 提出データのリスト
+            
+        Returns:
+            dict: {survey_id: [usage_info, ...]}
+        """
+        id_usage = defaultdict(list)
+        for submission in submissions:
+            worker = submission['worker_name']
+            for survey_id in submission.get('extracted_ids', []):
+                id_usage[survey_id].append({
+                    'worker': worker,
+                    'submission_date': submission.get('submission_date', ''),
+                    'content': submission.get('content', '')[:100]
+                })
+        return id_usage
+
+    def _record_duplicates_to_db(self, duplicates):
+        """
+        重複IDをデータベースに記録する内部関数
+        
+        Args:
+            duplicates (dict): {survey_id: [usage_info, ...]}
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        for survey_id, usage_list in duplicates.items():
+            workers_json = json.dumps([item['worker'] for item in usage_list])
+            cursor.execute('''
+                INSERT OR REPLACE INTO duplicate_ids 
+                (survey_id, worker_count, associated_workers, risk_level)
+                VALUES (?, ?, ?, ?)
+            ''', (
+                survey_id, 
+                len(usage_list), 
+                workers_json,
+                'high' if len(usage_list) > 3 else 'medium'
+            ))
+        conn.commit()
+        conn.close()
+
     def check_duplicate_ids(self, submissions):
         """
         重複IDをチェックし、データベースに記録
@@ -405,44 +450,10 @@ class AdvancedScreeningSystem:
         Returns:
             dict: 重複分析結果
         """
-        id_usage = defaultdict(list)
-        
-        # IDの使用状況を集計
-        for submission in submissions:
-            worker = submission['worker_name']
-            for survey_id in submission.get('extracted_ids', []):
-                id_usage[survey_id].append({
-                    'worker': worker,
-                    'submission_date': submission.get('submission_date', ''),
-                    'content': submission.get('content', '')[:100]
-                })
-        
-        # 重複IDをデータベースに記録
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        duplicates = {}
-        for survey_id, usage_list in id_usage.items():
-            if len(usage_list) > 1:
-                duplicates[survey_id] = usage_list
-                
-                # データベースに記録
-                workers_json = json.dumps([item['worker'] for item in usage_list])
-                
-                cursor.execute('''
-                INSERT OR REPLACE INTO duplicate_ids 
-                (survey_id, worker_count, associated_workers, risk_level)
-                VALUES (?, ?, ?, ?)
-                ''', (
-                    survey_id, 
-                    len(usage_list), 
-                    workers_json,
-                    'high' if len(usage_list) > 3 else 'medium'
-                ))
-        
-        conn.commit()
-        conn.close()
-        
+        id_usage = self._aggregate_id_usage(submissions)
+        duplicates = {survey_id: usage_list for survey_id, usage_list in id_usage.items() if len(usage_list) > 1}
+        if duplicates:
+            self._record_duplicates_to_db(duplicates)
         return duplicates
 
     def check_device_duplicates(self, submissions):

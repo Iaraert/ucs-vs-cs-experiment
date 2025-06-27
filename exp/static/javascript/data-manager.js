@@ -1,7 +1,7 @@
 /**
  * data-manager.js - 実験データの管理と送信を担当するモジュール
  */
-import { getNow, getOrCreateUserId, getProgressToken } from './utilities.js';
+import { getNow, getOrCreateUserId, getProgressToken, isAlreadyParticipated } from './utilities.js';
 import { fetchJson, fetchWithRetry, handleAjaxError, postData } from './ajax-utils.js';
 import config from './config.js';
 import eventBus from './event-bus.js';
@@ -646,3 +646,13 @@ export class DataManager {
 
 // デフォルトインスタンスをエクスポート
 export default new DataManager();
+
+// ページロード時に参加済み判定
+window.addEventListener('DOMContentLoaded', function() {
+  if (isAlreadyParticipated()) {
+    const btn = document.getElementById('participate_btn');
+    if (btn) btn.style.display = 'none';
+    const msg = document.getElementById('already_participated_msg');
+    if (msg) msg.style.display = 'block';
+  }
+});

@@ -2,6 +2,11 @@ import datetime
 import json
 import os
 from flask import render_template, request, Response, redirect, jsonify, current_app, Blueprint, session, abort
+from flask import Flask, make_response
+import hashlib
+import time
+from threading import Lock
+
 from exp import app
 from exp.config import LOG_LEVEL, LOG_DIR
 from utils.logger import setup_logger, error_logger, UserFriendlyError
@@ -33,20 +38,75 @@ except Exception as e:
     error_logger.log_exception(e, level='CRITICAL', context={'module': 'views', 'action': 'init_db'})
     logger.critical("データベースの初期化に失敗しました：%s", str(e))
 
+# --- 参加制限用メモリストア ---
+BLOCK_DUPLICATE_PARTICIPATION = False  # これをFalseにすればブロック無効化
+_ip_hash_set = set()
+_ip_hash_expiry = dict()  # {hash: [timestamp1, timestamp2, ...]}
+_ip_hash_lock = Lock()
+_IP_HASH_TTL = 3600  # 1時間（秒）
+_IP_HASH_THRESHOLD = 5  # 1時間以内に3回以上同一IPからアクセスがあればブロック
+
+
+def is_duplicate_participant():
+    # 管理者解除用パラメータ
+    if request.args.get('force_participate') == '1':
+        return False
+    if not BLOCK_DUPLICATE_PARTICIPATION:
+        return False
+    # 1. Cookie判定
+    if request.cookies.get('simple_flag') != 'true':
+        # Cookieがなければ未参加扱い
+        return False
+    # 2. LocalStorage判定（クライアント側でJSがalready_participatedを持っていなければ未参加扱い）
+    # サーバー側では判定できないため、クライアント側で必ず参加ボタンを表示すること
+    # 3. IP+UserAgentハッシュ判定
+    ip = request.remote_addr or ''
+    user_agent = request.headers.get('User-Agent', '')
+    hash_input = ip + '|' + user_agent
+    ip_ua_hash = hashlib.sha256(hash_input.encode('utf-8')).hexdigest()
+    now = time.time()
+    with _ip_hash_lock:
+        # 期限切れハッシュを削除
+        expired = [h for h, ts_list in _ip_hash_expiry.items() if all(t < now for t in ts_list)]
+        for h in expired:
+            _ip_hash_set.discard(h)
+            _ip_hash_expiry.pop(h, None)
+        # アクセス履歴を記録
+        ts_list = _ip_hash_expiry.get(ip_ua_hash, [])
+        # 有効なタイムスタンプのみ残す
+        ts_list = [t for t in ts_list if t >= now - _IP_HASH_TTL]
+        ts_list.append(now)
+        _ip_hash_expiry[ip_ua_hash] = ts_list
+        # 1時間以内に3回以上同一IP+UAからアクセスがあればブロック
+        if len(ts_list) >= _IP_HASH_THRESHOLD:
+            _ip_hash_set.add(ip_ua_hash)
+            return True
+    return False
+
+
 @app.route('/')
 def index():
     logger.debug("トップページにリダイレクトします")
     return redirect('/t0P1')
+
 
 @app.route('/t0P1')
 def top1():
     logger.debug("top1ページが表示されました")
     return render_template('exp/top1.html')
 
-@app.route('/t0P12')
+
+@app.route('/t0P12', methods=['GET'])
 def top1_2():
-    logger.debug("top1_2ページが表示されました")
-    return render_template('exp/top1_2.html')
+    if is_duplicate_participant():
+        # 参加済み画面へリダイレクト or メッセージ表示
+        return render_template('exp/already_participated.html'), 403
+    resp = make_response(render_template('exp/top1_2.html'))
+    # Cookieがなければセット
+    if not request.cookies.get('simple_flag'):
+        resp.set_cookie('simple_flag', 'true', max_age=60*60*24*30, httponly=True, samesite='Lax')
+    return resp
+
 
 @app.route('/eXaMinE1')
 def examine1():
@@ -56,13 +116,15 @@ def examine1():
     logger.debug("examine1ページが表示されました")
     return render_template('exp/examine1.html', user_id=user_id)
 
+
 @app.route('/eXaM1nE_2')
 def examine1_2():
     user_id = request.args.get("id")
     if not user_id:
-        return redirect('/')
+        return redirect('/t0P12')  # 修正: トップページではなく説明ページにリダイレクト
     logger.debug("examine1_2ページが表示されました")
     return render_template('exp/examine1_2.html', user_id=user_id)
+
 
 @app.route('/Ex2')
 def examine2():
@@ -72,6 +134,7 @@ def examine2():
     logger.debug("examine2ページが表示されました")
     return render_template('exp/examine2.html', user_id=user_id)
 
+
 @app.route('/CRT3')
 def examine3():
     user_id = request.args.get("id")
@@ -80,10 +143,12 @@ def examine3():
     logger.debug("examine3ページが表示されました")
     return render_template('exp/examine3.html', user_id=user_id)
 
+
 @app.route('/end')
 def end():
     logger.debug("endページが表示されました")
     return render_template('exp/end.html')
+
 
 @app.route('/getSampleType', methods=['GET'])
 def get_sample_type():
@@ -308,7 +373,7 @@ def get_experiment_path():
 
     except UserFriendlyError as e:
         app_logger.error(f"/getExperimentPath UserFriendlyError: {e}")  # ログ追加
-        error_logger.log_api_error(request, e, e.status_code)
+        error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
 
     except Exception as e:

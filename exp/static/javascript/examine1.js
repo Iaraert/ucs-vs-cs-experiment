@@ -6,7 +6,7 @@ import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, shuffleArray, isAlreadyParticipated } from './utilities.js';
 
 /**
  * 実験1の管理クラス
@@ -225,6 +225,12 @@ window.addEventListener('DOMContentLoaded', async function() {
       alert('ユーザーIDが取得できません。最初からやり直してください。');
       window.location.href = '/t0P1_2';
       return;
+    }
+    if (isAlreadyParticipated()) {
+      const btn = document.getElementById('participate_btn');
+      if (btn) btn.style.display = 'none';
+      const msg = document.getElementById('already_participated_msg');
+      if (msg) msg.style.display = 'block';
     }
   } catch (e) {
     window.location.href = '/t0P1_2';

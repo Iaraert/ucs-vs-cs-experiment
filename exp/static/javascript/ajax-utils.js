@@ -2,6 +2,7 @@
  * ajax-utils.js - Ajax通信のための共通ユーティリティ
  */
 import uiManager from './ui-manager.js';
+import { isAlreadyParticipated } from './utilities.js';
 
 // デフォルト設定
 const defaultConfig = {
@@ -143,3 +144,13 @@ export function postData(url, data, options = {}) {
     ...options
   });
 }
+
+window.addEventListener('DOMContentLoaded', function() {
+  if (isAlreadyParticipated()) {
+    // 参加済みならUIを制限
+    const btn = document.getElementById('participate_btn');
+    if (btn) btn.style.display = 'none';
+    const msg = document.getElementById('already_participated_msg');
+    if (msg) msg.style.display = 'block';
+  }
+});

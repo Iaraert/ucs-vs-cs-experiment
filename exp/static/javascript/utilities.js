@@ -639,3 +639,14 @@ export function getProgressToken() {
 export function clearProgressToken() {
   localStorage.removeItem('exp_progress_token');
 }
+
+/**
+ * 参加済み判定用ユーティリティ
+ */
+export function isAlreadyParticipated() {
+  try {
+    if (localStorage.getItem('already_participated')) return true;
+  } catch (e) {}
+  if (document.cookie.split(';').some(c => c.trim().startsWith('simple_flag='))) return true;
+  return false;
+}

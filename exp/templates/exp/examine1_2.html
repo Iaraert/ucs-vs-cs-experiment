@@ -49,6 +49,12 @@
 </head>
 
 <body>
+<script>
+    if (!window.user_id || window.user_id === "None" || window.user_id === "") {
+        alert("ユーザーIDが取得できません。最初からやり直してください。");
+        window.location.href = "/t0P12";
+    }
+</script>
     <div class="container">
         <div id="header_area">
             <div id="scenario_title" class="title"></div>

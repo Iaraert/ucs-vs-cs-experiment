@@ -3,17 +3,12 @@
  * モジュラー構造に対応し、examine1との互換性を確保
  */
 
-// 依存関係の読み込み状態を管理
-let modulesLoaded = false;
-let initializationAttempts = 0;
-const MAX_INIT_ATTEMPTS = 5;
-
 // 共有モジュールのインポート
 import config from './config.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
 import eventHandler from './event-handler.js';
-import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, isAlreadyParticipated } from './utilities.js';
 import { 
   validateCheckboxes, 
   validateCheckboxesRobust,
@@ -28,6 +23,11 @@ import {
   setElementAttributes
 } from './common-utils.js';
 
+// 依存関係の読み込み状態を管理
+let modulesLoaded = false;
+let initializationAttempts = 0;
+const MAX_INIT_ATTEMPTS = 5;
+
 /**
  * 依存モジュールの読み込み状態をチェック
  */
@@ -39,7 +39,7 @@ function checkModulesLoaded() {
       dataManager: dataManager,
       uiManager: uiManager,
       eventHandler: eventHandler,
-      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder },
+      utilities: { preventBrowserBack, setupPageLeaveWarning, shuffleArray, zeroPadding, getNow, getNextPageUrl, getExperimentOrder, isAlreadyParticipated },
       commonUtils: { validateCheckboxes, validateCheckboxesRobust, validateDataStructure, validateScenarioData, setImagePaths, createImageMapping, setElementsDisplay, setButtonStates, setElementTexts, setElementHTMLs, setElementAttributes }
     };
     
@@ -795,7 +795,7 @@ class Experiment12Manager {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 10);
+    }, 1500);
   }  /**
    * スライダーの質問文を設定
    */
@@ -847,7 +847,11 @@ class Experiment12Manager {
     
     const maxResultElement = document.getElementById('slider_max_result');
     if (maxResultElement) {
-      maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
+      if( dataManager.sampleType === 'symmetric') {
+        maxResultElement.textContent = '100：確実によく引き起こす';
+      } else {
+        maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
+      }
     }
   }  /**
    * 刺激を表示
@@ -857,23 +861,23 @@ class Experiment12Manager {
       console.error('サンプル選択データが不正です');
       return;
     }
-    
+
     // 境界チェック強化
     if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
       console.error(`showStimulation: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
       alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
-    
+
     const sample = this.currentSampleSelection[this.currentTestPage];
     const scenarioKey = this.scenarios[this.sceIdx];
-    
+
     console.log(`刺激表示: シナリオ=${scenarioKey}, サンプル=${sample}, ページ=${this.currentTestPage + 1}/${this.currentSampleSelection.length}`);
-    
+
     // 条件に応じて文章セットを選択
     let sentencesKey = 'sentences';
     let imagesKey = 'images1_2';
-    
+
     if (dataManager.sampleType === 'symmetric') {
       if (this.testOrder[scenarioKey]['sentences_symmetric']) {
         sentencesKey = 'sentences_symmetric';
@@ -886,19 +890,19 @@ class Experiment12Manager {
     } else {
       console.log('非対称条件の文章・画像を使用');
     }
-    
+
     // データ構造の存在確認
     if (!validateScenarioData(this.testOrder, scenarioKey, [`${sentencesKey}.${sample}`, imagesKey])) {
       return;
     }
-    
+
     const desc = this.testOrder[scenarioKey][sentencesKey][sample];
     console.log("showStimulation_in - 使用文章:", desc);
     const descParts = desc.split('、');
-    
+
     document.getElementById('first_sentence').innerHTML = "<h4>" + descParts[0] + "</h4>";
     document.getElementById('last_sentence').innerHTML = "<h4>" + descParts[1] + "</h4>";
-    
+
     setElementsDisplay({
       'show_sample_area': 'inline',
       'first_sentence': 'inline-block',
@@ -907,12 +911,12 @@ class Experiment12Manager {
       'estimate_input_area': 'none',
       'next_sample': 'inline'
     });
-    
+
     // 条件に応じた画像セットの設定
     const images = this.testOrder[scenarioKey][imagesKey];
     const imageMapping = createImageMapping(images, this.imgCombination, sample);
     setImagePaths(imageMapping);
-    
+
     // 進捗バー更新
     this.progressBar();
     this.currentTestPage++;
@@ -942,26 +946,26 @@ class Experiment12Manager {
         }
       });
     }
-    
+
     // 境界チェック強化
     if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
       console.error(`drawEstimate: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);
       alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
-    
+
     const scenarioKey = this.scenarios[this.sceIdx];
     console.log(`推定画面描画: シナリオ=${scenarioKey}, モード=${c}`);
-    
+
     // 共通化されたデータ構造存在確認
     if (!validateScenarioData(this.testOrder, scenarioKey, ['result', 'min_result', 'max_result'])) {
       console.error(`drawEstimate: シナリオ "${scenarioKey}" の必要データが不足しています`);
       alert('シナリオデータが不完全です。管理者にお問い合わせください。');
       return;
     }
-    
+
     this.clearPage();
-    
+
     // UI要素の状態を一括設定
     setElementsDisplay({
       'estimate_input_area': 'inline-block',
@@ -1278,5 +1282,14 @@ window.addEventListener('DOMContentLoaded', async () => {
   } catch (e) {
     alert('ページ初期化に失敗しました。再読み込みしてください。');
     console.error('examine1_2: 初期化エラー', e);
+  }
+});
+
+window.addEventListener('DOMContentLoaded', function() {
+  if (isAlreadyParticipated()) {
+    const btn = document.getElementById('participate_btn');
+    if (btn) btn.style.display = 'none';
+    const msg = document.getElementById('already_participated_msg');
+    if (msg) msg.style.display = 'block';
   }
 });

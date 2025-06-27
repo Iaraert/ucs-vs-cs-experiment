@@ -24,6 +24,7 @@
             margin-top: 0.3%;
             flex-shrink: 0;
         }
+        #already_participated_msg { display: none; color: red; font-weight: bold; }
     </style>
     <script>
         // ページ読み込み時にパスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
@@ -273,6 +274,44 @@
                 }
             }
         }
+
+        // --- 参加済み判定・制限ロジック ---
+        function setAlreadyParticipatedFlag() {
+            try {
+                // LocalStorage: 参加済みフラグ
+                localStorage.setItem('already_participated', '1');
+            } catch (e) {}
+            // Cookie: simple_flag=true
+            document.cookie = 'simple_flag=true; path=/; SameSite=Lax';
+        }
+
+        function hasAlreadyParticipated() {
+            // LocalStorage判定
+            try {
+                if (localStorage.getItem('already_participated')) return true;
+            } catch (e) {}
+            // Cookie判定
+            if (document.cookie.split(';').some(c => c.trim().startsWith('simple_flag='))) return true;
+            return false;
+        }
+
+        function hideParticipationUI() {
+            // 参加ボタンやフォームを非表示にする
+            const btn = document.getElementById('participate_btn');
+            if (btn) btn.style.display = 'none';
+            // 参加不可メッセージ表示（必要に応じて）
+            const msg = document.getElementById('already_participated_msg');
+            if (msg) msg.style.display = 'block';
+        }
+
+        window.addEventListener('DOMContentLoaded', function() {
+            if (hasAlreadyParticipated()) {
+                hideParticipationUI();
+            } else {
+                // 初回アクセス時はフラグをセット
+                setAlreadyParticipatedFlag();
+            }
+        });
     </script>
 </head>
 
@@ -317,7 +356,7 @@
                     <input class="checks" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
                         onclick="check_agreement2()" />
                     <label
-                        for="checkbox4">そして、これから提示されるシナリオは架空のものであり、実在の人物や物事などと関係はありません。
+                        for="checkbox4">なお、これから提示されるシナリオは架空のものであり、実在の人物や物事などと関係はありません。
                     </label>
                 </p>
                 <br>
