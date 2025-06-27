@@ -29,7 +29,7 @@ export class UIManager {
    * シナリオの説明文と選択肢を表示
    * @param {boolean} isFirstTime - 最初のシナリオ表示かどうか
    */
-  displayScenarioDescription(isFirstTime = false) {
+  async displayScenarioDescription(isFirstTime = false) {
     this.clearPage();
     
     if (!isFirstTime) {
@@ -155,6 +155,19 @@ export class UIManager {
     const checkboxes = document.getElementsByClassName("checkbox");
     for (let i = 0; i < checkboxes.length; i++) {
       checkboxes[i].checked = false;
+    }
+    
+    // 最初のシナリオ表示時のみ実験形式変更通知を表示（order2のみ）
+    if (isFirstTime && dataManager.currentScenarioIndex === 0 && dataManager.experimentType === 'eXaMinE1') {
+      try {
+        const { getExperimentOrder, checkAndShowFormatChangeNotification } = await import('./utilities.js');
+        const experimentOrder = await getExperimentOrder(dataManager.userId, false);
+        if (experimentOrder === 'order2') {
+          await checkAndShowFormatChangeNotification(dataManager.userId, 0, 'eXaMinE1');
+        }
+      } catch (e) {
+        console.warn('実験形式変更通知の表示に失敗:', e);
+      }
     }
   }
   

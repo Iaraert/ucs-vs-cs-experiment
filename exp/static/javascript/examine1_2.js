@@ -417,7 +417,7 @@ class Experiment12Manager {
   }  /**
    * 次のシナリオの説明を表示
    */
-  toNextScenarioDescription(isFirstTime = false) {
+  async toNextScenarioDescription(isFirstTime = false) {
     if (!validateScenarioData(this.testOrder, null)) {
       console.error('testOrderが初期化されていません');
       return;
@@ -929,6 +929,20 @@ class Experiment12Manager {
    * 推定画面を描画
    */
   drawEstimate(c) {
+    // --- 実験形式変更通知: order1かつ最初のシナリオでのみ表示 ---
+    if (this.sceIdx === 0) {
+      import('./utilities.js').then(async ({ getExperimentOrder, checkAndShowFormatChangeNotification }) => {
+        try {
+          const experimentOrder = await getExperimentOrder(this.userId, false);
+          if (experimentOrder === 'order1') {
+            await checkAndShowFormatChangeNotification(this.userId, 0, 'eXaM1nE_2');
+          }
+        } catch (e) {
+          console.warn('実験形式変更通知の表示に失敗:', e);
+        }
+      });
+    }
+    
     // 境界チェック強化
     if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
       console.error(`drawEstimate: シナリオインデックスが範囲外です: ${this.sceIdx}/${this.scenarios.length}`);

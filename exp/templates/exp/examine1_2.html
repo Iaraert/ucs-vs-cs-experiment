@@ -252,36 +252,6 @@
                             console.warn('checkResponseCheckbox: シナリオインデックスを取得できませんでした');
                             return;
                         }
-                          // 実験形式変更通知のチェック（1つ目のシナリオの場合）
-                        // 注意: スライダー確認チェックボックス用の通知処理
-                        // シナリオ説明チェックボックスの通知はexperimentManager.checkDescription()で処理される
-                        if (currentIndex === 0) {
-                            try {
-                                // ユーザーIDを取得
-                                let userId = null;
-                                if (window.experimentManager && window.experimentManager.userId) {
-                                    userId = window.experimentManager.userId;
-                                } else if (typeof experimentManager !== 'undefined' && experimentManager.userId) {
-                                    userId = experimentManager.userId;
-                                } else {
-                                    // URLからユーザーIDを取得を試みる
-                                    const urlParams = new URLSearchParams(window.location.search);
-                                    userId = urlParams.get('id');
-                                }
-                                
-                                if (userId) {
-                                    // utilities.jsから実験形式変更通知関数をインポート
-                                    const { checkAndShowFormatChangeNotification } = await import('../static/javascript/utilities.js');
-                                    await checkAndShowFormatChangeNotification(userId, currentIndex, 'eXaM1nE_2');
-                                    console.log('checkResponseCheckbox: スライダー確認チェックボックス用の実験形式変更通知を実行');
-                                } else {
-                                    console.log('checkResponseCheckbox: ユーザーIDが取得できないため実験形式変更通知をスキップ');
-                                }
-                            } catch (notificationError) {
-                                console.warn('checkResponseCheckbox: 実験形式変更通知でエラーが発生しました:', notificationError);
-                                // エラーが発生しても処理は継続
-                            }
-                        }
                         
                         // 通常のチェックボックス処理
                         console.log(`checkResponseCheckbox: シナリオインデックス=${currentIndex}, チェック状態=${target.checked}`);
