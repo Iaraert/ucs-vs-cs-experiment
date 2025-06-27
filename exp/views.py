@@ -5,6 +5,7 @@ from flask import render_template, request, Response, redirect, jsonify, current
 from exp import app
 from exp.config import LOG_LEVEL, LOG_DIR
 from utils.logger import setup_logger, error_logger, UserFriendlyError
+from utils.logger import app_logger  # 追加
 
 # データベースとデータ処理用のクラスをインポート
 from models.database import Database
@@ -35,19 +36,19 @@ except Exception as e:
 @app.route('/')
 def index():
     logger.debug("トップページにリダイレクトします")
-    return redirect('/top1')
+    return redirect('/t0P1')
 
-@app.route('/top1')
+@app.route('/t0P1')
 def top1():
     logger.debug("top1ページが表示されました")
     return render_template('exp/top1.html')
 
-@app.route('/top1_2')
+@app.route('/t0P12')
 def top1_2():
     logger.debug("top1_2ページが表示されました")
     return render_template('exp/top1_2.html')
 
-@app.route('/examine1')
+@app.route('/eXaMinE1')
 def examine1():
     user_id = request.args.get("id")
     if not user_id:
@@ -55,7 +56,7 @@ def examine1():
     logger.debug("examine1ページが表示されました")
     return render_template('exp/examine1.html', user_id=user_id)
 
-@app.route('/examine1_2')
+@app.route('/eXaM1nE_2')
 def examine1_2():
     user_id = request.args.get("id")
     if not user_id:
@@ -63,7 +64,7 @@ def examine1_2():
     logger.debug("examine1_2ページが表示されました")
     return render_template('exp/examine1_2.html', user_id=user_id)
 
-@app.route('/examine2')
+@app.route('/Ex2')
 def examine2():
     user_id = request.args.get("id")
     if not user_id:
@@ -71,7 +72,7 @@ def examine2():
     logger.debug("examine2ページが表示されました")
     return render_template('exp/examine2.html', user_id=user_id)
 
-@app.route('/examine3')
+@app.route('/CRT3')
 def examine3():
     user_id = request.args.get("id")
     if not user_id:
@@ -88,6 +89,7 @@ def end():
 def get_sample_type():
     try:
         user_id = request.args.get('user_id', str(datetime.datetime.now().timestamp()))
+        app_logger.info(f"/getSampleType APIリクエスト受信: user_id={user_id}")  # ログ追加
         logger.info(f"条件割り当てリクエスト: user_id={user_id}")
         
         if not user_id:
@@ -100,6 +102,7 @@ def get_sample_type():
             )
         
         result = db.get_condition_assignment(user_id)
+        app_logger.info(f"/getSampleType 割り当て結果: {result}")  # ログ追加
         logger.info(f"条件割り当て結果: {result}")
         
         if not result:
@@ -114,10 +117,12 @@ def get_sample_type():
         return jsonify(result)
     
     except UserFriendlyError as e:
+        app_logger.error(f"/getSampleType UserFriendlyError: {e}")  # ログ追加
         error_logger.log_api_error(request, e, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
+        app_logger.error(f"/getSampleType 例外発生: {e}", exc_info=True)  # ログ追加
         error_info = error_logger.log_api_error(request, e)
         return jsonify({
             "error": True,
@@ -130,6 +135,7 @@ def get_sample_type():
 @app.route('/send', methods=['POST'])
 def send():
     try:
+        app_logger.info("/send APIリクエスト受信")  # ログ追加
         raw_data = request.form.to_dict()
         suffix = raw_data.get("file_name_suffix", "exp")
         user_id = raw_data.get("user_id")
@@ -152,15 +158,18 @@ def send():
         
         # DataHandlerクラスを使用してデータを保存
         results = data_handler.save_experiment_data(raw_data, suffix)
+        app_logger.info(f"/send データ保存結果: {results}")  # ログ追加
         logger.info(f"データ保存結果: {results}")
         
         return Response(status=200)
     
     except UserFriendlyError as e:
+        app_logger.error(f"/send UserFriendlyError: {e}")  # ログ追加
         error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
+        app_logger.error(f"/send 例外発生: {e}", exc_info=True)  # ログ追加
         error_info = error_logger.log_api_error(request, e)
         logger.error(f"/send エンドポイントでのエラー: {e}", exc_info=True)
         return jsonify({
@@ -173,6 +182,7 @@ def send():
 @app.route('/send_imc', methods=['POST'])
 def send_imc():
     try:
+        app_logger.info("/send_imc APIリクエスト受信")  # ログ追加
         raw_data = request.form.to_dict()
         suffix = raw_data.get("file_name_suffix", "default")
         
@@ -207,15 +217,18 @@ def send_imc():
 
         # DataHandlerクラスを使用してデータを保存
         results = data_handler.save_imc_data(raw_data, suffix)
+        app_logger.info(f"/send_imc データ保存結果: {results}")  # ログ追加
         logger.info(f"データ保存結果: {results}")
         
         return jsonify({"status": "success"})
     
     except UserFriendlyError as e:
+        app_logger.error(f"/send_imc UserFriendlyError: {e}")  # ログ追加
         error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
+        app_logger.error(f"/send_imc 例外発生: {e}", exc_info=True)  # ログ追加
         error_info = error_logger.log_api_error(request, e)
         logger.error(f"/send_imc エンドポイントでのエラー: {e}", exc_info=True)
         return jsonify({
@@ -228,6 +241,7 @@ def send_imc():
 @app.route('/setSampleType', methods=['GET'])
 def set_sample_type():
     try:
+        app_logger.info("/setSampleType APIリクエスト受信")  # ログ追加
         user_id = request.args.get('user_id')
         sample_type = request.args.get('sampleType')
         
@@ -241,13 +255,16 @@ def set_sample_type():
             )
         
         logger.info(f"サンプルタイプを設定: user_id={user_id}, sampleType={sample_type}")
+        app_logger.info(f"/setSampleType 設定: user_id={user_id}, sampleType={sample_type}")  # ログ追加
         return jsonify({"status": "success", "sample_type": sample_type})
     
     except UserFriendlyError as e:
+        app_logger.error(f"/setSampleType UserFriendlyError: {e}")  # ログ追加
         error_logger.log_api_error(request, e.status_code)
         return jsonify(e.to_dict()), e.status_code
     
     except Exception as e:
+        app_logger.error(f"/setSampleType 例外発生: {e}", exc_info=True)  # ログ追加
         error_info = error_logger.log_api_error(request, e)
         return jsonify({
             "error": True,
@@ -261,9 +278,9 @@ def get_experiment_path():
     try:
         user_id = request.args.get('user_id', str(datetime.datetime.now().timestamp()))
         reallocate = request.args.get('reallocate', 'false').lower() == 'true'
-        logger.debug(f"パラメータ - user_id={user_id}, reallocate={reallocate}, type={type(reallocate)}")
-        logger.info(f"実験経路割り当てリクエスト: user_id={user_id}, reallocate={reallocate}")
-        
+        # 運用監視用: 重要なAPIリクエストのみapp_logger
+        app_logger.info(f"/getExperimentPath APIリクエスト受信: user_id={user_id}, reallocate={reallocate}")
+
         if not user_id:
             raise UserFriendlyError(
                 message="ユーザーIDが指定されていません",
@@ -272,12 +289,12 @@ def get_experiment_path():
                 error_code="MISSING_USER_ID",
                 recovery_path="/"
             )
-        
+
         # クライアントからのreallocateパラメータを使用
         result = db.get_experiment_path_assignment(user_id, reallocate)
-        logger.debug(f"実験経路割り当て結果: {result}")
+        # 割り当て結果はlogger(INFO)のみ
         logger.info(f"実験経路割り当て結果: {result}")
-        
+
         if not result:
             raise UserFriendlyError(
                 message=f"実験経路割り当てに失敗しました: user_id={user_id}",
@@ -286,14 +303,16 @@ def get_experiment_path():
                 error_code="PATH_ASSIGNMENT_FAILED",
                 recovery_path="/"
             )
-        
+
         return jsonify(result)
-    
+
     except UserFriendlyError as e:
+        app_logger.error(f"/getExperimentPath UserFriendlyError: {e}")  # ログ追加
         error_logger.log_api_error(request, e, e.status_code)
         return jsonify(e.to_dict()), e.status_code
-    
+
     except Exception as e:
+        app_logger.error(f"/getExperimentPath 例外発生: {e}", exc_info=True)  # ログ追加
         error_info = error_logger.log_api_error(request, e)
         return jsonify({
             "error": True,
@@ -309,6 +328,7 @@ def health_check():
     ヘルスチェックエンドポイント - systemdの起動確認用
     """
     try:
+        app_logger.info("/health APIリクエスト受信")  # ログ追加
         # 基本的なシステム状態をチェック
         status = {
             'status': 'healthy',
@@ -342,6 +362,7 @@ def health_check():
         return jsonify(status), http_status
         
     except Exception as e:
+        app_logger.error(f"/health 例外発生: {e}", exc_info=True)  # ログ追加
         error_logger.log_exception(e, level='ERROR', context={'endpoint': 'health_check'})
         return jsonify({
             'status': 'error',

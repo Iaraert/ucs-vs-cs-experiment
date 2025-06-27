@@ -90,11 +90,28 @@ export class UIManager {
     // progress_barの最大値と現在値を更新
     const progressBar = document.getElementById('progress_bar');
     if (progressBar) {
-      progressBar.max = config.scenarios.length;
-      progressBar.value = currentIndex + 1;
+      progressBar.max = 12;
+      // progressBar.valueは通し番号に合わせて後で設定
     }
 
-    document.getElementById('page').innerHTML = `<h5>${currentIndex + 1}/${config.scenarios.length}種類目</h5>`;
+    // --- 通し番号の計算 ---
+    let displayIndex = currentIndex + 1;
+    let total = 12;
+    (async () => {
+      let experimentOrder = 'order1';
+      try {
+        const { getExperimentOrder } = await import('./utilities.js');
+        experimentOrder = await getExperimentOrder(dataManager.userId, false);
+      } catch (e) {}
+      if (dataManager.experimentType === 'eXaMinE1') {
+        displayIndex = (experimentOrder === 'order1') ? (currentIndex + 1) : (currentIndex + 7);
+      } else if (dataManager.experimentType === 'eXaM1nE_2') {
+        displayIndex = (experimentOrder === 'order1') ? (currentIndex + 7) : (currentIndex + 1);
+      }
+      document.getElementById('page').innerHTML = `<h5>${displayIndex}/${total}種類目</h5>`;
+      if (progressBar) progressBar.value = displayIndex;
+    })();
+
     document.getElementById('scenario_title').innerHTML = `<h3>${scenarioData.title}</h3>`;
     document.getElementById('check_sentence').style.display = "inline-block";
     document.getElementById('description_area').style.display = "inline-block";
@@ -155,11 +172,11 @@ export class UIManager {
    * 画像をプリロード
    */
   preloadImages() {
-    // examine1_2実験では、examine1_2.jsで画像プリロードを行うため、
+    // eXaM1nE_2実験では、examine1_2.jsで画像プリロードを行うため、
     // ui-manager.jsでのプリロードは無効化
     const currentExperiment = window.location.pathname;
-    if (currentExperiment.includes('examine1_2')) {
-      console.log('examine1_2実験では、専用のプリロード処理を使用します');
+    if (currentExperiment.includes('eXaM1nE_2')) {
+      console.log('eXaM1nE_2実験では、専用のプリロード処理を使用します');
       
       // プリロード表示を非表示
       const preloadElement = document.getElementById('preload_image');
@@ -191,7 +208,7 @@ export class UIManager {
         }
       }
       
-      // examine1_2用の画像もプリロード
+      // eXaM1nE_2用の画像もプリロード
       if (scenarioData['images1_2']) {
         const imageTypes12 = ["p", "notp", "q", "notq", "arrow"];
         for (let type of imageTypes12) {
@@ -237,7 +254,7 @@ export class UIManager {
     // 前のシナリオのレスポンスチェックボックスとボタンをリセット
     // 実験タイプに応じて適切なチェックボックスIDを選択
     const currentExperiment = window.location.pathname;
-    const checkboxId = currentExperiment.includes('examine1_2') ? 'checkbox' : 'response_checkbox';
+    const checkboxId = currentExperiment.includes('eXaM1nE_2') ? 'checkbox' : 'response_checkbox';
     const respCheckbox = document.getElementById(checkboxId);
     if (respCheckbox) {
       respCheckbox.checked = false;
@@ -301,7 +318,11 @@ export class UIManager {
     // 最小値と最大値も同様に確認しながら設定
     const minResultElement = document.getElementById('slider_min_result');
     if (minResultElement) {
-      minResultElement.textContent = '0：' + scenarioData['min_result'];
+      if (dataManager.sampleType === 'symmetric') {
+        minResultElement.textContent = '0：差はない';
+      } else {
+        minResultElement.textContent = '0：' + scenarioData['min_result'];
+      }
     }
     
     const maxResultElement = document.getElementById('slider_max_result');

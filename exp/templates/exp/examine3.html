@@ -17,9 +17,12 @@
                                 window.location.host + 
                                 window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
-                console.log('examine3: URLパラメータを非表示にしました');
+                // パスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+                window.history.replaceState({}, document.title, fakePathUrl);
+                console.log('examine3: URLパラメータとパスを/expに見せかけました');
             } catch (error) {
-                console.error('examine3: URLパラメータの非表示に失敗しました:', error);
+                console.error('examine3: URLパラメータまたはパスの非表示に失敗しました:', error);
             }
         });
     </script>

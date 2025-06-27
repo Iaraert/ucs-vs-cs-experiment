@@ -6,9 +6,9 @@ import os
 
 # 基本設定
 bind = "127.0.0.1:9876"
-workers = multiprocessing.cpu_count() * 2 + 1  # 本番環境では最適化
+# t3.mediumは2vCPUなのでworker数は2〜3が最適
+workers = 2  # 固定値（CPU数*2+1は過剰）
 worker_class = "sync"
-worker_connections = 1000
 
 # アプリケーション設定
 wsgi_module = "wsgi:app"
@@ -31,7 +31,7 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 # パフォーマンス設定
 timeout = 120
 keepalive = 2
-max_requests = 5000  # 本番環境では多めに設定
+max_requests = 2000  # 安定性重視でやや減らす（現状でも可）
 max_requests_jitter = 500
 
 # 本番環境特有の設定

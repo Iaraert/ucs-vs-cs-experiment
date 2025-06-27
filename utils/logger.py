@@ -20,6 +20,8 @@ DEFAULT_CONFIG = {
 # グローバル設定を保持する変数
 config = DEFAULT_CONFIG.copy()
 
+# ===================== ログ設定・ロガー生成 =====================
+
 def configure_logging(config_dict=None):
     """
     ロギング設定を更新する
@@ -29,7 +31,6 @@ def configure_logging(config_dict=None):
     """
     if config_dict:
         config.update(config_dict)
-
 
 def get_log_level(level_name):
     """
@@ -50,10 +51,24 @@ def get_log_level(level_name):
     }
     return level_map.get(level_name.upper(), logging.INFO)
 
+class ColorFormatter(logging.Formatter):
+    COLORS = {
+        'DEBUG': '\033[92m',    # 緑
+        'INFO': '\033[94m',     # 青
+        'WARNING': '\033[93m',  # 黄
+        'ERROR': '\033[91m',    # 赤
+        'CRITICAL': '\033[95m', # マゼンタ
+        'RESET': '\033[0m'
+    }
+    def format(self, record):
+        color = self.COLORS.get(record.levelname, self.COLORS['RESET'])
+        reset = self.COLORS['RESET']
+        msg = super().format(record)
+        return f"{color}{msg}{reset}"
 
 def setup_logger(name, log_level=None, log_dir=None, log_format=None):
     """
-    アプリケーション用のロガーをセットアップする
+    指定名のロガーをセットアップし返す（重複追加なし）
 
     Args:
         name (str): ロガーの名前
@@ -104,8 +119,9 @@ def setup_logger(name, log_level=None, log_dir=None, log_format=None):
 
     # フォーマットの設定
     formatter = logging.Formatter(log_format)
+    color_formatter = ColorFormatter(log_format)
     file_handler.setFormatter(formatter)
-    console_handler.setFormatter(formatter)
+    console_handler.setFormatter(color_formatter)
 
     # ハンドラをロガーに追加
     logger.addHandler(file_handler)
@@ -113,6 +129,7 @@ def setup_logger(name, log_level=None, log_dir=None, log_format=None):
 
     return logger
 
+# ===================== エラーログ記録ユーティリティ =====================
 
 class ErrorLogger:
     """
@@ -132,6 +149,9 @@ class ErrorLogger:
             level (str): ログレベル
             context (dict): 追加のコンテキスト情報
             include_traceback (bool): トレースバックを含めるかどうか
+
+        Returns:
+            dict: ログ化したエラー情報
         """
         if include_traceback is None:
             include_traceback = config['INCLUDE_TRACE']
@@ -209,6 +229,7 @@ class ErrorLogger:
 
         return self.log_exception(exc, level='ERROR', context=context)
 
+# ===================== ユーザーフレンドリーな例外 =====================
 
 class UserFriendlyError(Exception):
     """
@@ -247,6 +268,7 @@ class UserFriendlyError(Exception):
             'recovery_path': self.recovery_path
         }
 
+# ===================== シングルトンインスタンス =====================
 
 # シングルトン用インスタンス
 error_logger = ErrorLogger()

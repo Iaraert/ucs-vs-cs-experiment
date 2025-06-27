@@ -17,9 +17,12 @@
                                 window.location.host + 
                                 window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
-                console.log('examine2: URLパラメータを非表示にしました');
+                // パスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+                window.history.replaceState({}, document.title, fakePathUrl);
+                console.log('examine2: URLパラメータとパスを/expに見せかけました');
             } catch (error) {
-                console.error('examine2: URLパラメータの非表示に失敗しました:', error);
+                console.error('examine2: URLパラメータまたはパスの非表示に失敗しました:', error);
             }
         });
     </script>
@@ -34,8 +37,9 @@
     <h1 id="start_message">あなたの日常的なスポーツ活動に関する質問です。</h1>
     </div>
     <p>
-        以下の説明をよく読んで、お答え下さい。今回の調査は、推定の過程を研究することが目的の調査であり、こうした説明文が時間をかけてよく読まれているかどうかが重要な意味を持ちます。
-        つきましては大変失礼なお願いなのですが、あなたがこの説明文をきちんと読んでいるかどうかを確認させてください。
+        以下の説明をよく読んで、お答え下さい。今回の調査は、推定の過程を研究することが目的の調査であり、<br>
+        こうした説明文が時間をかけてよく読まれているかどうかが重要な意味を持ちます。<br>
+        つきましては大変失礼なお願いなのですが、あなたがこの説明文をきちんと読んでいるかどうかを確認させてください。<br>
         この説明文を読んだら、以下の質問で野球と水泳とその他を選択し、次のページに進んでください。
     </p>
 

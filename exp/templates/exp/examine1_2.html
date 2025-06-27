@@ -14,9 +14,12 @@
                                 window.location.host + 
                                 window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
-                console.log('examine1_2: URLパラメータを非表示にしました');
+                // パスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+                window.history.replaceState({}, document.title, fakePathUrl);
+                console.log('eXaM1nE_2: URLパラメータとパスを/expに見せかけました');
             } catch (error) {
-                console.error('examine1_2: URLパラメータの非表示に失敗しました:', error);
+                console.error('eXaM1nE_2: URLパラメータまたはパスの非表示に失敗しました:', error);
             }
         });
     </script>
@@ -269,7 +272,7 @@
                                 if (userId) {
                                     // utilities.jsから実験形式変更通知関数をインポート
                                     const { checkAndShowFormatChangeNotification } = await import('../static/javascript/utilities.js');
-                                    await checkAndShowFormatChangeNotification(userId, currentIndex, 'examine1_2');
+                                    await checkAndShowFormatChangeNotification(userId, currentIndex, 'eXaM1nE_2');
                                     console.log('checkResponseCheckbox: スライダー確認チェックボックス用の実験形式変更通知を実行');
                                 } else {
                                     console.log('checkResponseCheckbox: ユーザーIDが取得できないため実験形式変更通知をスキップ');

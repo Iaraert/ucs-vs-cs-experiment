@@ -24,3 +24,6 @@ jupyter>=1.0.0  # 実験データの分析用
 # ドキュメンテーション
 sphinx>=4.4.0
 sphinx-rtd-theme>=1.0.0  # Read the Docsテーマ
+
+# 負荷テスト
+locust>=2.0.0

@@ -1,5 +1,5 @@
 /**
- * examine3.js - 実験3（CRT）のメインスクリプト
+ * CRT3.js - 実験3（CRT）のメインスクリプト
  * モジュール化された構造を使用して重複コードを削除
  */
 import dataManager from './data-manager.js';
@@ -8,15 +8,12 @@ import eventHandler from './event-handler.js';
 import { preventBrowserBack, getOrCreateUserId, validateInput } from './utilities.js';
 
 /**
- * CRT実験アプリケーションを管理するクラス
+ * CRT実験アプリケーション（CRT3）
  */
 class CRTExperiment {
-  /**
-   * コンストラクタ - CRT実験インスタンスを初期化
-   */
   constructor() {
-    // 設定
     this.initialized = false;
+    // CRT3 実験
   }
 
   /**
@@ -26,18 +23,18 @@ class CRTExperiment {
     if (this.initialized) return;
     
     try {
-      console.log('🟦 examine3.js - init() started');
+      console.log('🟦 CRT3.js - init() started');
       
       // ユーザーID取得（改良版を使用）
       dataManager.userId = getOrCreateUserId();
-      console.log('🟦 examine3.js - User ID retrieved:', dataManager.userId);
+      console.log('🟦 CRT3.js - User ID retrieved:', dataManager.userId);
       
       if (!dataManager.userId) {
-        console.error('🔴 examine3.js - User ID not found');
-        console.warn('Warning: user_id not found in CRT test');
+        console.error('🟥 CRT3.js - User ID not found');
+        console.warn('Warning: user_id not found in CRT3 test');
       }
 
-      console.log('🟦 examine3.js - Initialize completed successfully');
+      console.log('🟦 CRT3.js - Initialize completed successfully');
       
       // イベントリスナーを設定
       this.setupEventListeners();
@@ -47,7 +44,7 @@ class CRTExperiment {
       
       this.initialized = true;
     } catch (error) {
-      console.error('🔴 examine3.js - 初期化エラー:', error);
+      console.error('🟥 CRT3.js - 初期化エラー:', error);
     }
   }
   

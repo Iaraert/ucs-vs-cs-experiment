@@ -58,65 +58,48 @@ export class EventHandler {
       // シナリオ説明用のチェックボックスが全て完了しているかチェック
       const checkboxes = document.getElementsByClassName("checkbox");
       let allChecked = true;
-      
       // チェックボックスが存在しない場合は処理しない
       if (checkboxes.length === 0) {
         console.log('checkFormatChangeNotification: チェックボックスが存在しないため処理をスキップ');
         return;
       }
-      
       for (let i = 0; i < checkboxes.length; i++) {
         if (!checkboxes[i].checked) {
           allChecked = false;
           break;
         }
       }
-      
       // 全チェックボックスが完了していない場合は処理しない
       if (!allChecked) {
         console.log('checkFormatChangeNotification: 全チェックボックスが完了していないため通知をスキップ');
         return;
       }
-      
       // 現在のシナリオインデックスを取得
       let currentIndex = -1;
-      
-      // examine1の場合: dataManagerから取得
       if (window.dataManager && typeof window.dataManager.getScenarioAssignment === 'function') {
         const scenarioInfo = window.dataManager.getScenarioAssignment();
         currentIndex = scenarioInfo.currentIndex;
-        console.log('checkFormatChangeNotification: dataManagerから現在のシナリオインデックスを取得:', currentIndex);
       } else if (typeof dataManager !== 'undefined' && typeof dataManager.getScenarioAssignment === 'function') {
         const scenarioInfo = dataManager.getScenarioAssignment();
         currentIndex = scenarioInfo.currentIndex;
-        console.log('checkFormatChangeNotification: グローバルdataManagerから現在のシナリオインデックスを取得:', currentIndex);
-      }
-      // examine1_2の場合: experimentManagerから取得
-      else if (window.experimentManager && typeof window.experimentManager.sceIdx !== 'undefined') {
+      } else if (window.experimentManager && typeof window.experimentManager.sceIdx !== 'undefined') {
         currentIndex = window.experimentManager.sceIdx;
-        console.log('checkFormatChangeNotification: experimentManagerから現在のシナリオインデックスを取得:', currentIndex);
       } else if (typeof experimentManager !== 'undefined' && typeof experimentManager.sceIdx !== 'undefined') {
         currentIndex = experimentManager.sceIdx;
-        console.log('checkFormatChangeNotification: グローバルexperimentManagerから現在のシナリオインデックスを取得:', currentIndex);
-      }
-      // フォールバック: HTMLから推定
-      else {
+      } else {
         const pageElement = document.getElementById('page');
         if (pageElement && pageElement.innerHTML) {
           const match = pageElement.innerHTML.match(/(\d+)\/\d+/);
           if (match) {
             currentIndex = parseInt(match[1]) - 1; // 0ベースのインデックスに変換
-            console.log('checkFormatChangeNotification: HTMLから現在のシナリオインデックスを推定:', currentIndex);
           }
         }
       }
-      
-      // 1つ目のシナリオでない場合は処理しない
+      // 1つ目のシナリオでない場合は処理しない（この判定はutilities.jsでも行うが念のため）
       if (currentIndex !== 0) {
         console.log(`checkFormatChangeNotification: 1つ目のシナリオではないため通知をスキップ (現在のインデックス: ${currentIndex})`);
         return;
       }
-      
       // ユーザーIDを取得
       let userId = null;
       if (window.dataManager && window.dataManager.userId) {
@@ -127,26 +110,24 @@ export class EventHandler {
         userId = dataManager.userId;
       } else if (typeof experimentManager !== 'undefined' && experimentManager.userId) {
         userId = experimentManager.userId;
-      } else {
-        // URLからユーザーIDを取得を試みる
-        const urlParams = new URLSearchParams(window.location.search);
-        userId = urlParams.get('id');
       }
-      
       if (!userId) {
-        console.log('checkFormatChangeNotification: ユーザーIDが取得できないため通知をスキップ');
+        console.warn('checkFormatChangeNotification: ユーザーIDが取得できません');
         return;
       }
-      
-      // 現在のページを判定
-      const currentPage = window.location.pathname.includes('examine1_2') ? 'examine1_2' : 'examine1';
-      
-      console.log(`checkFormatChangeNotification: 通知処理開始 - ユーザーID: ${userId}, シナリオ: ${currentIndex}, ページ: ${currentPage}`);
-      
-      // 実験形式変更通知を呼び出し
+      // ページ名を判定
+      let currentPage = '';
+      if (window.location.pathname.includes('eXaMinE1')) {
+        currentPage = 'eXaMinE1';
+      } else if (window.location.pathname.includes('eXaM1nE_2')) {
+        currentPage = 'eXaM1nE_2';
+      } else {
+        // fallback: HTMLのidやグローバル変数から推定も可
+        currentPage = '';
+      }
+      // utilities.jsの通知関数を呼び出し
       const { checkAndShowFormatChangeNotification } = await import('./utilities.js');
       await checkAndShowFormatChangeNotification(userId, currentIndex, currentPage);
-      
     } catch (error) {
       console.error('checkFormatChangeNotification: エラーが発生しました:', error);
     }
@@ -172,7 +153,7 @@ export class EventHandler {
       window.onbeforeunload = null;
       setupPageLeaveWarning(false);
       // 現在のページがexamine1であることを指定し、ユーザーIDに基づいて次のページを決定（非同期）
-      getNextPageUrl('examine1', dataManager.userId)
+      getNextPageUrl('eXaMinE1', dataManager.userId)
         .then(nextUrl => {
           dataManager.exportResults(nextUrl)
             .catch(error => {
@@ -184,7 +165,7 @@ export class EventHandler {
         .catch(error => {
           console.error('次のページURLの取得に失敗しました:', error);
           // エラー時はデフォルト値を使用
-          const defaultNextUrl = `../examine1_2?id=${encodeURIComponent(dataManager.userId)}`;
+          const defaultNextUrl = `../eXaM1nE_2?id=${encodeURIComponent(dataManager.userId)}`;
           dataManager.exportResults(defaultNextUrl)
             .catch(exportError => {
               console.error('結果の送信に失敗しました:', exportError);
@@ -232,8 +213,9 @@ export class EventHandler {
     // ページ遷移前に警告を解除
     window.onbeforeunload = null;
 
-    const nextUrl = `/examine3?id=${encodeURIComponent(dataManager.userId)}`;
-    console.log('🟦 event-handler.js - Next URL for examine3:', nextUrl);
+    // examine3 → CRT3 へリネーム
+    const nextUrl = `/CRT3?id=${encodeURIComponent(dataManager.userId)}`;
+    console.log('🟦 event-handler.js - Next URL for CRT3:', nextUrl);
     
     setupPageLeaveWarning(false);
     

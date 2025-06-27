@@ -13,8 +13,8 @@ import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimen
  */
 class ExperimentApp {
   constructor() {
-    // 実験タイプを設定
-    dataManager.setExperimentType('examine1');
+    // 実験タイプを新しい名称に変更
+    dataManager.setExperimentType('eXaMinE1');
     
     // 背景色を2色交互に設定（アイコンの色と被らないように）
     this.bgcolors = ['#f8f9fa', '#fff8f0']; // 淡いグレーと淡いベージュ
@@ -31,43 +31,25 @@ class ExperimentApp {
       // utilities.jsからユーザーID取得
       const { getOrCreateUserId } = await import('./utilities.js');
       this.userId = getOrCreateUserId({ urlParam: true, persistent: false });
-      // 進捗/order検証は削除（ページ表示時は判定しない）
       if (!this.userId) {
-        console.error('examine1: ユーザーIDの取得に失敗しました');
+        console.error('eXaMinE1: ユーザーIDの取得に失敗しました');
         alert('ユーザー識別情報の取得に失敗しました。最初のページからやり直してください。');
         window.location.href = '/';
         return;
       }
-      
-      console.log('examine1: ユーザーID:', this.userId);
-      
-      // DataManagerを初期化（ユーザーIDを渡す） - 重要: 確実に同じIDを使用
+      console.log('eXaMinE1: ユーザーID:', this.userId);
       await dataManager.init(this.userId);
-      
-      // サーバーから実験条件（対称/非対称）を取得
       await dataManager.fetchSampleType();
-      console.log('examine1: 実験条件:', dataManager.sampleType);
-      
-      // UIManagerを初期化
+      console.log('eXaMinE1: 実験条件:', dataManager.sampleType);
       uiManager.init();
-      
-      // EventHandlerを初期化
       eventHandler.init();
-      
-      // ページ離脱警告を設定
       setupPageLeaveWarning(true);
-      
-      // 最初のシナリオ説明を表示
       uiManager.displayScenarioDescription(true);
-      
-      console.log('examine1: 初期化完了');
+      console.log('eXaMinE1: 初期化完了');
       console.log('使用シナリオ:', config.scenarios);
-      
-      // 初期化完了フラグを設定
       this.initialized = true;
-      
     } catch (error) {
-      console.error('examine1の初期化に失敗しました', error);
+      console.error('eXaMinE1の初期化に失敗しました', error);
       uiManager.showErrorMessage('実験の準備中にエラーが発生しました。ページを再読み込みしてください。');
     }
   }
@@ -89,10 +71,9 @@ class ExperimentApp {
     console.log(`[examine1.submitResponse] currentScenarioIndex=${dataManager.currentScenarioIndex}`);
     // 6つ目のシナリオで送信時のみ、orderに従った次ページへの進入許可を判定
     if (dataManager.estimations.length === 6) {
-      // ページ遷移前に警告を解除
       window.onbeforeunload = null;
       setupPageLeaveWarning(false);
-      getNextPageUrl('examine1', dataManager.userId)
+      getNextPageUrl('eXaMinE1', dataManager.userId)
         .then(nextUrl => {
           dataManager.exportResults(nextUrl)
             .catch(error => {
@@ -103,7 +84,7 @@ class ExperimentApp {
         })
         .catch(error => {
           console.error('次のページURLの取得に失敗しました:', error);
-          const defaultNextUrl = `../examine1_2?id=${encodeURIComponent(dataManager.userId)}`;
+          const defaultNextUrl = `../eXaM1nE_2?id=${encodeURIComponent(dataManager.userId)}`;
           dataManager.exportResults(defaultNextUrl)
             .catch(exportError => {
               console.error('結果の送信に失敗しました:', exportError);
@@ -201,7 +182,7 @@ window.get_value = async function() {
 window.get_value_fin = async function() {
   try {
     await window.get_value();
-    const nextUrl = await getNextPageUrl('examine1', dataManager.userId);
+    const nextUrl = await getNextPageUrl('eXaMinE1', dataManager.userId);
     await dataManager.exportResults(nextUrl);
   } catch (error) {
     console.error(error);
@@ -232,7 +213,6 @@ window.preventBrowserBack = function() {
 // ページロード時に進捗/orderチェックを追加。不正な場合は警告＋リダイレクト。
 window.addEventListener('DOMContentLoaded', async function() {
   try {
-    // ユーザーID取得（localStorage優先、なければURL）
     let userId = null;
     try {
       userId = localStorage.getItem('exp_user_id_persistent');
@@ -243,10 +223,10 @@ window.addEventListener('DOMContentLoaded', async function() {
     }
     if (!userId) {
       alert('ユーザーIDが取得できません。最初からやり直してください。');
-      window.location.href = '/top1_2';
+      window.location.href = '/t0P1_2';
       return;
     }
   } catch (e) {
-    window.location.href = '/top1_2';
+    window.location.href = '/t0P1_2';
   }
 });

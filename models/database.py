@@ -4,6 +4,8 @@ import threading
 import datetime
 import re
 
+from utils.logger import app_logger  # 追加
+
 class ExperimentSession:
     def __init__(self, id, current_step=0, finished=False, order=None):
         self.id = id
@@ -178,7 +180,8 @@ class Database:
                 if existing_allocation:
                     # 既存の割り当てがある場合はそれを使用（カウンターは更新しない）
                     selected_condition = existing_allocation[0]
-                    print(f"既存の条件を使用: ユーザーID {user_id} -> {selected_condition}")
+                    app_logger.info(f"既存の条件を使用: ユーザーID {user_id} -> {selected_condition}")  # ログ追加
+                    # print(f"既存の条件を使用: ユーザーID {user_id} -> {selected_condition}")
                 else:
                     # 新規ユーザーの場合は割り当てを行う
                     # 現在の各条件の参加者数を取得
@@ -207,16 +210,16 @@ class Database:
                         (user_id, selected_condition)
                     )
 
-                    print(f"新規条件割り当て: ユーザーID {user_id} -> {selected_condition}")
+                    app_logger.info(f"新規条件割り当て: ユーザーID {user_id} -> {selected_condition}")  # ログ追加
+                    # print(f"新規条件割り当て: ユーザーID {user_id} -> {selected_condition}")
 
                 # トランザクションをコミット
                 conn.commit()
                 conn.close()
 
                 return {"sampleType": selected_condition, "userId": user_id}
-
         except Exception as e:
-            print(f"条件割り当てエラー: {e}")
+            app_logger.error(f"条件割り当てエラー: {e}", exc_info=True)  # ログ追加
             if 'conn' in locals() and conn:
                 conn.rollback()  # エラー時はロールバック
                 conn.close()
@@ -327,130 +330,64 @@ class Database:
         """
         # ユーザーIDの検証とサニタイズ
         if not self.validate_user_id(user_id):
-            print(f"無効なユーザーID: {user_id}")
+            app_logger.warning(f"無効なユーザーID: {user_id}")  # ログ追加
             return {"pathType": "order1", "error": "Invalid user ID", "userId": user_id}
-            
         try:
             with self.db_lock:  # スレッドセーフに処理
                 conn = sqlite3.connect(self.db_path)
                 cursor = conn.cursor()
-                
                 # ユーザーIDのサニタイズ
                 sanitized_user_id = self.sanitize_user_id(user_id)
-                
-                # デバッグ情報追加
-                print(f"DEBUG: パラメータ - user_id={sanitized_user_id}, reallocate={reallocate}, type={type(reallocate)}")
-                
                 # トランザクション開始
                 conn.execute("BEGIN TRANSACTION")
-
                 # まず、このユーザーIDに既存の経路割り当てがあるか確認
                 cursor.execute(
                     "SELECT path_type FROM experiment_path_history WHERE user_id = ?",
                     (sanitized_user_id,)
                 )
                 existing_path = cursor.fetchone()
-                print(f"DEBUG: existing_path={existing_path}")
-
-                # 検証: ユーザーIDが正しく使用されているか確認
-                print(f"DEBUG: SQLクエリに使用されたユーザーID={sanitized_user_id}")
 
                 if existing_path and not reallocate:
                     # 既存の割り当てがある場合はそれを使用（カウンターは更新しない）
                     selected_path = existing_path[0]
-                    print(f"既存の経路を使用: ユーザーID {sanitized_user_id} -> {selected_path}")
                 else:
                     # 新規ユーザーまたは再割り当ての場合
                     # 現在の各経路の参加者数を取得
                     cursor.execute("SELECT path_type, count FROM experiment_path_counters")
                     counters = {row[0]: row[1] for row in cursor.fetchall()}
-
                     # 少ない方の経路を選択、同じ場合はorder1を優先
                     if counters.get('order1', 0) <= counters.get('order2', 0):
                         selected_path = 'order1'
                     else:
                         selected_path = 'order2'
-
                     # カウンターを更新
                     cursor.execute(
                         "UPDATE experiment_path_counters SET count = count + 1 WHERE path_type = ?",
                         (selected_path,)
                     )
-
                     # 既存ユーザーの場合は履歴を更新、新規ユーザーの場合は挿入
+                    update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?"
                     if existing_path:
-                        print(f"経路再割り当て: ユーザーID {sanitized_user_id} -> {selected_path}")
-                        # timestampも明示的に更新
-                        update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?"
                         cursor.execute(update_query, (selected_path, sanitized_user_id))
-                        print(f"DEBUG: UPDATEクエリ実行結果 - 影響行数={cursor.rowcount}")
                     else:
-                        print(f"新規経路割り当て: ユーザーID {sanitized_user_id} -> {selected_path}")
-                        # INSERTに失敗した場合に備えて、基本的なINSERTを使用
                         insert_query = "INSERT INTO experiment_path_history (user_id, path_type) VALUES (?, ?)"
                         try:
                             cursor.execute(insert_query, (sanitized_user_id, selected_path))
-                            print(f"DEBUG: INSERTクエリ実行結果 - 影響行数={cursor.rowcount}")
-                        except sqlite3.IntegrityError as e:
-                            print(f"DEBUG: ユニーク制約違反エラー: {e}")
-                            # ユニーク制約違反の場合は更新を試みる
+                        except sqlite3.IntegrityError:
                             cursor.execute(update_query, (selected_path, sanitized_user_id))
-                            print(f"DEBUG: フォールバックUPDATE実行結果 - 影響行数={cursor.rowcount}")
 
                 # トランザクションをコミット
                 conn.commit()
                 conn.close()
 
                 return {"pathType": selected_path, "userId": sanitized_user_id}
-
         except Exception as e:
-            print(f"経路割り当てエラー: {e}")
+            app_logger.error(f"経路割り当てエラー: {e}", exc_info=True)  # ログ追加
             if 'conn' in locals() and conn:
                 conn.rollback()  # エラー時はロールバック
                 conn.close()
             # エラー時のデフォルト経路
             return {"pathType": "order1", "error": str(e), "userId": user_id}
-
-    def get_experiment_path_stats(self):
-        """
-        実験経路割り当ての統計情報を取得
-
-        Returns:
-            dict: 各経路の割り当て数と割合
-        """
-        try:
-            with self.db_lock:
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
-
-                cursor.execute("SELECT path_type, count FROM experiment_path_counters")
-                counters = {row[0]: row[1] for row in cursor.fetchall()}
-
-                # 総参加者数
-                total = sum(counters.values())
-
-                # 割合を計算
-                percentages = {
-                    path_type: (count / total * 100 if total > 0 else 0)
-                    for path_type, count in counters.items()
-                }
-
-                conn.close()
-
-                return {
-                    "counts": counters,
-                    "percentages": percentages,
-                    "total": total
-                }
-
-        except Exception as e:
-            print(f"経路統計情報取得エラー: {e}")
-            return {
-                "counts": {"order1": 0, "order2": 0},
-                "percentages": {"order1": 0, "order2": 0},
-                "total": 0,
-                "error": str(e)
-            }
 
     def get_connection(self):
         """ヘルスチェック用のデータベース接続テスト"""

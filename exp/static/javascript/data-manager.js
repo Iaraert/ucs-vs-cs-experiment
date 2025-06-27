@@ -23,8 +23,8 @@ export class DataManager {
     this.sampleType = null;        // 実験条件（対称/非対称）
     this.startTime = '';           // 実験開始時間
     this.customData = {};          // カスタムデータストレージ
-    this.experimentType = '';      // 実験タイプ（examine1, examine1_2など）
-    this.totalPages = 6;           // 実験の総ページ数（examine1_2のデフォルト）
+    this.experimentType = '';      // 実験タイプ（eXaMinE1, eXaM1nE_2など）
+    this.totalPages = 6;           // 実験の総ページ数（eXaM1nE_2のデフォルト）
   }
 
   /**
@@ -32,6 +32,7 @@ export class DataManager {
    * @returns {Promise} 初期化処理のPromise
    */
   async init() {
+    // ★ ここで必ずstartTimeを初期化する
     this.startTime = getNow();
     try {
       await this.loadExperimentData();
@@ -114,6 +115,7 @@ export class DataManager {
    * @returns {Promise} 初期化処理のPromise
    */
   async init(userId = null) {
+    // ★ ここでも必ずstartTimeを初期化する
     this.startTime = getNow();
     try {
       await this.loadExperimentData();
@@ -326,15 +328,15 @@ export class DataManager {
     }
 
     // is_first を 0/1 に変換
-    // examine1: order1の場合に最初 (examine1 → examine1_2)
-    // examine1_2: order2の場合に最初 (examine1_2 → examine1)
+    // eXaMinE1: order1の場合に最初 (eXaMinE1 → eXaM1nE_2)
+    // eXaM1nE_2: order2の場合に最初 (eXaM1nE_2 → eXaMinE1)
     let isFirstNumeric;
-    if (this.experimentType === 'examine1') {
+    if (this.experimentType === 'eXaMinE1') {
       isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
-    } else if (this.experimentType === 'examine1_2') {
+    } else if (this.experimentType === 'eXaM1nE_2') {
       isFirstNumeric = experimentOrder === 'order2' ? 1 : 0;
     } else {
-      // デフォルト（examine1のロジック）
+      // デフォルト（eXaMinE1のロジック）
       isFirstNumeric = experimentOrder === 'order1' ? 1 : 0;
     }
     
@@ -414,7 +416,7 @@ export class DataManager {
   }
 
   /**
-   * 実験結果をサーバーに送信（examine1用）
+   * 実験結果をサーバーに送信（eXaMinE1用）
    * @param {string} nextUrl - 送信成功時のリダイレクト先URL
    * @returns {Promise} 送信処理のPromise
    */
@@ -436,17 +438,17 @@ export class DataManager {
     this.userData.push(data);
 
     try {
-      // examine1_2の場合はfile_name_suffixをexp1_2にする
+      // eXaM1nE_2の場合はfile_name_suffixをexp1_2にする
       let fileNameSuffix = 'exp1';
-      if (this.experimentType === 'examine1_2') {
+      if (this.experimentType === 'eXaM1nE_2') {
         fileNameSuffix = 'exp1_2';
       }
       // --- ここでlocalStorageに6件分のデータを保存 ---
       try {
-        if (this.experimentType === 'examine1') {
-          localStorage.setItem(`estimations_examine1_${this.userId}`, JSON.stringify(this.estimations));
-        } else if (this.experimentType === 'examine1_2') {
-          localStorage.setItem(`estimations_examine1_2_${this.userId}`, JSON.stringify(this.estimations));
+        if (this.experimentType === 'eXaMinE1') {
+          localStorage.setItem(`estimations_eXaMinE1_${this.userId}`, JSON.stringify(this.estimations));
+        } else if (this.experimentType === 'eXaM1nE_2') {
+          localStorage.setItem(`estimations_eXaM1nE_2_${this.userId}`, JSON.stringify(this.estimations));
         }
       } catch (e) {
         // 保存失敗時は何もしない
@@ -461,10 +463,10 @@ export class DataManager {
         timeout: 50000
       });
       // 送信成功時にフラグ保存
-      if (this.experimentType === 'examine1') {
-        localStorage.setItem(`examine1_sent_${this.userId}`, 'sent');
-      } else if (this.experimentType === 'examine1_2') {
-        localStorage.setItem(`examine1_2_sent_${this.userId}`, 'sent');
+      if (this.experimentType === 'eXaMinE1') {
+        localStorage.setItem(`eXaMinE1_sent_${this.userId}`, 'sent');
+      } else if (this.experimentType === 'eXaM1nE_2') {
+        localStorage.setItem(`eXaM1nE_2_sent_${this.userId}`, 'sent');
       }
       
       // 送信成功イベントを通知（Observerパターン）
@@ -548,7 +550,7 @@ export class DataManager {
   }
   
   /**
-   * examine1_2実験の結果を送信
+   * eXaM1nE_2実験の結果を送信
    * @param {Array} estimations - 推定値データ
    * @param {string} nextUrl - 送信成功時のリダイレクト先URL
    * @returns {Promise} 送信処理のPromise
@@ -574,9 +576,9 @@ export class DataManager {
       
       // --- ここでlocalStorageに6件分のデータを保存 ---
       try {
-        localStorage.setItem(`estimations_examine1_2_${this.userId}`, JSON.stringify(estimations));
+        localStorage.setItem(`estimations_eXaM1nE_2_${this.userId}`, JSON.stringify(estimations));
       } catch (e) {
-        console.warn('estimations_examine1_2のlocalStorage保存に失敗:', e);
+        console.warn('estimations_eXaM1nE_2のlocalStorage保存に失敗:', e);
       }
       const response = await postData('/send', {
         'user_data': JSON.stringify(userData),
@@ -587,7 +589,7 @@ export class DataManager {
         timeout: 50000
       });
       // 送信成功時にフラグ保存
-      localStorage.setItem(`examine1_2_sent_${this.userId}`, 'sent');
+      localStorage.setItem(`eXaM1nE_2_sent_${this.userId}`, 'sent');
       
       // 実験結果送信成功イベントを通知
       eventBus.emit('examine12Results:sent', { 
@@ -620,19 +622,19 @@ export class DataManager {
   
   /**
    * 指定ページで進捗条件を満たしているか判定
-   * @param {string} page - 'examine1' | 'examine1_2' | 'examine2' | 'examine3'
+   * @param {string} page - 'eXaMinE1' | 'eXaM1nE_2' | 'Ex2' | 'examine3'
    * @returns {boolean}
    */
   isPageSubmissionValid(page) {
     try {
       // 6つ目のシナリオで送信時のみ、orderに従った次ページへの進入許可を判定
       // それ以外の判定方法は削除
-      if (page === 'examine1' || page === 'examine1_2') {
+      if (page === 'eXaMinE1' || page === 'eXaM1nE_2') {
         // 6件目の回答時のみ許可
         return this.estimations.length === 6;
       }
-      // examine2, examine3はorderに従った進入許可のみ（送信済みフラグ等は判定しない）
-      if (page === 'examine2' || page === 'examine3') {
+      // Ex2, examine3はorderに従った進入許可のみ（送信済みフラグ等は判定しない）
+      if (page === 'Ex2' || page === 'examine3') {
         return true;
       }
       return false;

@@ -1,6 +1,7 @@
 from flask import Flask
 from config.settings import active_config
 from utils.logger import configure_logging, setup_logger, error_logger
+from utils.logger import app_logger  # 追加
 
 # 設定からロギング設定を読み込む
 logging_config = {
@@ -16,7 +17,6 @@ logging_config = {
 configure_logging(logging_config)
 
 # アプリケーションロガーの設定
-app_logger = setup_logger('experiment_app')
 app_logger.info('アプリケーションを初期化しています')
 
 # Flaskアプリケーションの作成

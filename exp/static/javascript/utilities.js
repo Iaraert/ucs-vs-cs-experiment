@@ -26,11 +26,11 @@ export function zeroPadding(num, length) {
 export function getNow() {
   const now = new Date();
   const year = now.getFullYear();
-  const mon = now.getMonth() + 1;
-  const day = now.getDate();
-  const hour = now.getHours();
-  const min = now.getMinutes();
-  const sec = now.getSeconds();
+  const mon = (now.getMonth() + 1).toString().padStart(2, '0');
+  const day = now.getDate().toString().padStart(2, '0');
+  const hour = now.getHours().toString().padStart(2, '0');
+  const min = now.getMinutes().toString().padStart(2, '0');
+  const sec = now.getSeconds().toString().padStart(2, '0');
   return `${year}/${mon}/${day} ${hour}:${min}:${sec}`;
 }
 
@@ -292,7 +292,7 @@ export function loadPageStyles(pageName) {
  * 「examine1 → examine1_2」と「examine1_2 → examine1」の2パターンを均等に割り振る
  * @param {string} userId - ユーザーID
  * @param {boolean} reallocate - 既存の割り当てを無視して再割り当てするかどうか
- * @returns {Promise<string>} - 'order1'（examine1 → examine1_2）または'order2'（examine1_2 → examine1）
+ * @returns {Promise<string>} - 'order1'（eXaMinE1 → eXaM1nE_2）または'order2'（eXaM1nE_2 → eXaMinE1）
  */
 export async function getExperimentOrder(userId, reallocate = false) {
   if (!userId) {
@@ -336,14 +336,14 @@ export async function getExperimentOrder(userId, reallocate = false) {
 
 /**
  * 実験順序に基づいて次のページURLを取得
- * @param {string} currentPage - 現在のページ名（'examine1'または'examine1_2'）
+ * @param {string} currentPage - 現在のページ名（'eXaMinE1'または'eXaM1nE_2'）
  * @param {string} userId - ユーザーID
  * @returns {Promise<string>} - 次のページへのURLを含むPromise
  */
 export async function getNextPageUrl(currentPage, userId) {
   if (!userId) {
     console.error('getNextPageUrl: ユーザーIDが指定されていません');
-    return `../examine2?id=${encodeURIComponent('unknown')}`;
+    return `../Ex2?id=${encodeURIComponent('unknown')}`;
   }
   
   // reallocate=falseを明示的に設定して既存の経路を尊重するようにする
@@ -351,39 +351,38 @@ export async function getNextPageUrl(currentPage, userId) {
   
   console.log(`getNextPageUrl: currentPage=${currentPage}, experimentOrder=${experimentOrder}, userId=${userId}`);
   
-  if (currentPage === 'examine1') {
+  if (currentPage === 'eXaMinE1') {
     if (experimentOrder === 'order1') {
-      // order1: examine1 → examine1_2 → examine2の順序
-      console.log('order1: examine1 → examine1_2への遷移');
-      return `../examine1_2?id=${encodeURIComponent(userId)}`;
+      // order1: eXaMinE1 → eXaM1nE_2 → Ex2
+      console.log('order1: eXaMinE1 → eXaM1nE_2への遷移');
+      return `../eXaM1nE_2?id=${encodeURIComponent(userId)}`;
     } else if (experimentOrder === 'order2') {
-      // order2: examine1_2 → examine1 → examine2の順序（examine1が最後）
-      console.log('order2: examine1 → examine2への遷移（examine1が最後）');
-      return `../examine2?id=${encodeURIComponent(userId)}`;
+      // order2: eXaM1nE_2 → eXaMinE1 → Ex2
+      console.log('order2: eXaMinE1 → Ex2への遷移（eXaMinE1が最後）');
+      return `../Ex2?id=${encodeURIComponent(userId)}`;
     } else {
-      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでexamine1_2へ遷移`);
-      return `../examine1_2?id=${encodeURIComponent(userId)}`;
+      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでeXaM1nE_2へ遷移`);
+      return `../eXaM1nE_2?id=${encodeURIComponent(userId)}`;
     }
-  } else if (currentPage === 'examine1_2') {
+  } else if (currentPage === 'eXaM1nE_2') {
     if (experimentOrder === 'order1') {
-      // order1: examine1 → examine1_2 → examine2の順序（examine1_2が最後）
-      console.log('order1: examine1_2 → examine2への遷移（examine1_2が最後）');
-      return `../examine2?id=${encodeURIComponent(userId)}`;
+      // order1: eXaMinE1 → eXaM1nE_2 → Ex2（eXaM1nE_2が最後）
+      console.log('order1: eXaM1nE_2 → Ex2への遷移（eXaM1nE_2が最後）');
+      return `../Ex2?id=${encodeURIComponent(userId)}`;
     } else if (experimentOrder === 'order2') {
-      // order2: examine1_2 → examine1 → examine2の順序
-      console.log('order2: examine1_2 → examine1への遷移');
-      return `../examine1?id=${encodeURIComponent(userId)}`;
+      // order2: eXaM1nE_2 → eXaMinE1 → Ex2
+      console.log('order2: eXaM1nE_2 → eXaMinE1への遷移');
+      return `../eXaMinE1?id=${encodeURIComponent(userId)}`;
     } else {
-      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでexamine2へ遷移`);
-      return `../examine2?id=${encodeURIComponent(userId)}`;
+      console.warn(`getNextPageUrl: 不明な実験順序: ${experimentOrder}, デフォルトでEx2へ遷移`);
+      return `../Ex2?id=${encodeURIComponent(userId)}`;
     }
   } else {
-    console.warn(`getNextPageUrl: 不明な現在ページ: ${currentPage}, デフォルトでexamine2へ遷移`);
+    console.warn(`getNextPageUrl: 不明な現在ページ: ${currentPage}, デフォルトでEx2へ遷移`);
   }
-  
-  // デフォルトはexamine2
-  console.log('デフォルト: examine2への遷移');
-  return `../examine2?id=${encodeURIComponent(userId)}`;
+  // デフォルトはEx2
+  console.log('デフォルト: Ex2への遷移');
+  return `../Ex2?id=${encodeURIComponent(userId)}`;
 }
 
 
@@ -431,7 +430,7 @@ export function sanitizeUserId(userId) {
  * 1つ目のシナリオで全チェックボックス完了時に次の実験形式について通知
  * @param {string} userId - ユーザーID
  * @param {number} currentIndex - 現在のシナリオインデックス
- * @param {string} currentPage - 現在のページ名（'examine1'または'examine1_2'）
+ * @param {string} currentPage - 現在のページ名（'eXaMinE1'または'eXaM1nE_2'）
  * @returns {Promise<void>}
  */
 export async function checkAndShowFormatChangeNotification(userId, currentIndex, currentPage) {
@@ -458,18 +457,18 @@ export async function checkAndShowFormatChangeNotification(userId, currentIndex,
     let nextExperimentType = '';
     
     // --- 通知条件ロジック修正 ---
-    if (experimentOrder === 'order1' && currentPage === 'examine1_2') {
-      // order1: examine1 → examine1_2 → examine2
-      // examine1_2の1つ目のシナリオで通知（次はexamine2）
+    if (experimentOrder === 'order1' && currentPage === 'eXaM1nE_2') {
+      // order1: eXaMinE1 → eXaM1nE_2 → Ex2
+      // eXaM1nE_2の1つ目のシナリオで通知（次はEx2）
       shouldShowNotification = true;
-      nextExperimentType = 'examine2';
-    } else if (experimentOrder === 'order2' && currentPage === 'examine1') {
-      // order2: examine1_2 → examine1 → examine2
-      // examine1の1つ目のシナリオで通知（次はexamine2）
+      nextExperimentType = 'Ex2';
+    } else if (experimentOrder === 'order2' && currentPage === 'eXaMinE1') {
+      // order2: eXaM1nE_2 → eXaMinE1 → Ex2
+      // eXaMinE1の1つ目のシナリオで通知（次はEx2）
       shouldShowNotification = true;
-      nextExperimentType = 'examine2';
+      nextExperimentType = 'Ex2';
     }
-    // order2 で examine1_2 の1つ目では通知しない
+    // order2 で eXaM1nE_2 の1つ目では通知しない
 
     if (shouldShowNotification) {
       // 通知を表示

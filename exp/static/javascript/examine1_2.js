@@ -94,8 +94,8 @@ class Experiment12Manager {
     this.initialized = false;
     this.initializationInProgress = false;
     
-    // 実験タイプを設定
-    dataManager.setExperimentType('examine1_2');
+    // 実験タイプを新しい名称に変更
+    dataManager.setExperimentType('eXaM1nE_2');
     
     // examine1_2固有の設定
     this.file = '../static/material1.json';
@@ -129,6 +129,7 @@ class Experiment12Manager {
     this.sampleSize = 0;
     this.userId = 0;
     this.startTime = getNow();
+    dataManager.startTime = this.startTime; // ← 追加: dataManagerにもコピー
     this.sceIdx = 0;
     this.estI = 0;
     this.cellSize = 0;
@@ -145,6 +146,9 @@ class Experiment12Manager {
     }
     this.initializationInProgress = true;
     try {
+      // ★ ここで必ずstartTimeを初期化する
+      this.startTime = getNow();
+      dataManager.startTime = this.startTime; // ← 追加: dataManagerにもコピー
       // 依存モジュールの読み込み完了を待機
       await initializeWithRetry();
       // utilities.jsから統一されたユーザーID取得関数を使用
@@ -229,7 +233,7 @@ class Experiment12Manager {
       console.log('examine1_2: 実験条件:', dataManager.sampleType);
       
       // config.jsからexamine1_2用のシナリオを取得
-      this.scenarios = config.setExperimentScenarios('examine1_2', this.userId);
+      this.scenarios = config.setExperimentScenarios('eXaM1nE_2', this.userId);
       console.log('examine1_2: 配布されたシナリオ:', this.scenarios.join(', '));
         // データの読み込み
       console.log('examine1_2: データファイルの読み込みを開始:', this.file);
@@ -459,7 +463,23 @@ class Experiment12Manager {
       }
     }
 
-    document.getElementById('page').innerHTML = "<h4>" + (this.sceIdx + 1) + '/' + this.scenarios.length + "種類目</h4>";
+    // --- 通し番号の計算 ---
+    let displayIndex = this.sceIdx + 1;
+    let total = 12;
+    (async () => {
+      let experimentOrder = 'order1';
+      try {
+        const { getExperimentOrder } = await import('./utilities.js');
+        experimentOrder = await getExperimentOrder(this.userId, false);
+      } catch (e) {}
+      if (dataManager.experimentType === 'eXaM1nE_2') {
+        displayIndex = (experimentOrder === 'order1') ? (this.sceIdx + 7) : (this.sceIdx + 1);
+      } else if (dataManager.experimentType === 'eXaMinE1') {
+        displayIndex = (experimentOrder === 'order1') ? (this.sceIdx + 1) : (this.sceIdx + 7);
+      }
+      document.getElementById('page').innerHTML = `<h4>${displayIndex}/${total}種類目</h4>`;
+    })();
+
     document.getElementById('scenario_title').innerHTML = "<h2>" + this.testOrder[scenarioKey]['title'] + "</h2>";
 
     setElementsDisplay({
@@ -775,7 +795,7 @@ class Experiment12Manager {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 1500);
+    }, 10);
   }  /**
    * スライダーの質問文を設定
    */
@@ -818,7 +838,11 @@ class Experiment12Manager {
     // 最小値と最大値の設定
     const minResultElement = document.getElementById('slider_min_result');
     if (minResultElement) {
-      minResultElement.textContent = '0：' + (scenarioData['min_result'] || '全く引き起こさない');
+      if (dataManager.sampleType === 'symmetric') {
+        minResultElement.textContent = '0：差はない';
+      } else {
+        minResultElement.textContent = '0：' + (scenarioData['min_result'] || '全く引き起こさない');
+      }
     }
     
     const maxResultElement = document.getElementById('slider_max_result');
@@ -1059,7 +1083,7 @@ class Experiment12Manager {
       
       // 実験順序に基づいて次のページURLを決定
       console.log('examine1_2: exportResults - ユーザーID:', this.userId);
-      const nextUrl = await getNextPageUrl('examine1_2', this.userId);
+      const nextUrl = await getNextPageUrl('eXaM1nE_2', this.userId);
       console.log('examine1_2: 次のページURL:', nextUrl);
       console.log('examine1_2: 現在のユーザーID（確認）:', this.userId);
 

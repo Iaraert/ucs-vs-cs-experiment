@@ -5,8 +5,8 @@ from flask import session, redirect, abort, make_response
 from models.database import Database, ExperimentSession
 
 # ページ名リスト（order1/order2で順序が異なる）
-ORDER1 = ['top1_2', 'examine1', 'examine1_2', 'examine2', 'examine3', 'end']
-ORDER2 = ['top1_2', 'examine1_2', 'examine1', 'examine2', 'examine3', 'end']
+ORDER1 = ['t0P12', 'eXaMinE1', 'eXaM1nE_2', 'Ex2', 'CRT3', 'end']
+ORDER2 = ['t0P12', 'eXaM1nE_2', 'eXaMinE1', 'Ex2', 'CRT3', 'end']
 
 # ページ名→step番号辞書
 ORDER1_STEP = {name: i for i, name in enumerate(ORDER1)}

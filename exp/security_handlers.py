@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 import os
 from utils.logger import ErrorLogger
+from utils.logger import app_logger  # 追加
 
 security_bp = Blueprint('security', __name__)
 error_logger = ErrorLogger()
@@ -21,6 +22,7 @@ def log_security_incident():
     セキュリティインシデントをログに記録
     """
     try:
+        app_logger.info("/api/security/log APIリクエスト受信")  # ログ追加
         data = request.get_json()
         
         if not data:
@@ -48,7 +50,8 @@ def log_security_incident():
         
         with open(log_filepath, 'a', encoding='utf-8') as f:
             f.write(json.dumps(log_entry, ensure_ascii=False) + '\n')
-          # 重要度の高いインシデントは即座にアラート
+        app_logger.info(f"/api/security/log ログ保存: {log_filepath}")  # ログ追加
+        # 重要度の高いインシデントは即座にアラート
         critical_types = [
             'invalid_parameter',
             'parameter_processing_error',
@@ -62,10 +65,10 @@ def log_security_incident():
                 raise ValueError(f"セキュリティインシデント: {data['type']}")
             except ValueError as se:
                 error_logger.log_exception(se, level='WARNING', context=log_entry)
-        
+                app_logger.warning(f"/api/security/log 重大インシデント: {data['type']}")  # ログ追加
         return jsonify({'status': 'logged', 'timestamp': log_entry['timestamp']}), 200
-        
     except Exception as e:
+        app_logger.error(f"/api/security/log 例外発生: {e}", exc_info=True)  # ログ追加
         error_logger.log_exception(e, context={'endpoint': 'security_log'})
         return jsonify({'error': 'Internal server error'}), 500
 
@@ -75,6 +78,7 @@ def get_security_status():
     セキュリティ状態の取得
     """
     try:
+        app_logger.info("/api/security/status APIリクエスト受信")  # ログ追加
         # 最近のセキュリティログを確認
         log_filename = f"security_{datetime.now().strftime('%Y%m%d')}.log"
         log_filepath = os.path.join(SECURITY_LOG_DIR, log_filename)
@@ -102,8 +106,8 @@ def get_security_status():
             'recent_incidents': recent_incidents,
             'monitoring_active': True
         }), 200
-        
     except Exception as e:
+        app_logger.error(f"/api/security/status 例外発生: {e}", exc_info=True)  # ログ追加
         error_logger.log_exception(e, context={'endpoint': 'security_status'})
         return jsonify({'error': 'Internal server error'}), 500
 
@@ -112,6 +116,7 @@ def analyze_security_patterns():
     セキュリティパターンの分析
     """
     try:
+        app_logger.info("analyze_security_patterns 関数呼び出し")  # ログ追加
         today = datetime.now().strftime('%Y%m%d')
         log_filename = f"security_{today}.log"
         log_filepath = os.path.join(SECURITY_LOG_DIR, log_filename)
@@ -165,7 +170,7 @@ def analyze_security_patterns():
             'ip_distribution': ip_addresses,
             'suspicious_patterns': suspicious_patterns
         }
-        
     except Exception as e:
+        app_logger.error(f"analyze_security_patterns 例外発生: {e}", exc_info=True)  # ログ追加
         error_logger.log_exception(e, context={'function': 'analyze_security_patterns'})
         return {'error': 'Analysis failed'}

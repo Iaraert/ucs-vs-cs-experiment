@@ -1,0 +1,5 @@
+user_id,start_time,end_time,user_agent,sample_type
+mbj48ey9m32d2,2025/6/5 17:29:51,2025/6/5 17:32:8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",symmetric
+mce4bbioufms5tqn7f.lll,2025/6/27 10:14:52,2025/6/27 10:18:42,"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",asymmetric
+mce4rhgvyle0dgfeyy.p77,2025/6/27 11:1:43,2025/6/27 11:17:52,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",symmetric
+mce6ymgvxlu1dc900x.lll,2025/6/27 11:48:31,2025/6/27 12:0:55,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36 Edg/137.0.0.0",asymmetric

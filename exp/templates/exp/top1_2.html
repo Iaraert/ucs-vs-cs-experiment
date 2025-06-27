@@ -7,7 +7,36 @@
     <meta http-equiv="Cache-Control" content="no-store" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <style>
+        #scenario_descriptions p {
+            display: flex;
+            align-items: flex-start;
+            text-align: left !important;
+            width: 100%;
+        }
+        #scenario_descriptions label {
+            text-align: left !important;
+            display: inline-block !important;
+            width: calc(100% - 30px);
+        }
+        #scenario_descriptions .checks {
+            margin-right: 2%;
+            margin-top: 0.3%;
+            flex-shrink: 0;
+        }
+    </style>
     <script>
+        // ページ読み込み時にパスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+        window.addEventListener('DOMContentLoaded', function() {
+            try {
+                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+                window.history.replaceState({}, document.title, fakePathUrl);
+                console.log('top1_2: パスを/expに見せかけました');
+            } catch (e) {
+                console.error('top1_2: パス書き換え失敗:', e);
+            }
+        });
+        
         // ページ読み込み時に実行
         window.onload = async function() {
             // ユーザーID生成/取得関数（utilities.jsと統一）
@@ -191,13 +220,13 @@
                 // 経路に基づいて最初の実験ページを決定
                 let firstExperimentPage;
                 if (experimentPath === 'order1') {
-                    // order1: examine1 → examine1_2 → examine2
-                    firstExperimentPage = '/examine1';
-                    console.log('経路order1を適用: 最初のページは /examine1');
+                    // order1: eXaMinE1 → eXaM1nE_2 → Ex2
+                    firstExperimentPage = '/eXaMinE1';
+                    console.log('経路order1を適用: 最初のページは /eXaMinE1');
                 } else {
-                    // order2: examine1_2 → examine1 → examine2
-                    firstExperimentPage = '/examine1_2';
-                    console.log('経路order2を適用: 最初のページは /examine1_2');
+                    // order2: eXaM1nE_2 → eXaMinE1 → Ex2
+                    firstExperimentPage = '/eXaM1nE_2';
+                    console.log('経路order2を適用: 最初のページは /eXaM1nE_2');
                 }
                 
                 // フォームにイベントリスナーを追加（送信前に遷移先変更）

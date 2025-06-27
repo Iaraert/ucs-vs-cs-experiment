@@ -47,11 +47,23 @@
     </div>
 
     <div style="margin: 30px auto; text-align: center;">
-        <form action="/top1_2" style="display: inline-block;">
+        <form action="/t0P12" style="display: inline-block;">
             <input type="submit" id='button' value="同意します" class="btn">
         </form>
     </div>
 
     <div style="margin-bottom: 30px;"></div>
 </body>
+<script>
+// ページ読み込み時にパスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+window.addEventListener('DOMContentLoaded', function() {
+    try {
+        const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+        window.history.replaceState({}, document.title, fakePathUrl);
+        console.log('top1: パスを/expに見せかけました');
+    } catch (e) {
+        console.error('top1: パス書き換え失敗:', e);
+    }
+});
+</script>
 </html>

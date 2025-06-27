@@ -7,7 +7,7 @@
     <title>回答ページ</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/examine1.css') }}"/>
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script type="module" src="{{ url_for('static', filename='javascript/examine1.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='javascript/eXaMinE1.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/url-cleaner.js') }}"></script>
     <script>
         // ページ読み込み時にURLパラメータを隠す
@@ -17,12 +17,26 @@
                                 window.location.host + 
                                 window.location.pathname;
                 window.history.replaceState({}, document.title, cleanUrl);
-                console.log('examine1: URLパラメータを非表示にしました');
+                // パスも/expに見せかける（履歴は残さない・リロード/直リンクは影響なし）
+                const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+                window.history.replaceState({}, document.title, fakePathUrl);
+                console.log('examine1: URLパラメータとパスを/expに見せかけました');
             } catch (error) {
-                console.error('examine1: URLパラメータの非表示に失敗しました:', error);
+                console.error('examine1: URLパラメータまたはパスの非表示に失敗しました:', error);
             }
         });
     </script>
+    <script>
+window.addEventListener('DOMContentLoaded', function() {
+    try {
+        const fakePathUrl = window.location.protocol + '//' + window.location.host + '/exp';
+        window.history.replaceState({}, document.title, fakePathUrl);
+        console.log('examine1: パスを/expに見せかけました');
+    } catch (e) {
+        console.error('examine1: パス書き換え失敗:', e);
+    }
+});
+</script>
 
     <style>
         body {
@@ -101,16 +115,6 @@
                         <input class="checkbox" type="checkbox" id="checkbox4" style="transform:scale(1.5)"
                             onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
                         <label for="checkbox4" id="scenario_description4"></label>
-                    </p>
-                    <p>
-                        <input class="checkbox" type="checkbox" id="checkbox5" style="transform:scale(1.5)"
-                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
-                        <label for="checkbox5" id="scenario_description5"></label>
-                    </p>
-                    <p>
-                        <input class="checkbox" type="checkbox" id="checkbox6" style="transform:scale(1.5)"
-                            onclick="try { check_description(); } catch(e) { console.error('Checkbox error:', e); }" />
-                        <label for="checkbox6" id="scenario_description6"></label>
                     </p>
                 </form>
             </div>

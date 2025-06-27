@@ -1,5 +1,5 @@
 /**
- * examine2.js - 実験2（IMC）のメインスクリプト
+ * Ex2.js - 実験2（IMC）のメインスクリプト
  * モジュール化された構造を使用して重複コードを削除
  */
 import dataManager from './data-manager.js';
@@ -16,6 +16,8 @@ class IMCExperiment {
   constructor() {
     this.result = false;
     this.allowPageLeave = false;
+    // 新しい型名をコメントに明記
+    // Ex2 実験
   }
 
   /**
@@ -23,19 +25,19 @@ class IMCExperiment {
    */
   init() {
     try {
-      console.log('🟦 examine2.js - init() started');
+      console.log('🟦 Ex2.js - init() started');
       
       // ユーザーID取得（改良版を使用）
       dataManager.userId = getOrCreateUserId();
-      console.log('🟦 examine2.js - User ID retrieved:', dataManager.userId);
+      console.log('🟦 Ex2.js - User ID retrieved:', dataManager.userId);
       
       if (!dataManager.userId) {
-        console.error('🔴 examine2.js - User ID not found');
-        alert("ユーザーIDが取得できません。対応しますのでクラウドワークスから不具合を報告してください。");
+        console.error('🟥 Ex2.js - User ID not found');
+        alert('ユーザーIDが取得できません。対応しますのでクラウドワークスから不具合を報告してください。');
         return;
       }
       
-      console.log('🟦 examine2.js - Initialize completed successfully');
+      console.log('🟦 Ex2.js - Initialize completed successfully');
       
       // ページ離脱警告を設定
       setupPageLeaveWarning(true);
@@ -43,7 +45,7 @@ class IMCExperiment {
       // ブラウザバックを禁止
       preventBrowserBack();
     } catch (error) {
-      console.error('🔴 examine2.js - 初期化エラー:', error);
+      console.error('🟥 Ex2.js - 初期化エラー:', error);
     }
   }
   
@@ -102,3 +104,6 @@ window.export_results = function() {
 window.preventBrowserBack = function() {
   preventBrowserBack();
 };
+
+// 実験タイプ・パス名を新名称に統一
+// 例: setExperimentType('Ex2')
