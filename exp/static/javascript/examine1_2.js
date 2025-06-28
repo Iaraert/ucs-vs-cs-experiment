@@ -525,7 +525,7 @@ class Experiment12Manager {
       scenarioDescriptionsContainer.innerHTML = html;
       
       // DOM更新の同期化: チェックボックス動的生成後のsetTimeout待機時間を200ms以上に延長
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log(`toNextScenarioDescription: DOM更新完了 - シナリオ${this.sceIdx + 1}, チェックボックス数: ${descriptions.length}`);
         
         // DOM更新完了の確認処理を追加
@@ -541,6 +541,18 @@ class Experiment12Manager {
         } else {
           this.resetCheckboxes(checkboxes, descriptions.length);
         }
+
+        // --- ここでorder1かつsceIdx===0のときのみ通知表示 ---
+        try {
+          const { getExperimentOrder, checkAndShowFormatChangeNotification } = await import('./utilities.js');
+          const experimentOrder = await getExperimentOrder(this.userId, false);
+          if (experimentOrder === 'order1' && this.sceIdx === 0) {
+            await checkAndShowFormatChangeNotification(this.userId, 0, 'eXaM1nE_2');
+          }
+        } catch (e) {
+          console.warn('実験形式変更通知の表示に失敗:', e);
+        }
+        // --- ここまで ---
       }, 250); // DOM更新完了を確実に待機（200ms以上に延長）
     } else {
       // 既存のラベル要素を使用（フォールバック）
@@ -933,19 +945,6 @@ class Experiment12Manager {
    * 推定画面を描画
    */
   drawEstimate(c) {
-    // --- 実験形式変更通知: order1かつ最初のシナリオでのみ表示 ---
-    if (this.sceIdx === 0) {
-      import('./utilities.js').then(async ({ getExperimentOrder, checkAndShowFormatChangeNotification }) => {
-        try {
-          const experimentOrder = await getExperimentOrder(this.userId, false);
-          if (experimentOrder === 'order1') {
-            await checkAndShowFormatChangeNotification(this.userId, 0, 'eXaM1nE_2');
-          }
-        } catch (e) {
-          console.warn('実験形式変更通知の表示に失敗:', e);
-        }
-      });
-    }
 
     // 境界チェック強化
     if (this.sceIdx < 0 || this.sceIdx >= this.scenarios.length) {
