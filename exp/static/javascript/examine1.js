@@ -236,3 +236,9 @@ window.addEventListener('DOMContentLoaded', async function() {
     window.location.href = '/t0P1_2';
   }
 });
+
+// コピー防止（全ページ共通）
+document.addEventListener('copy', function(e) {
+  e.preventDefault();
+  return false;
+});

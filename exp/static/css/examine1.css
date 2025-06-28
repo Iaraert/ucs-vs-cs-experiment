@@ -942,3 +942,11 @@ input[type="submit"]:disabled,
         margin-bottom: 10px;
     }
 }
+
+/* 範囲選択・コピー防止（全ページ共通） */
+html, body, * {
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    -ms-user-select: none !important;
+    -moz-user-select: none !important;
+}

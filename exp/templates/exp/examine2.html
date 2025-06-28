@@ -9,6 +9,10 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/examine2.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='javascript/url-cleaner.js') }}"></script>
+    <script type="module">
+      import { disableSelectionAndCopy } from "../static/javascript/utilities.js";
+      disableSelectionAndCopy();
+    </script>
     <script>
         // ページ読み込み時にURLパラメータを隠す
         window.addEventListener('DOMContentLoaded', function() {

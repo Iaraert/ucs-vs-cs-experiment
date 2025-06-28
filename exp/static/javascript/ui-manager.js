@@ -340,7 +340,11 @@ export class UIManager {
     
     const maxResultElement = document.getElementById('slider_max_result');
     if (maxResultElement) {
-      maxResultElement.textContent = '100：' + scenarioData['max_result'];
+      if (dataManager.sampleType === 'symmetric' && scenarioData['max_result_symmetric']) {
+        maxResultElement.textContent = '100：' + scenarioData['max_result_symmetric'];
+      } else {
+        maxResultElement.textContent = '100：' + scenarioData['max_result'];
+      }
     }
     
     // スライダーの初期値設定

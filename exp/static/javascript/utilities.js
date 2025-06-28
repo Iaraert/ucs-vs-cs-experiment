@@ -650,3 +650,23 @@ export function isAlreadyParticipated() {
   if (document.cookie.split(';').some(c => c.trim().startsWith('simple_flag='))) return true;
   return false;
 }
+
+/**
+ * 全ページで範囲選択・コピー・カットを禁止
+ */
+export function disableSelectionAndCopy() {
+  // CSSでuser-select: noneをbodyに適用
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.style.userSelect = 'none';
+    document.body.style.webkitUserSelect = 'none';
+    document.body.style.msUserSelect = 'none';
+    document.body.style.mozUserSelect = 'none';
+  });
+  // 選択・コピー・カットイベントを抑止
+  ['copy', 'cut', 'selectstart'].forEach(function(evt) {
+    document.addEventListener(evt, function(e) {
+      e.preventDefault();
+      return false;
+    }, true);
+  });
+}
