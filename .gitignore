@@ -30,6 +30,7 @@ venv-wsl/
 ENV/
 
 # データとログ
+data/
 data/*.csv
 data/*.db
 logs/
