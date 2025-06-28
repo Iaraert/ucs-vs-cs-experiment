@@ -36,6 +36,7 @@ data/*.db
 logs/
 pre_experiment_data/
 pre/
+pre/*.csv
 
 # 環境設定
 .env
