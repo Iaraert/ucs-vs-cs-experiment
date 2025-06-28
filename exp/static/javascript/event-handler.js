@@ -1,7 +1,7 @@
 /**
  * ユーザーイベント処理
  */
-import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder } from './utilities.js';
+import { preventBrowserBack, setupPageLeaveWarning, getNextPageUrl, getExperimentOrder, getNow } from './utilities.js';
 import { validateCheckboxes } from './common-utils.js';
 import dataManager from './data-manager.js';
 import uiManager from './ui-manager.js';
@@ -203,7 +203,8 @@ export class EventHandler {
 
     const data = [{
       user_id: dataManager.userId,
-      result: result
+      result: result,
+      timestamp: getNow()
     }];
 
     console.log('🟦 event-handler.js - IMC data to send:', data);
@@ -251,10 +252,20 @@ export class EventHandler {
       q3: document.querySelector('input[name="q3"]').value
     };
 
+    // CRTデータの保存仕様（data_handler.py）に合わせてフィールドを明示的に指定
     const crtData = [{
       user_id: dataManager.userId || 'unknown',
-      ...answers
+      q1: answers.q1,
+      q2: answers.q2,
+      q3: answers.q3,
+      timestamp: getNow()
     }];
+
+    // 送信データが空でないかチェック
+    if (!Array.isArray(crtData) || crtData.length === 0) {
+      uiManager.showErrorMessage('送信データが空です。');
+      return;
+    }
 
     const submitBtn = document.querySelector('.submit-btn');
     if (submitBtn) {
@@ -266,14 +277,13 @@ export class EventHandler {
 
     // ページ遷移前に警告を解除
     window.onbeforeunload = null;
-
     setupPageLeaveWarning(false);
     
+    // 明示的にcrt_dataキーで送信
     dataManager.sendTestResults(crtData, 'exp3', nextUrl)
       .catch(error => {
         console.error('CRT結果の送信に失敗しました:', error);
         uiManager.showErrorMessage('送信中にエラーが発生しました。もう一度お試しください。');
-        
         if (submitBtn) {
           submitBtn.disabled = false;
           submitBtn.textContent = '回答を送信';

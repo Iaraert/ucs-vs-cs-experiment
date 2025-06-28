@@ -71,11 +71,8 @@ class DataHandler:
 
             fieldnames = [
                 "user_id",          # ユーザーID
-                "q1", "q2", "q3",   # 回答内容
-                "q1_correct", "q2_correct", "q3_correct",  # 正誤判定
-                "total_correct",    # 総正解数
-                "time_q1", "time_q2", "time_q3",  # 各問題の所要時間
-                "total_time"        # 全体の所要時間
+                "q1", "q2", "q3",
+                "timestamp"
             ]
 
             if not os.path.exists(filepath):

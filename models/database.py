@@ -204,10 +204,15 @@ class Database:
                         (selected_condition,)
                     )
 
-                    # 割り当て履歴に記録
+                    # JSTタイムスタンプを生成
+                    JST = datetime.timezone(datetime.timedelta(hours=9), 'Asia/Tokyo')
+                    now_jst = datetime.datetime.now(JST)
+                    timestamp_jst = now_jst.strftime("%Y-%m-%d %H:%M:%S")
+
+                    # 割り当て履歴に記録（JSTでtimestampを明示的に指定）
                     cursor.execute(
-                        "INSERT INTO allocation_history (user_id, condition_name) VALUES (?, ?)",
-                        (user_id, selected_condition)
+                        "INSERT INTO allocation_history (user_id, condition_name, timestamp) VALUES (?, ?, ?)",
+                        (user_id, selected_condition, timestamp_jst)
                     )
 
                     app_logger.info(f"新規条件割り当て: ユーザーID {user_id} -> {selected_condition}")  # ログ追加
@@ -365,16 +370,20 @@ class Database:
                         "UPDATE experiment_path_counters SET count = count + 1 WHERE path_type = ?",
                         (selected_path,)
                     )
+                    # JSTタイムスタンプを生成
+                    JST = datetime.timezone(datetime.timedelta(hours=9), 'Asia/Tokyo')
+                    now_jst = datetime.datetime.now(JST)
+                    timestamp_jst = now_jst.strftime("%Y-%m-%d %H:%M:%S")
                     # 既存ユーザーの場合は履歴を更新、新規ユーザーの場合は挿入
-                    update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = CURRENT_TIMESTAMP WHERE user_id = ?"
+                    update_query = "UPDATE experiment_path_history SET path_type = ?, timestamp = ? WHERE user_id = ?"
                     if existing_path:
-                        cursor.execute(update_query, (selected_path, sanitized_user_id))
+                        cursor.execute(update_query, (selected_path, timestamp_jst, sanitized_user_id))
                     else:
-                        insert_query = "INSERT INTO experiment_path_history (user_id, path_type) VALUES (?, ?)"
+                        insert_query = "INSERT INTO experiment_path_history (user_id, path_type, timestamp) VALUES (?, ?, ?)"
                         try:
-                            cursor.execute(insert_query, (sanitized_user_id, selected_path))
+                            cursor.execute(insert_query, (sanitized_user_id, selected_path, timestamp_jst))
                         except sqlite3.IntegrityError:
-                            cursor.execute(update_query, (selected_path, sanitized_user_id))
+                            cursor.execute(update_query, (selected_path, timestamp_jst, sanitized_user_id))
 
                 # トランザクションをコミット
                 conn.commit()
