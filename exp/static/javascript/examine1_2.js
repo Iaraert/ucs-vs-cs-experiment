@@ -838,7 +838,7 @@ class Experiment12Manager {
     // 最小値と最大値の設定
     const minResultElement = document.getElementById('slider_min_result');
     if (minResultElement) {
-      if (dataManager.sampleType === 'symmetric') {
+      if ( dataManager.sampleType === 'symmetric') {
         minResultElement.textContent = '0：差はない';
       } else {
         minResultElement.textContent = '0：' + (scenarioData['min_result'] || '全く引き起こさない');
