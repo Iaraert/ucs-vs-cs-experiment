@@ -46,6 +46,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「新薬」を投与する事は、その後の頭痛をどの程度引き起こす",
         "result_symmetric": "「新薬A」の投与は、「新薬B」と比べて頭痛をどの程度引き起こす",
         "frame_descriptions": {
@@ -104,6 +105,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「ソナー」を使用する事は、その後の海底資源の発見をどの程度引き起こす",
         "result_symmetric": "「A式ソナー」の使用は、「B式ソナー」と比べて海底資源の発見をどの程度引き起こす",
         "frame_descriptions": {
@@ -162,6 +164,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「土壌添加剤」を施すことは、その後の花の開花をどの程度引き起こす",
         "result_symmetric": "「添加剤A」を施すことは、「添加剤B」と比べて花の開花をどの程度引き起こす",
         "frame_descriptions": {
@@ -207,19 +210,20 @@
         },
         "sentences": {
             "a": "「特定の照明」を設置した、成長が促進された",
-            "b": "「特定の照明」を設置した、成長は変化なし",
+            "b": "「特定の照明」を設置した、成長は変わりはなかった",
             "c": "「特定の照明」を設置しなかった、成長が促進された",
-            "d": "「特定の照明」を設置しなかった、成長は変化なし"
+            "d": "「特定の照明」を設置しなかった、成長は変わりはなかった"
         },
         "sentences_symmetric": {
             "a": "「照明A」を設置した、成長が促進された",
-            "b": "「照明A」を設置した、成長は変化なし",
+            "b": "「照明A」を設置した、成長は変わりはなかった",
             "c": "「照明B」を設置した、成長が促進された",
-            "d": "「照明B」を設置した、成長は変化なし"
+            "d": "「照明B」を設置した、成長は変わりはなかった"
         },
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「特定の照明」の使用は、成長の促進をどの程度引き起こす",
         "result_symmetric": "「照明A」の使用は、「照明B」と比べて成長の促進をどの程度引き起こす",
         "frame_descriptions": {
@@ -278,6 +282,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "新サービス」を導入することは、顧客満足度の向上をどの程度引き起こす",
         "result_symmetric": "「新サービスA」は、「新サービスB」と比べて顧客満足度の向上をどの程度引き起こす",
         "frame_descriptions": {
@@ -336,6 +341,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "添加物を加える事は、その後のパンの膨らみをどの程度引き起こす",
         "result_symmetric": "「A社の添加物」を加える事は、「B社の添加物」と比べてパンの膨らみをどの程度引き起こす",
         "frame_descriptions": {
@@ -394,6 +400,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「微弱なノイズ音」を使用することは、暗記テストの正答率の向上をどの程度引き起こす",
         "result_symmetric": "「微弱なノイズ音A」の使用は、「微弱なノイズ音B」と比べて暗記テストの正答率の向上をどの程度引き起こす",
         "frame_descriptions": {
@@ -452,6 +459,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「新管理システム」の導入は、運営効率改善をどの程度引き起こす",
         "result_symmetric": "「管理システムA」の導入は、「管理システムB」と比べて運営効率の改善をどの程度引き起こす",
         "frame_descriptions": {
@@ -510,6 +518,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「新型トレーニング器具」の使用は、筋肥大をどの程度引き起こす",
         "result_symmetric": "「器具A」の使用は、「器具B」と比べて筋肥大をどの程度促進する",
         "frame_descriptions": {
@@ -568,6 +577,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「特定の化学物質」の使用は、燃費の向上をどの程度引き起こす",
         "result_symmetric": "「化学物質A」の使用は、「化学物質B」と比べて燃費の向上をどの程度引き起こす",
         "frame_descriptions": {
@@ -626,6 +636,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「特定の色温度の照明」を使用することは、睡眠の質の向上をどの程度引き起こす",
         "result_symmetric": "「色温度Aの照明」の使用は、「色温度Bの照明」と比べて睡眠の質の向上をどの程度引き起こす",
         "frame_descriptions": {
@@ -684,6 +695,7 @@
         "samples_ref": "common_samples",
         "min_result": "全く引き起こさない",
         "max_result": "確実に引き起こす",
+        "max_result_symmetric": "確実によく引き起こす",
         "result": "「ある楽曲」を聴くことは、授業中の集中力向上をどの程度引き起こす",
         "result_symmetric": "「楽曲A」を聴くことは、「楽曲B」と比べて集中力向上をどの程度引き起こす",
         "frame_descriptions": {

@@ -859,8 +859,9 @@ class Experiment12Manager {
     
     const maxResultElement = document.getElementById('slider_max_result');
     if (maxResultElement) {
-      if( dataManager.sampleType === 'symmetric') {
-        maxResultElement.textContent = '100：確実によく引き起こす';
+      if (dataManager.sampleType === 'symmetric') {
+        // symmetric条件用のmax_result_symmetricがあれば優先、なければデフォルト文言
+        maxResultElement.textContent = '100：' + (scenarioData['max_result_symmetric'] || '確実によく引き起こす');
       } else {
         maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
       }
