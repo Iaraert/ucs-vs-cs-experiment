@@ -21,7 +21,8 @@ p{
     border: 2px skyblue dashed; 
     padding: 10px 10px; 
     border-radius: 15px; 
-    text-align:left"
+    text-align:left;
+    min-height: 180px; /* 5文対応で高さを拡張 */
 }
 .title{
     margin-top: 2px;
@@ -101,6 +102,7 @@ input[type="submit"]:disabled,
         border-top: solid 5px #5989cf;
         border-bottom: solid 5px #5989cf;
         display: inline-block;
+        min-height: 200px; /* 5文対応で高さを拡張 */
     }
 
     span{

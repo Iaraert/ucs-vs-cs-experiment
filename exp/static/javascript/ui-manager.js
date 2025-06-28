@@ -127,29 +127,28 @@ export class UIManager {
     
     // 説明文のHTML要素を動的に生成
     const scenarioDescriptionsContainer = document.getElementById('scenario_descriptions');
-    if (scenarioDescriptionsContainer) {
-      let html = '<form action="cgi-bin/abc.cgi" method="post">';
-      for (let i = 0; i < descriptions.length; i++) {
-        html += `
-          <p>
-            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" style="transform:scale(1.5)" onclick="check_description()" />
-            <label for="checkbox${i + 1}" id="scenario_description${i + 1}">${descriptions[i]}</label>
-          </p>`;
-        if (i < descriptions.length - 1) {
-          html += '<br>';
-        }
-      }
-      html += '</form>';
-      scenarioDescriptionsContainer.innerHTML = html;
-    } else {
-      // 既存のラベル要素を使用（フォールバック）
-      for (let i = 0; i < descriptions.length; i++) {
-        const element = document.getElementById(`scenario_description${i + 1}`);
-        if (element) {
-          element.innerHTML = descriptions[i];
-        }
-      }
-    }
+    scenarioDescriptionsContainer.innerHTML = '';
+    // 5文以上でも対応できるようにループで生成
+    descriptions.forEach((desc, idx) => {
+        const p = document.createElement('p');
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'checkbox';
+        checkbox.id = `desc_check_${idx}`;
+        checkbox.style.marginRight = '8px';
+        checkbox.addEventListener('change', () => {
+            // チェックボックスのバリデーション
+            import('./common-utils.js').then(({ validateCheckboxes }) => {
+                validateCheckboxes('checkbox', 'start_scenario_button');
+            });
+        });
+        p.appendChild(checkbox);
+        const label = document.createElement('label');
+        label.htmlFor = checkbox.id;
+        label.textContent = desc;
+        p.appendChild(label);
+        scenarioDescriptionsContainer.appendChild(p);
+    });
     
     // チェックボックスをリセット
     const checkboxes = document.getElementsByClassName("checkbox");

@@ -506,58 +506,58 @@ class Experiment12Manager {
       console.log('非対称条件の説明文を使用');
     }
 
-    // 説明文のHTML要素を動的に生成（examine1と同様）
+    // シナリオ説明文の表示
     const scenarioDescriptionsContainer = document.getElementById('scenario_descriptions');
-    if (scenarioDescriptionsContainer && descriptions && descriptions.length > 0) {
-      let html = '<form action="cgi-bin/abc.cgi" method="post">';      for (let i = 0; i < descriptions.length; i++) {
-        html += `
-          <p>
-            <input class="checkbox" type="checkbox" id="checkbox${i + 1}" 
-                   style="transform:scale(1.5)" 
-                   onclick="check_description()" />
-            <label for="checkbox${i + 1}" id="scenario_description${i + 1}">${descriptions[i]}</label>
-          </p>`;
-        if (i < descriptions.length - 1) {
-          html += '<br>';
-        }
-      }
-      html += '</form>';
-      scenarioDescriptionsContainer.innerHTML = html;
-      
-      // DOM更新の同期化: チェックボックス動的生成後のsetTimeout待機時間を200ms以上に延長
-      setTimeout(async () => {
-        console.log(`toNextScenarioDescription: DOM更新完了 - シナリオ${this.sceIdx + 1}, チェックボックス数: ${descriptions.length}`);
-        
-        // DOM更新完了の確認処理を追加
-        const checkboxes = document.getElementsByClassName("checkbox");
-        if (checkboxes.length !== descriptions.length) {
-          console.warn(`DOM更新完了確認: チェックボックス数が不一致 - 期待: ${descriptions.length}, 実際: ${checkboxes.length}`);
-          
-          // DOM更新が不完全な場合の追加待機
-          setTimeout(() => {
-            const recheckBoxes = document.getElementsByClassName("checkbox");
-            console.log(`追加確認後のチェックボックス数: ${recheckBoxes.length}`);            this.resetCheckboxes(recheckBoxes, descriptions.length);
-          }, 100);
-        } else {
-          this.resetCheckboxes(checkboxes, descriptions.length);
-        }
+    scenarioDescriptionsContainer.innerHTML = '';
+    // 5文以上でも対応できるようにループで生成
+    descriptions.forEach((desc, idx) => {
+      const p = document.createElement('p');
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.className = 'checkbox';
+      checkbox.id = `desc_check_${idx}`;
+      checkbox.style.marginRight = '8px';
+      checkbox.addEventListener('change', () => {
+        validateCheckboxes('checkbox', 'start_scenario_button');
+      });
+      p.appendChild(checkbox);
+      const label = document.createElement('label');
+      label.htmlFor = checkbox.id;
+      label.textContent = desc;
+      p.appendChild(label);
+      scenarioDescriptionsContainer.appendChild(p);
+    });
 
-        // --- ここでorder1かつsceIdx===0のときのみ通知表示 ---
-        try {
-          const { getExperimentOrder, checkAndShowFormatChangeNotification } = await import('./utilities.js');
-          const experimentOrder = await getExperimentOrder(this.userId, false);
-          if (experimentOrder === 'order1' && this.sceIdx === 0) {
-            await checkAndShowFormatChangeNotification(this.userId, 0, 'eXaM1nE_2');
-          }
-        } catch (e) {
-          console.warn('実験形式変更通知の表示に失敗:', e);
+    // DOM更新の同期化: チェックボックス動的生成後のsetTimeout待機時間を200ms以上に延長
+    setTimeout(async () => {
+      console.log(`toNextScenarioDescription: DOM更新完了 - シナリオ${this.sceIdx + 1}, チェックボックス数: ${descriptions.length}`);
+      
+      // DOM更新完了の確認処理を追加
+      const checkboxes = document.getElementsByClassName("checkbox");
+      if (checkboxes.length !== descriptions.length) {
+        console.warn(`DOM更新完了確認: チェックボックス数が不一致 - 期待: ${descriptions.length}, 実際: ${checkboxes.length}`);
+        
+        // DOM更新が不完全な場合の追加待機
+        setTimeout(() => {
+          const recheckBoxes = document.getElementsByClassName("checkbox");
+          console.log(`追加確認後のチェックボックス数: ${recheckBoxes.length}`);            this.resetCheckboxes(recheckBoxes, descriptions.length);
+        }, 100);
+      } else {
+        this.resetCheckboxes(checkboxes, descriptions.length);
+      }
+
+      // --- ここでorder1かつsceIdx===0のときのみ通知表示 ---
+      try {
+        const { getExperimentOrder, checkAndShowFormatChangeNotification } = await import('./utilities.js');
+        const experimentOrder = await getExperimentOrder(this.userId, false);
+        if (experimentOrder === 'order1' && this.sceIdx === 0) {
+          await checkAndShowFormatChangeNotification(this.userId, 0, 'eXaM1nE_2');
         }
-        // --- ここまで ---
-      }, 250); // DOM更新完了を確実に待機（200ms以上に延長）
-    } else {
-      // 既存のラベル要素を使用（フォールバック）
-      this.handleFallbackScenarioDisplay(descriptions);
-    }
+      } catch (e) {
+        console.warn('実験形式変更通知の表示に失敗:', e);
+      }
+      // --- ここまで ---
+    }, 250); // DOM更新完了を確実に待機（200ms以上に延長）
   }
     /**
    * チェックボックスのリセット処理（ヘルパーメソッド）
