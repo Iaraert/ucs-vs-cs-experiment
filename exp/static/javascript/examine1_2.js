@@ -233,7 +233,7 @@ class Experiment12Manager {
       console.log('examine1_2: 実験条件:', dataManager.sampleType);
       
       // config.jsからexamine1_2用のシナリオを取得
-      this.scenarios = config.setExperimentScenarios('eXaM1nE_2', this.userId);
+      this.scenarios = config.setExperimentScenarios('examine1_2', this.userId);
       console.log('examine1_2: 配布されたシナリオ:', this.scenarios.join(', '));
         // データの読み込み
       console.log('examine1_2: データファイルの読み込みを開始:', this.file);
@@ -807,7 +807,7 @@ class Experiment12Manager {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 1500);
+    }, 10);
   }  /**
    * スライダーの質問文を設定
    */
@@ -861,7 +861,7 @@ class Experiment12Manager {
     if (maxResultElement) {
       if (dataManager.sampleType === 'symmetric') {
         // symmetric条件用のmax_result_symmetricがあれば優先、なければデフォルト文言
-        maxResultElement.textContent = '100：' + (scenarioData['max_result_symmetric'] || '確実によく引き起こす');
+        maxResultElement.textContent = '100：' + (scenarioData['max_result_symmetric'] || 'より確実に引き起こす');
       } else {
         maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
       }
