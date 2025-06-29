@@ -43,8 +43,10 @@ export class EventHandler {
   
   checkDescription() {
     // 共通ユーティリティ関数を使用してチェックボックス確認ロジックを統一化
-    validateCheckboxes("checkbox", "start_scenario_button");
-    
+    import('./common-utils.js').then(({ validateCheckboxesRobust }) => {
+      validateCheckboxesRobust("checkbox", "start_scenario_button");
+    });
+
     // 実験形式変更通知のチェック（全チェックボックス完了時に実行）
     this.checkFormatChangeNotification();
   }

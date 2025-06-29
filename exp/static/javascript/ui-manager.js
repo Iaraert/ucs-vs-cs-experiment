@@ -138,8 +138,8 @@ export class UIManager {
         checkbox.style.marginRight = '8px';
         checkbox.addEventListener('change', () => {
             // チェックボックスのバリデーション
-            import('./common-utils.js').then(({ validateCheckboxes }) => {
-                validateCheckboxes('checkbox', 'start_scenario_button');
+            import('./common-utils.js').then(({ validateCheckboxesRobust }) => {
+                validateCheckboxesRobust('checkbox', 'start_scenario_button');
             });
         });
         p.appendChild(checkbox);

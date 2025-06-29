@@ -40,9 +40,11 @@ export function validateCheckboxes(checkboxClass, targetButtonId) {
         console.log(`validateCheckboxes: ボタン "${targetButtonId}" を無効化しました (${checkedCount}/${checkboxes.length})`);
       }
     } else {
+      // ボタンが見つからない場合は何もしない（warnは出すがエラーにしない）
       console.warn(`validateCheckboxes: ターゲットボタン "${targetButtonId}" が見つかりません`);
+      // return; // ここでreturnしてもOK
     }
-  }, 150); // DOM更新完了を確実に待機
+  }, 200); // DOM更新完了を確実に待機（200msに延長）
 }
 
 /**
