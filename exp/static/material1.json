@@ -672,7 +672,7 @@
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「特定の色温度の照明」</span>を使用することは、睡眠の質の向上にどのような影響を与える",
         "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「色温度Bの照明」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「色温度Aの照明」</span>と比べて、睡眠の質の向上にどのような影響を与える",
         "frame_descriptions": {
-            "top": "「通常の色温度の照明」を使用した場合の睡眠の質",
+            "top": "「特定の色温度の照明」を使用しなかった場合の睡眠の質",
             "bottom": "「特定の色温度の照明」を使用した場合の睡眠の質"
         },
         "frame_descriptions_symmetric": {
