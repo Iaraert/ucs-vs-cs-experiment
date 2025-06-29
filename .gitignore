@@ -37,6 +37,7 @@ logs/
 pre_experiment_data/
 pre/
 pre/*.csv
+analysis/
 
 # 環境設定
 .env
