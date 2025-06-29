@@ -93,6 +93,11 @@ class ExperimentApp {
       slider.value = 0;
       slider.min = -100; // レンジ下限
       slider.max = 100;  // レンジ上限
+      // --- スライダーinputイベントでチェックボックス有効化（要素存在チェック付き） ---
+      slider.addEventListener('input', function() {
+        const cb = document.getElementById('slider_confirmation_checkbox');
+        if (cb) cb.disabled = false;
+      });
     }
     const valueDisplay = document.getElementById('slider_value');
     if (valueDisplay) valueDisplay.textContent = '0';
