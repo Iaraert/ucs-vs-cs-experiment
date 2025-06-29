@@ -978,8 +978,13 @@ class Experiment12Manager {
       'finish_all_scenarios': true
     });    // フォーム要素の初期化
     setElementAttributes('checkbox', { 'disabled': true, 'checked': false });
-    setElementAttributes('estimate_slider', { 'value': 50, 'disabled': true });
-    setElementHTMLs({ 'estimate': '50' });
+    setElementAttributes('estimate_slider', { 
+      'value': 0, // 初期値を0に
+      'min': -100, // レンジ下限
+      'max': 100,  // レンジ上限
+      'disabled': true 
+    });
+    setElementHTMLs({ 'estimate': '0' });
     
     // スライダーの質問文を設定
     this.initializeSlider();
