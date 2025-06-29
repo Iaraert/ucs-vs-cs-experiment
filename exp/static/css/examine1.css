@@ -448,15 +448,15 @@ input[type="submit"]:disabled,
 }
 
 .control-description {
-    background-color: #f0f8ff;
-    border: 1px solid #b3e0ff;
-    color: #0066cc;
-}
-
-.experimental-description {
     background-color: #fff5f5;
     border: 1px solid #ffcccc;
     color: #cc0000;
+}
+
+.experimental-description {
+    background-color: #f0f8ff;
+    border: 1px solid #b3e0ff;
+    color: #0066cc;
 }
 
 /* 中央カラム: アイコン表示 */
@@ -602,23 +602,23 @@ input[type="submit"]:disabled,
  * 2つのグループを視覚的に区別するための色設定
  ***************************************/
 .control-group {
-    border-color: #b3e0ff;
-    background-color: #f0f8ff;
-}
-
-.control-group .group-header {
-    color: #0066cc;
-    border-bottom-color: #b3e0ff;
-}
-
-.experimental-group {
     border-color: #ffcccc;
     background-color: #fff5f5;
 }
 
-.experimental-group .group-header {
+.control-group .group-header {
     color: #cc0000;
     border-bottom-color: #ffcccc;
+}
+
+.experimental-group {
+    border-color: #b3e0ff;
+    background-color: #f0f8ff;
+}
+
+.experimental-group .group-header {
+    color: #0066cc;
+    border-bottom-color: #b3e0ff;
 }
 
 /***************************************
@@ -881,16 +881,16 @@ input[type="submit"]:disabled,
 
 /* 統制群のフレーム説明と画像表示の統合スタイル */
 .control-group .frame-description {
-    background-color: #f0f8ff;
-    border-right: 1px solid #b3e0ff;
-    color: #0066cc;
+    background-color: #fff5f5;
+    border-right: 1px solid #ffcccc;
+    color: #cc0000;
 }
 
 /* 実験群のフレーム説明と画像表示の統合スタイル */
 .experimental-group .frame-description {
-    background-color: #fff5f5;
-    border-right: 1px solid #ffcccc;
-    color: #cc0000;
+    background-color: #f0f8ff;
+    border-right: 1px solid #b3e0ff;
+    color: #0066cc;
 }
 
 /* 水平レイアウトの調整 */
