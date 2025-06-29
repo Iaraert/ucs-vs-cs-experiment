@@ -285,7 +285,7 @@ input[type="submit"]:disabled,
     justify-content: space-between;
     margin: 0.5% 0;
     font-size: 0.85rem;
-    position: relative;
+    position: relative; /* ← 追加: 中央ラベルの絶対配置のため */
 }
 
 #slider_min_result {
