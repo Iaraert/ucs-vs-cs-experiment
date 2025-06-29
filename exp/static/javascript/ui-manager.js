@@ -304,69 +304,70 @@ export class UIManager {
   
   /**
    * スライダーの初期化
+   * examine1_2と同様に、対称/非対称条件でラベル・説明文を切り替え、0ラベルも表示
    */
   initializeSlider() {
     const scenarioData = dataManager.getCurrentScenarioData();
-    
-    // 条件に応じて評価文を選択
-    let resultText;
+    const resultEvent = scenarioData['result_event'] || '';
+    let minLabel = '';
+    let zeroLabel = '';
+    let maxLabel = '';
+    let resultText = '';
+    let sliderSentence = '';
+
+    // スライダー説明文（XX部分）
     if (dataManager.sampleType === 'symmetric' && scenarioData['result_symmetric']) {
-      resultText = scenarioData['result_symmetric'];
-      console.log('対称条件の評価文を使用:', resultText);
+      sliderSentence = scenarioData['result_symmetric'];
+      minLabel = `-100: より確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 差はない';
+      maxLabel = `100: より確実に${resultEvent}を引き起こす`;
     } else {
-      resultText = scenarioData['result'];
-      console.log('非対称条件の評価文を使用:', resultText);
+      sliderSentence = scenarioData['result'] || '';
+      minLabel = `-100: 確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 全く影響しない';
+      maxLabel = `100: 確実に${resultEvent}を引き起こす`;
     }
-    
-    // DOM要素の存在確認と更新を明示的に行う
+    resultText = `${minLabel}　${zeroLabel}　${maxLabel}`;
+
+    // スライダー説明文
     const sliderResultElement = document.getElementById('slider_scenario_result');
     if (sliderResultElement) {
-      sliderResultElement.innerHTML = resultText;
-      console.log('評価文をDOM要素に設定しました:', resultText);
+      sliderResultElement.innerHTML = sliderSentence;
     } else {
       console.error('slider_scenario_result要素が見つかりません');
     }
-    
-    // 最小値と最大値も同様に確認しながら設定
+    // ラベルも個別に設定
     const minResultElement = document.getElementById('slider_min_result');
-    if (minResultElement) {
-      if (dataManager.sampleType === 'symmetric') {
-        minResultElement.textContent = '0：差はない';
-      } else {
-        minResultElement.textContent = '0：' + scenarioData['min_result'];
-      }
-    }
-    
+    if (minResultElement) minResultElement.textContent = minLabel;
+    const zeroResultElement = document.getElementById('slider_zero_result');
+    if (zeroResultElement) zeroResultElement.textContent = zeroLabel;
     const maxResultElement = document.getElementById('slider_max_result');
-    if (maxResultElement) {
-      if (dataManager.sampleType === 'symmetric' && scenarioData['max_result_symmetric']) {
-        maxResultElement.textContent = '100：' + scenarioData['max_result_symmetric'];
-      } else {
-        maxResultElement.textContent = '100：' + scenarioData['max_result'];
-      }
-    }
-    
+    if (maxResultElement) maxResultElement.textContent = maxLabel;
+
     // スライダーの初期値設定
     const slider = document.getElementById('response_slider');
-    slider.value = 50;
-    document.getElementById('slider_value').textContent = '50';
-    
+    if (slider) slider.value = 0;
+    const valueDisplay = document.getElementById('slider_value');
+    if (valueDisplay) valueDisplay.textContent = '0';
+
     // スライダーを一時的に無効化
-    slider.setAttribute('disabled', 'disabled');
-    document.getElementById('slider_wait_message').style.display = 'block';
-    document.getElementById('submit_response').setAttribute('disabled', 'disabled');
-    
+    if (slider) slider.setAttribute('disabled', 'disabled');
+    const waitMsg = document.getElementById('slider_wait_message');
+    if (waitMsg) waitMsg.style.display = 'block';
+    const submitBtn = document.getElementById('submit_response');
+    if (submitBtn) submitBtn.setAttribute('disabled', 'disabled');
+
     // 指定時間後にスライダーを有効化
     setTimeout(() => {
-      slider.removeAttribute('disabled');
-      document.getElementById('slider_wait_message').style.display = 'none';
-      
+      if (slider) slider.removeAttribute('disabled');
+      if (waitMsg) waitMsg.style.display = 'none';
       // スライダー操作イベントを追加
-      slider.addEventListener('input', function() {
-        // 値を表示
-        document.getElementById('slider_value').textContent = slider.value;
-      }, { once: true }); // 一度だけ実行
-    }, config.sliderWaitTime);
+      if (slider) {
+        slider.addEventListener('input', function() {
+          if (valueDisplay) valueDisplay.textContent = slider.value;
+        }, { once: true });
+      }
+    }, config.sliderWaitTime || 3000);
   }
   
   /**

@@ -818,54 +818,53 @@ class Experiment12Manager {
       alert('シナリオデータエラーが発生しました。管理者にお問い合わせください。');
       return;
     }
-    
     const scenarioKey = this.scenarios[this.sceIdx];
     const scenarioData = this.testOrder[scenarioKey];
-    
+    // デバッグ用ログ
+    console.log('[initializeSlider] scenarioKey:', scenarioKey);
+    console.log('[initializeSlider] scenarioData:', scenarioData);
     if (!scenarioData) {
-      console.error('initializeSlider: シナリオデータが見つかりません:', scenarioKey);
-      alert(`シナリオ "${scenarioKey}" のデータが見つかりません。管理者にお問い合わせください。`);
+      alert('スライダー説明文のデータが取得できません。データ構造やJSONを確認してください。');
       return;
     }
-    
-    // 条件に応じて評価文を選択（ui-manager.jsと同様のロジック）
-    let resultText;
+    // result/result_symmetricの選択
+    let sliderSentence = '';
     if (dataManager.sampleType === 'symmetric' && scenarioData['result_symmetric']) {
-      resultText = scenarioData['result_symmetric'];
-      console.log('対称条件の評価文を使用:', resultText);
+      sliderSentence = scenarioData['result_symmetric'];
+    } else if (scenarioData['result']) {
+      sliderSentence = scenarioData['result'];
     } else {
-      resultText = scenarioData['result'];
-      console.log('非対称条件の評価文を使用:', resultText);
+      sliderSentence = '';
     }
-    
-    // スライダーの質問文を設定
+    // スライダー説明文をセット
     const sliderResultElement = document.getElementById('slider_scenario_result');
-    if (sliderResultElement && resultText) {
-      sliderResultElement.innerHTML = resultText;
-      console.log('評価文をDOM要素に設定しました:', resultText);
+    if (sliderResultElement) {
+      sliderResultElement.innerHTML = sliderSentence;
+    }
+    // 事象名
+    const resultEvent = scenarioData['result_event'] || '';
+    let minLabel = '';
+    let zeroLabel = '';
+    let maxLabel = '';
+    let resultText = '';
+    if (dataManager.sampleType === 'symmetric') {
+      minLabel = `-100: より確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 差はない';
+      maxLabel = `100: より確実に${resultEvent}を引き起こす`;
+      resultText = `${minLabel}　${zeroLabel}　${maxLabel}`;
     } else {
-      console.error('slider_scenario_result要素が見つからないか、評価文が空です');
+      minLabel = `-100: 確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 全く影響しない';
+      maxLabel = `100: 確実に${resultEvent}を引き起こす`;
+      resultText = `${minLabel}　${zeroLabel}　${maxLabel}`;
     }
-    
-    // 最小値と最大値の設定
+    // ラベルも個別に設定
     const minResultElement = document.getElementById('slider_min_result');
-    if (minResultElement) {
-      if ( dataManager.sampleType === 'symmetric') {
-        minResultElement.textContent = '0：差はない';
-      } else {
-        minResultElement.textContent = '0：' + (scenarioData['min_result'] || '全く引き起こさない');
-      }
-    }
-    
+    if (minResultElement) minResultElement.textContent = minLabel;
+    const zeroResultElement = document.getElementById('slider_zero_result');
+    if (zeroResultElement) zeroResultElement.textContent = zeroLabel;
     const maxResultElement = document.getElementById('slider_max_result');
-    if (maxResultElement) {
-      if (dataManager.sampleType === 'symmetric') {
-        // symmetric条件用のmax_result_symmetricがあれば優先、なければデフォルト文言
-        maxResultElement.textContent = '100：' + (scenarioData['max_result_symmetric'] || 'より確実に引き起こす');
-      } else {
-        maxResultElement.textContent = '100：' + (scenarioData['max_result'] || '確実に引き起こす');
-      }
-    }
+    if (maxResultElement) maxResultElement.textContent = maxLabel;
   }  /**
    * 刺激を表示
    */

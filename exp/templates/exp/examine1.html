@@ -172,19 +172,20 @@ window.addEventListener('DOMContentLoaded', function() {
                     <p>この事例を見て、<span id="slider_scenario_result"></span>と思いますか？</p>
                     <div class="slider-labels">
                         <span id="slider_min_result" class="slider-min-label"></span>
+                        <span id="slider_zero_result" class="slider-zero-label"></span>
                         <span id="slider_max_result" class="slider-max-label"></span>
                     </div>
                 </div>
                 <form oninput="slider_value.value = Number(response_slider.value);">
                     <div class="slider-value-container">
-                        <output id="slider_value">50</output>
+                        <output id="slider_value">0</output>
                     </div>
                     <div class="slider-input-container">
-                        <input id="response_slider" type="range" min="0" max="100" step="1" value="50" disabled>
+                        <input id="response_slider" type="range" min="-100" max="100" step="1" value="0" disabled>
                         <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>
                         <div style="margin-top: 10px;">
                             <input type="checkbox" id="slider_confirmation_checkbox" style="transform:scale(1.5)" disabled />
-                            <label for="slider_confirmation_checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
+                            <label for="slider_confirmation_checkbox">この数値を答えとして回答します（0として回答したい場合でも、一度スライダーを操作してください）</label>
                         </div>
                     </div>
                 </form>
@@ -347,7 +348,7 @@ window.addEventListener('DOMContentLoaded', function() {
             </form>
             <br>
             <input type="checkbox" id="slider_confirmation_checkbox_legacy" style="transform:scale(1.5)" disabled onclick="check_estimate()" />
-            <label for="slider_confirmation_checkbox_legacy">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）<br></label>
+            <label for="slider_confirmation_checkbox_legacy">この数値を答えとして回答します（0として回答したい場合でも、一度スライダーを操作してください）<br></label>
             <script>
                 // スライダーが操作されたらチェックボックスを有効化
                 document.getElementById('estimate_slider').addEventListener('input', function() {

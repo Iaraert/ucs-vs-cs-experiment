@@ -188,10 +188,10 @@ export class SliderInput extends UIElement {
     slider.type = 'range';
     slider.id = this.id;
     slider.name = this.options.name || this.id;
-    slider.min = this.options.min !== undefined ? this.options.min : 0;
+    slider.min = this.options.min !== undefined ? this.options.min : -100;
     slider.max = this.options.max !== undefined ? this.options.max : 100;
+    slider.value = this.options.value !== undefined ? this.options.value : 0;
     slider.step = this.options.step !== undefined ? this.options.step : 1;
-    slider.value = this.options.value !== undefined ? this.options.value : 50;
     
     if (this.options.className) {
       slider.className = this.options.className;

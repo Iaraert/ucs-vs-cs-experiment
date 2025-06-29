@@ -121,18 +121,19 @@
                 <p>この事例を見て、<span id="slider_scenario_result"></span>と思いますか？</p>
                 <div class="slider-labels">
                     <span id="slider_min_result" class="slider-min-label"></span>
+                    <span id="slider_zero_result" class="slider-zero-label"></span>
                     <span id="slider_max_result" class="slider-max-label"></span>
                 </div>
             </div>
               <form oninput="estimate.value = Number(estimate_slider.value);">
                 <div class="slider-value-container">
-                    <output id="estimate">50</o>
+                    <output id="estimate">0</output>
                 </div>
                 <div class="slider-input-container">
-                    <input id="estimate_slider" type="range" min="0" max="100" step="1" value="50" disabled>
+                    <input id="estimate_slider" type="range" min="-100" max="100" step="1" value="0" disabled>
                     <p id="slider_wait_message" class="wait-message">スライダーは3秒後に操作可能になります...</p>                    <div style="margin-top: 10px;">
                         <input type="checkbox" id="slider_confirmation_checkbox" style="transform:scale(1.5)" disabled />
-                        <label for="slider_confirmation_checkbox">この数値を答えとして回答します（50として回答したい場合でも、一度スライダーを操作してください）</label>
+                        <label for="slider_confirmation_checkbox">この数値を答えとして回答します（0として回答したい場合でも、一度スライダーを操作してください）</label>
                     </div>
                 </div>
             </form>
@@ -175,7 +176,7 @@
                     cb.disabled = true;
                 }if (slider) {
                     slider.disabled = true;
-                    slider.value = 50;
+                    slider.value = 0;
                 }
                 if (waitMessage) {
                     waitMessage.style.display = 'block';
@@ -184,7 +185,7 @@
                 // 出力値をリセット
                 const estimate = document.getElementById('estimate');
                 if (estimate) {
-                    estimate.innerHTML = '50';
+                    estimate.innerHTML = '0';
                 }
                 
                 updateSubmitButtonState();
