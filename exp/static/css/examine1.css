@@ -285,6 +285,25 @@ input[type="submit"]:disabled,
     justify-content: space-between;
     margin: 0.5% 0;
     font-size: 0.85rem;
+    position: relative;
+}
+
+#slider_min_result {
+    flex: 0 0 auto;
+    text-align: left;
+}
+
+#slider_zero_result {
+    flex: 0 0 auto;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+#slider_max_result {
+    flex: 0 0 auto;
+    text-align: right;
 }
 
 .slider-value-container {

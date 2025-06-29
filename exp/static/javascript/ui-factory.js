@@ -227,20 +227,27 @@ export class SliderInput extends UIElement {
     
     // スライダー要素を追加
     container.appendChild(slider);
-    
+
     // 現在値表示エリア（スライダーの下部）
     if (this.options.showValue !== false) {
       const valueContainer = document.createElement('div');
       valueContainer.className = 'slider-value-container';
-      
+
       const valueDisplay = document.createElement('span');
       valueDisplay.id = `${this.id}-value`;
       valueDisplay.textContent = slider.value;
-      
+
       valueContainer.appendChild(valueDisplay);
       container.appendChild(valueContainer);
     }
-    
+
+    // 初期値を明示的に0にセット
+    slider.value = 0;
+    if (this.options.showValue !== false) {
+      const valueDisplay = container.querySelector(`#${this.id}-value`);
+      if (valueDisplay) valueDisplay.textContent = '0';
+    }
+
     // イベントリスナーの設定
     slider.addEventListener('input', (e) => {
       const value = parseFloat(e.target.value);

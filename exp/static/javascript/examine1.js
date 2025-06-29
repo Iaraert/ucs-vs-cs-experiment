@@ -86,6 +86,12 @@ class ExperimentApp {
     if (zeroResultElement) zeroResultElement.textContent = zeroLabel;
     const maxResultElement = document.getElementById('slider_max_result');
     if (maxResultElement) maxResultElement.textContent = maxLabel;
+
+    // スライダーの初期値を明示的に0に設定し、表示も0に
+    const slider = document.getElementById('response_slider');
+    if (slider) slider.value = 0;
+    const valueDisplay = document.getElementById('slider_value');
+    if (valueDisplay) valueDisplay.textContent = '0';
   }
 
   /**
