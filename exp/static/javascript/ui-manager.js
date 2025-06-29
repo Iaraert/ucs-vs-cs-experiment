@@ -266,7 +266,7 @@ export class UIManager {
     // 前のシナリオのレスポンスチェックボックスとボタンをリセット
     // 実験タイプに応じて適切なチェックボックスIDを選択
     const currentExperiment = window.location.pathname;
-    const checkboxId = currentExperiment.includes('eXaM1nE_2') ? 'checkbox' : 'response_checkbox';
+    const checkboxId = currentExperiment.includes('eXaM1nE_2') ? 'checkbox' : 'slider_confirmation_checkbox';
     const respCheckbox = document.getElementById(checkboxId);
     if (respCheckbox) {
       respCheckbox.checked = false;
