@@ -55,11 +55,46 @@ class ExperimentApp {
   }
   
   /**
+   * スライダーの質問文とラベルを設定（examine1_2と同等のロジック）
+   */
+  initializeSlider() {
+    // シナリオデータ取得
+    const scenarioKey = dataManager.getCurrentScenarioKey();
+    const scenarioData = dataManager.getCurrentScenarioData();
+    if (!scenarioData) {
+      console.error('initializeSlider: シナリオデータが取得できません:', scenarioKey);
+      alert('スライダー説明文のデータが取得できません。データ構造やJSONを確認してください。');
+      return;
+    }
+    const resultEvent = scenarioData['result_event'] || '';
+    let minLabel = '';
+    let zeroLabel = '';
+    let maxLabel = '';
+    if (dataManager.sampleType === 'symmetric') {
+      minLabel = `-100: より確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 差はない';
+      maxLabel = `100: より確実に${resultEvent}を引き起こす`;
+    } else {
+      minLabel = `-100: 確実に${resultEvent}を妨げる`;
+      zeroLabel = '0: 全く影響しない';
+      maxLabel = `100: 確実に${resultEvent}を引き起こす`;
+    }
+    // ラベルをDOMに反映
+    const minResultElement = document.getElementById('slider_min_result');
+    if (minResultElement) minResultElement.textContent = minLabel;
+    const zeroResultElement = document.getElementById('slider_zero_result');
+    if (zeroResultElement) zeroResultElement.textContent = zeroLabel;
+    const maxResultElement = document.getElementById('slider_max_result');
+    if (maxResultElement) maxResultElement.textContent = maxLabel;
+  }
+
+  /**
    * シナリオ説明から実験画面へ
    */
   startScenario() {
     // --- 進捗ログを追加 ---
     console.log(`[examine1.startScenario] currentScenarioIndex=${dataManager.currentScenarioIndex}`);
+    this.initializeSlider();
     uiManager.displaySamplePage();
   }
   

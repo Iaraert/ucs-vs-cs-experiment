@@ -205,11 +205,21 @@ export class SliderInput extends UIElement {
       // 最小値ラベル
       const minLabel = document.createElement('span');
       minLabel.textContent = `${slider.min}：${this.options.labels.min || ''}`;
+      minLabel.className = 'slider-label-min';
       labelsDiv.appendChild(minLabel);
+      
+      // 0ラベル（中央）
+      if (this.options.labels.zero !== undefined) {
+        const zeroLabel = document.createElement('span');
+        zeroLabel.textContent = `0：${this.options.labels.zero}`;
+        zeroLabel.className = 'slider-label-zero';
+        labelsDiv.appendChild(zeroLabel);
+      }
       
       // 最大値ラベル
       const maxLabel = document.createElement('span');
       maxLabel.textContent = `${slider.max}：${this.options.labels.max || ''}`;
+      maxLabel.className = 'slider-label-max';
       labelsDiv.appendChild(maxLabel);
       
       container.appendChild(labelsDiv);
@@ -939,6 +949,30 @@ export class UIFactory {
     return container;
   }
 }
+
+/*
+CSS例（examine1.css等に追加することを推奨）
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+}
+.slider-label-min {
+  flex: 0 0 auto;
+  text-align: left;
+}
+.slider-label-zero {
+  flex: 0 0 auto;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+.slider-label-max {
+  flex: 0 0 auto;
+  text-align: right;
+}
+*/
 
 // シングルトンインスタンスを作成
 const uiFactory = new UIFactory();

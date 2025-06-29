@@ -170,17 +170,17 @@ ul {
     width: 100%;
 }
 
+#scenario_descriptions label {
+    text-align: left !important;
+    display: inline-block !important;
+    width: calc(100% - 30px);
+    font-size: 0.95rem;
+}
+
 #scenario_descriptions .checkbox {
     margin-right: 2%;
     margin-top: 0.3%;
     flex-shrink: 0;
-}
-
-#scenario_descriptions label {
-    flex-grow: 1;
-    text-align: left !important;
-    width: calc(100% - 25px);
-    font-size: 0.95rem;
 }
 
 #scenario_descriptions br {
