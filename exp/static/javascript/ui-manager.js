@@ -321,7 +321,7 @@ export class UIManager {
     // DOM要素の存在確認と更新を明示的に行う
     const sliderResultElement = document.getElementById('slider_scenario_result');
     if (sliderResultElement) {
-      sliderResultElement.textContent = resultText;
+      sliderResultElement.innerHTML = resultText;
       console.log('評価文をDOM要素に設定しました:', resultText);
     } else {
       console.error('slider_scenario_result要素が見つかりません');
