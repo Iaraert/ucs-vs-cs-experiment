@@ -841,7 +841,7 @@ class Experiment12Manager {
     // スライダーの質問文を設定
     const sliderResultElement = document.getElementById('slider_scenario_result');
     if (sliderResultElement && resultText) {
-      sliderResultElement.textContent = resultText;
+      sliderResultElement.innerHTML = resultText;
       console.log('評価文をDOM要素に設定しました:', resultText);
     } else {
       console.error('slider_scenario_result要素が見つからないか、評価文が空です');

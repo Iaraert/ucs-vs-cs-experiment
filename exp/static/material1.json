@@ -50,7 +50,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「サプリメント」を服用する事は、その後の頭痛をどの程度引き起こす",
-        "result_symmetric": "「サプリメントB」の服用は、「サプリメントA」と比べて頭痛をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">サプリメントB</span>の服用は、<span style=\"color:#0074D9\">サプリメントA</span>と比べて頭痛をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「サプリメント」を服用しなかった人たちの頭痛の発生状況",
             "bottom": "「サプリメント」を服用した人たちの頭痛の発生状況"
@@ -111,7 +111,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「ソナー」を使用する事は、その後の海底資源の発見をどの程度引き起こす",
-        "result_symmetric": "「B式ソナー」の使用は、「A式ソナー」と比べて海底資源の発見をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">B式ソナー</span>の使用は、<span style=\"color:#0074D9\">A式ソナー</span>と比べて海底資源の発見をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「ソナー」を使用していないチームの海底資源の発見状況",
             "bottom": "「ソナー」を使用したチームの海底資源の発見状況"
@@ -172,7 +172,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「ある土壌添加剤」を施すことは、その後の花の開花をどの程度引き起こす",
-        "result_symmetric": "「土壌添加剤B」を施すことは、「土壌添加剤A」と比べて花の開花をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">土壌添加剤B</span>を施すことは、<span style=\"color:#0074D9\">土壌添加剤A</span>と比べて花の開花をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「ある土壌添加剤」を施さなかった植物の花の開花状況",
             "bottom": "「ある土壌添加剤」を施した植物の花の開花状況"
@@ -233,7 +233,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「特定の照明器具」の使用は、成長の促進をどの程度引き起こす",
-        "result_symmetric": "「照明B」の使用は、「照明A」と比べて成長の促進をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">照明B</span>の使用は、<span style=\"color:#0074D9\">照明A</span>と比べて成長の促進をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「特定の照明器具」を使用していない植物の成長の状況",
             "bottom": "「特定の照明器具」を使用した植物の成長の状況"
@@ -294,7 +294,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「新サービス」を導入することは、顧客満足度の向上をどの程度引き起こす",
-        "result_symmetric": "「新サービスB」は、「新サービスA」と比べて顧客満足度の向上をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">新サービスB</span>は、<span style=\"color:#0074D9\">新サービスA</span>と比べて顧客満足度の向上をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「新サービス」を導入しなかった場合の顧客満足度",
             "bottom": "「新サービス」を導入した場合の顧客満足度"
@@ -355,7 +355,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「ある添加物」を加える事は、その後のパンの膨らみをどの程度引き起こす",
-        "result_symmetric": "「B社の添加物」を加える事は、「A社の添加物」と比べてパンの膨らみをどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">B社の添加物</span>を加える事は、<span style=\"color:#0074D9\">A社の添加物</span>と比べてパンの膨らみをどの程度引き起こす",
         "frame_descriptions": {
             "top": "「ある添加物」を加えていないパンの膨らみ具合",
             "bottom": "「ある添加物」を加えたパンの膨らみ具合"
@@ -416,7 +416,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「微弱なノイズ音」を使用することは、暗記テストの正答率の向上をどの程度引き起こす",
-        "result_symmetric": "「微弱なノイズ音B」の使用は、「微弱なノイズ音A」と比べて暗記テストの正答率の向上をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">微弱なノイズ音B</span>の使用は、<span style=\"color:#0074D9\">微弱なノイズ音A</span>と比べて暗記テストの正答率の向上をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「微弱なノイズ音」を使用しなかった場合の暗記テスト正答率",
             "bottom": "「微弱なノイズ音」を使用した場合の暗記テスト正答率"
@@ -477,7 +477,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「新管理システム」の導入は、運営効率改善をどの程度引き起こす",
-        "result_symmetric": "「管理システムB」の導入は、「管理システムA」と比べて運営効率の改善をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">管理システムB</span>の導入は、<span style=\"color:#0074D9\">管理システムA</span>と比べて運営効率の改善をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「新管理システム」を導入しなかった病院の運営効率状況",
             "bottom": "「新管理システム」を導入した病院の運営効率状況"
@@ -538,7 +538,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「新型トレーニング器具」の使用は、筋肥大をどの程度引き起こす",
-        "result_symmetric": "「器具B」の使用は、「器具A」と比べて筋肥大をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">トレーニング器具B</span>の使用は、<span style=\"color:#0074D9\">トレーニング器具A</span>と比べて筋肥大をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「新型トレーニング器具」を使用しなかった場合の筋肥大状況",
             "bottom": "「新型トレーニング器具」を使用した場合の筋肥大状況"
@@ -599,7 +599,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「特定の化学物質」の使用は、燃費の向上をどの程度引き起こす",
-        "result_symmetric": "「化学物質B」の使用は、「化学物質A」と比べて燃費の向上をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">化学物質B</span>の使用は、<span style=\"color:#0074D9\">化学物質A</span>と比べて燃費の向上をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「特定の化学物質」を加えなかった場合の燃費状況",
             "bottom": "「特定の化学物質」を加えた場合の燃費状況"
@@ -660,7 +660,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「特定の色温度の照明」を使用することは、睡眠の質の向上をどの程度引き起こす",
-        "result_symmetric": "「色温度Bの照明」の使用は、「色温度Aの照明」と比べて睡眠の質の向上をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">色温度Bの照明</span>の使用は、<span style=\"color:#0074D9\">色温度Aの照明</span>と比べて睡眠の質の向上をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「通常の色温度の照明」を使用した場合の睡眠の質",
             "bottom": "「特定の色温度の照明」を使用した場合の睡眠の質"
@@ -721,7 +721,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "「ある楽曲」を聴くことは、授業中の集中力向上をどの程度引き起こす",
-        "result_symmetric": "「楽曲B」を聴くことは、「楽曲A」と比べて集中力向上をどの程度引き起こす",
+        "result_symmetric": "<span style=\"color:#E74C3C\">楽曲B</span>を聴くことは、<span style=\"color:#0074D9\">楽曲A</span>と比べて集中力向上をどの程度引き起こす",
         "frame_descriptions": {
             "top": "「ある楽曲」を聴かなかった場合の授業中の集中力",
             "bottom": "「ある楽曲」を聴いた場合の授業中の集中力"
