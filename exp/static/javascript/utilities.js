@@ -586,21 +586,21 @@ export function showModalNotification(title, message) {
       modal.remove();
     });
     
-    // モーダルの外側クリックで閉じる
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.remove();
-      }
-    });
-    
-    // ESCキーで閉じる
-    const handleEscape = (e) => {
-      if (e.key === 'Escape') {
-        modal.remove();
-        document.removeEventListener('keydown', handleEscape);
-      }
-    };
-    document.addEventListener('keydown', handleEscape);
+    // --- 外側クリックやESCキーで閉じる処理を削除（ボタン以外で閉じられないように） ---
+    // // モーダルの外側クリックで閉じる
+    // modal.addEventListener('click', (e) => {
+    //   if (e.target === modal) {
+    //     modal.remove();
+    //   }
+    // });
+    // // ESCキーで閉じる
+    // const handleEscape = (e) => {
+    //   if (e.key === 'Escape') {
+    //     modal.remove();
+    //     document.removeEventListener('keydown', handleEscape);
+    //   }
+    // };
+    // document.addEventListener('keydown', handleEscape);
     
     // 要素を組み立て
     modalContent.appendChild(titleElement);
