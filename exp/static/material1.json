@@ -13,7 +13,7 @@
             "複数の参加者は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各参加者は「サプリメントA」か「サプリメントB」のどちらか一方だけを服用し、両方を服用した人やどちらも服用しなかった人はいません。",
             "これから、実験の結果が提示されます。",
-            "「サプリメントB」の服用が「サプリメントA」と比べて頭痛にどのような影響を与えるかを推定してください。"
+            "「サプリメントB」の服用が「サプリメントA」と比べて、頭痛にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/1/headache.png",
@@ -50,7 +50,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「あるサプリメント」</span>を服用する事は、その後の頭痛にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「サプリメントB」</span>の服用は、<span style=\"color:#0074D9;font-weight:bold;\">「サプリメントA」</span>と比べて頭痛にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「サプリメントB」</span>の服用は<span style=\"color:#0074D9;font-weight:bold;\">「サプリメントA」</span>と比べて、頭痛にどのような影響を与える",
         "frame_descriptions": {
             "top": "「あるサプリメント」を服用しなかった人たちの頭痛の発生状況",
             "bottom": "「あるサプリメント」を服用した人たちの頭痛の発生状況"
@@ -75,7 +75,7 @@
             "複数のチームは、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各チームは「A式ソナー」か「B式ソナー」のどちらか一方だけを使用し、両方を使用したチームやどちらも使用しなかったチームはありません。",
             "これから、実験の結果が提示されます。",
-            "「B式ソナー」の使用が「A式ソナー」と比べて海底資源の発見にどのような影響を与えるかを推定してください。"
+            "「B式ソナー」の使用が「A式ソナー」と比べて、海底資源の発見にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/2/success.png",
@@ -112,7 +112,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「ソナー」</span>を使用する事は、その後の海底資源の発見にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「B式ソナー」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「A式ソナー」</span>と比べて海底資源の発見にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「B式ソナー」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「A式ソナー」</span>と比べて、海底資源の発見にどのような影響を与える",
         "frame_descriptions": {
             "top": "「ソナー」を使用していないチームの海底資源の発見状況",
             "bottom": "「ソナー」を使用したチームの海底資源の発見状況"
@@ -137,7 +137,7 @@
             "複数の植物は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各植物は「土壌添加剤A」か「土壌添加剤B」のどちらか一方の土壌添加剤だけを与えられ、両方を与えられた植物やどちらも与えなかった植物はありません。",
             "これから、実験の結果が提示されます。",
-            "「土壌添加剤B」が「土壌添加剤A」と比べて花の開花にどのような影響を与えるかを推定してください。"
+            "「土壌添加剤B」が「土壌添加剤A」と比べて、花の開花にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/3/bloom.png",
@@ -174,7 +174,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「ある土壌添加剤」</span>を施すことは、その後の花の開花にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「土壌添加剤B」</span>を施すことは、<span style=\"color:#0074D9;font-weight:bold;\">「土壌添加剤A」</span>と比べて花の開花にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「土壌添加剤B」</span>を施すことは<span style=\"color:#0074D9;font-weight:bold;\">「土壌添加剤A」</span>と比べて、花の開花にどのような影響を与える",
         "frame_descriptions": {
             "top": "「ある土壌添加剤」を施さなかった植物の花の開花状況",
             "bottom": "「ある土壌添加剤」を施した植物の花の開花状況"
@@ -199,7 +199,7 @@
             "複数の植物は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各植物には「照明A」か「照明B」のどちらか一方の照明だけを設置し、両方を設置した植物やどちらも設置しなかった植物はありません。",
             "これから、実験の結果が提示されます。",
-            "「照明B」が「照明A」と比べて植物の成長にどのような影響を与えるかを推定してください。"
+            "「照明B」が「照明A」と比べて、植物の成長にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/4/growth.png",
@@ -236,7 +236,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「特定の照明器具」</span>の使用は、植物の成長にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「照明B」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「照明A」</span>と比べて植物の成長にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「照明B」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「照明A」</span>と比べて、植物の成長にどのような影響を与える",
         "frame_descriptions": {
             "top": "「特定の照明器具」を使用していない植物の成長の状況",
             "bottom": "「特定の照明器具」を使用した植物の成長の状況"
@@ -261,7 +261,7 @@
             "複数の飲食店は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各店舗は「新サービスA」か「新サービスB」のどちらか一方のサービスだけを導入し、両方を導入した店舗やどちらも導入しなかった店舗はありません。",
             "これから、実験の結果が提示されます。",
-            "「新サービスB」が「新サービスA」と比べて顧客満足度の向上にどのような影響を与えるかを推定してください。"
+            "「新サービスB」が「新サービスA」と比べて、顧客満足度の向上にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/5/satisfied.png",
@@ -298,7 +298,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「新サービス」</span>を導入することは、顧客満足度の向上にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「新サービスB」</span>は、<span style=\"color:#0074D9;font-weight:bold;\">「新サービスA」</span>と比べて顧客満足度の向上にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「新サービスB」</span>は<span style=\"color:#0074D9;font-weight:bold;\">「新サービスA」</span>と比べて、顧客満足度の向上にどのような影響を与える",
         "frame_descriptions": {
             "top": "「新サービス」を導入しなかった場合の顧客満足度",
             "bottom": "「新サービス」を導入した場合の顧客満足度"
@@ -323,7 +323,7 @@
             "複数のパン生地は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "それぞれのパン生地にはA社かB社のどちらか一方の「添加物」だけを加え、両方を加えた生地やどちらも加えなかった生地はありません。",
             "これから、実験の結果が提示されます。",
-            "「B社の添加物」が「A社の添加物」と比べてパンの膨らみにどのような影響を与えるかを推定してください。"
+            "「B社の添加物」が「A社の添加物」と比べて、パンの膨らみにどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/6/fluffy.png",
@@ -360,7 +360,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「ある添加物」</span>を加える事は、その後のパンの膨らみにどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「B社の添加物」</span>を加える事は、<span style=\"color:#0074D9;font-weight:bold;\">「A社の添加物」</span>と比べてパンの膨らみにどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「B社の添加物」</span>を加える事は<span style=\"color:#0074D9;font-weight:bold;\">「A社の添加物」</span>と比べて、パンの膨らみにどのような影響を与える",
         "frame_descriptions": {
             "top": "「ある添加物」を加えていないパンの膨らみ具合",
             "bottom": "「ある添加物」を加えたパンの膨らみ具合"
@@ -385,7 +385,7 @@
             "複数の学習者は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各学習者は「微弱なノイズ音A」か「微弱なノイズ音B」のどちらか一方だけが流れる学習室でテストを受け、両方が流れた学習室やどちらも流れなかった学習室でテストを受けた学習者はいません。",
             "これから、実験の結果が提示されます。",
-            "「微弱なノイズ音B」が「微弱なノイズ音A」と比べて正答率にどのような影響を与えるかを推定してください。"
+            "「微弱なノイズ音B」が「微弱なノイズ音A」と比べて、正答率にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/7/high_score.png",
@@ -422,7 +422,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「微弱なノイズ音」</span>を使用することは、暗記テストの正答率の向上にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「微弱なノイズ音B」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「微弱なノイズ音A」</span>と比べて暗記テストの正答率にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「微弱なノイズ音B」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「微弱なノイズ音A」</span>と比べて、暗記テストの正答率にどのような影響を与える",
         "frame_descriptions": {
             "top": "「微弱なノイズ音」を使用しなかった場合の暗記テスト正答率",
             "bottom": "「微弱なノイズ音」を使用した場合の暗記テスト正答率"
@@ -447,7 +447,7 @@
             "複数の病院は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各病院は「管理システムA」か「管理システムB」のどちらか一方のシステムだけを導入し、両方を導入した病院や新システムを導入しなかった病院はありません。",
             "これから、実験の結果が提示されます。",
-            "「管理システムB」が「管理システムA」と比べて病院の運営効率改善にどのような影響を与えるかを推定してください。"
+            "「管理システムB」が「管理システムA」と比べて、病院の運営効率改善にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/8/improved.png",
@@ -484,7 +484,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「新管理システム」</span>の導入は、病院の運営効率改善にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「管理システムB」</span>の導入は、<span style=\"color:#0074D9;font-weight:bold;\">「管理システムA」</span>と比べて病院の運営効率改善にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「管理システムB」</span>の導入は<span style=\"color:#0074D9;font-weight:bold;\">「管理システムA」</span>と比べて、病院の運営効率改善にどのような影響を与える",
         "frame_descriptions": {
             "top": "「新管理システム」を導入しなかった病院の運営効率状況",
             "bottom": "「新管理システム」を導入した病院の運営効率状況"
@@ -509,7 +509,7 @@
             "複数の参加者は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各参加者は「トレーニング器具A」か「トレーニング器具B」のどちらか一方の器具だけを使用し、両方を使用した参加者や器具を使用しなかった参加者はいません。",
             "これから、実験の結果が提示されます。",
-            "「トレーニング器具B」が「トレーニング器具A」と比べて筋肥大にどのような影響を与えるかを推定してください。"
+            "「トレーニング器具B」が「トレーニング器具A」と比べて、筋肥大にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/9/muscle_growth.png",
@@ -546,7 +546,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「新型トレーニング器具」</span>の使用は、筋肥大にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「トレーニング器具B」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「トレーニング器具A」</span>と比べて筋肥大にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「トレーニング器具B」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「トレーニング器具A」</span>と比べて、筋肥大にどのような影響を与える",
         "frame_descriptions": {
             "top": "「新型トレーニング器具」を使用しなかった場合の筋肥大状況",
             "bottom": "「新型トレーニング器具」を使用した場合の筋肥大状況"
@@ -571,7 +571,7 @@
             "複数の車両は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各車両は「化学物質A」か「化学物質B」のどちらか一方を加え、「化学物質」を両方を加えた車両やどちらも使用しなかった車両はありません。",
             "これから、実験の結果が提示されます。",
-            "「化学物質B」が「化学物質A」と比べて燃費の向上にどのような影響を与えるかを推定してください。"
+            "「化学物質B」が「化学物質A」と比べて、燃費の向上にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/10/good_mileage.png",
@@ -608,7 +608,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「特定の化学物質」</span>の使用は、燃費の向上にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「化学物質B」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「化学物質A」</span>と比べて燃費の向上にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「化学物質B」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「化学物質A」</span>と比べて、燃費の向上にどのような影響を与える",
         "frame_descriptions": {
             "top": "「特定の化学物質」を加えなかった場合の燃費状況",
             "bottom": "「特定の化学物質」を加えた場合の燃費状況"
@@ -633,7 +633,7 @@
             "複数の参加者は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各参加者は「色温度A」か「色温度B」のどちらか一方の照明だけを使用し、両方を使用した参加者やどちらも使用しなかった参加者はいません。",
             "これから、実験の結果が提示されます。",
-            "「色温度B」の照明が「色温度A」の照明と比べて睡眠の質の向上にどのような影響を与えるかを推定してください。"
+            "「色温度B」の照明が「色温度A」の照明と比べて、睡眠の質の向上にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/11/good_sleep.png",
@@ -670,7 +670,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「特定の色温度の照明」</span>を使用することは、睡眠の質の向上にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「色温度Bの照明」</span>の使用は、<span style=\"color:#0074D9;font-weight:bold;\">「色温度Aの照明」</span>と比べて睡眠の質の向上にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「色温度Bの照明」</span>の使用は<span style=\"color:#0074D9;font-weight:bold;\">「色温度Aの照明」</span>と比べて、睡眠の質の向上にどのような影響を与える",
         "frame_descriptions": {
             "top": "「通常の色温度の照明」を使用した場合の睡眠の質",
             "bottom": "「特定の色温度の照明」を使用した場合の睡眠の質"
@@ -695,7 +695,7 @@
             "複数の学生は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各学生は「楽曲A」か「楽曲B」のどちらか一方だけを聴いて通学し、両方を聴いた学生やどちらも聴かなかった学生はいません。",
             "これから、調査の結果が提示されます。",
-            "「楽曲B」が「楽曲A」と比べて集中力向上にどのような影響を与えるかを推定してください。"
+            "「楽曲B」が「楽曲A」と比べて、集中力向上にどのような影響を与えるかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/12/focused.png",
@@ -732,7 +732,7 @@
         "max_result": "確実に引き起こす",
         "max_result_symmetric": "より確実に引き起こす",
         "result": "<span style=\"color:#E74C3C;font-weight:bold;\">「ある楽曲」</span>を聴くことは、授業中の集中力向上にどのような影響を与える",
-        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「楽曲B」</span>を聴くことは、<span style=\"color:#0074D9;font-weight:bold;\">「楽曲A」</span>と比べて集中力向上にどのような影響を与える",
+        "result_symmetric": "<span style=\"color:#E74C3C;font-weight:bold;\">「楽曲B」</span>を聴くことは<span style=\"color:#0074D9;font-weight:bold;\">「楽曲A」</span>と比べて、集中力向上にどのような影響を与える",
         "frame_descriptions": {
             "top": "「ある楽曲」を聴かなかった場合の授業中の集中力",
             "bottom": "「ある楽曲」を聴いた場合の授業中の集中力"
