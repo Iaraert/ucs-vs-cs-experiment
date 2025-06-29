@@ -830,18 +830,22 @@ class Experiment12Manager {
     
     // 条件に応じて評価文を選択（ui-manager.jsと同様のロジック）
     let resultText;
+    // examine1_2.htmlでは色付きHTMLタグを無効化するため、タグを除去してテキストのみ表示
     if (dataManager.sampleType === 'symmetric' && scenarioData['result_symmetric']) {
-      resultText = scenarioData['result_symmetric'];
-      console.log('対称条件の評価文を使用:', resultText);
+      // HTMLタグを除去
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = scenarioData['result_symmetric'];
+      resultText = tempDiv.textContent || tempDiv.innerText || '';
+      console.log('対称条件の評価文（タグ除去）を使用:', resultText);
     } else {
       resultText = scenarioData['result'];
       console.log('非対称条件の評価文を使用:', resultText);
     }
-    
+
     // スライダーの質問文を設定
     const sliderResultElement = document.getElementById('slider_scenario_result');
     if (sliderResultElement && resultText) {
-      sliderResultElement.innerHTML = resultText;
+      sliderResultElement.textContent = resultText;
       console.log('評価文をDOM要素に設定しました:', resultText);
     } else {
       console.error('slider_scenario_result要素が見つからないか、評価文が空です');

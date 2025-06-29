@@ -88,8 +88,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/2/a_sonar.png",
-            "notp": "static/images/scenarios/2/b_sonar.png",
+            "p": "static/images/scenarios/2/b_sonar.png",
+            "notp": "static/images/scenarios/2/a_sonar.png",
             "q": "static/images/scenarios/2/success.png",
             "notq": "static/images/scenarios/2/failure.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -149,8 +149,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/3/additive_a.png",
-            "notp": "static/images/scenarios/3/additive_b.png",
+            "p": "static/images/scenarios/3/additive_b.png",
+            "notp": "static/images/scenarios/3/additive_a.png",
             "q": "static/images/scenarios/3/bloom.png",
             "notq": "static/images/scenarios/3/nobloom.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -210,8 +210,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/4/led_type_a.png",
-            "notp": "static/images/scenarios/4/led_type_b.png",
+            "p": "static/images/scenarios/4/led_type_b.png",
+            "notp": "static/images/scenarios/4/led_type_a.png",
             "q": "static/images/scenarios/4/growth.png",
             "notq": "static/images/scenarios/4/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -257,7 +257,7 @@
             "複数の飲食店は、特定の条件や意図ではなく、公平かつ偏りのない方法でランダムに選ばれました。",
             "各店舗は「新サービスA」か「新サービスB」のどちらか一方のサービスだけを導入し、両方を導入した店舗やどちらも導入しなかった店舗はありません。",
             "これから、実験の結果が提示されます。",
-            "「新サービスA」が「新サービスB」と比べて顧客満足度の向上をどの程度引き起こすかを推定してください。"
+            "「新サービスB」が「新サービスA」と比べて顧客満足度の向上をどの程度引き起こすかを推定してください。"
         ],
         "images": {
             "positive": "static/images/scenarios/5/satisfied.png",
@@ -271,8 +271,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/5/service_a.png",
-            "notp": "static/images/scenarios/5/service_b.png",
+            "p": "static/images/scenarios/5/service_b.png",
+            "notp": "static/images/scenarios/5/service_a.png",
             "q": "static/images/scenarios/5/satisfied.png",
             "notq": "static/images/scenarios/5/unsatisfied.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -332,8 +332,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/6/additive_a.png",
-            "notp": "static/images/scenarios/6/additive_b.png",
+            "p": "static/images/scenarios/6/additive_b.png",
+            "notp": "static/images/scenarios/6/additive_a.png",
             "q": "static/images/scenarios/6/fluffy.png",
             "notq": "static/images/scenarios/6/flat.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -393,8 +393,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/7/freq_a.png",
-            "notp": "static/images/scenarios/7/freq_b.png",
+            "p": "static/images/scenarios/7/freq_b.png",
+            "notp": "static/images/scenarios/7/freq_a.png",
             "q": "static/images/scenarios/7/high_score.png",
             "notq": "static/images/scenarios/7/low_score.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -454,8 +454,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/8/system_a.png",
-            "notp": "static/images/scenarios/8/system_b.png",
+            "p": "static/images/scenarios/8/system_b.png",
+            "notp": "static/images/scenarios/8/system_a.png",
             "q": "static/images/scenarios/8/improved.png",
             "notq": "static/images/scenarios/8/unchanged.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -515,8 +515,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/9/equipment_a.png",
-            "notp": "static/images/scenarios/9/equipment_b.png",
+            "p": "static/images/scenarios/9/equipment_b.png",
+            "notp": "static/images/scenarios/9/equipment_a.png",
             "q": "static/images/scenarios/9/muscle_growth.png",
             "notq": "static/images/scenarios/9/no_growth.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -576,8 +576,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/10/additive_a.png",
-            "notp": "static/images/scenarios/10/additive_b.png",
+            "p": "static/images/scenarios/10/additive_b.png",
+            "notp": "static/images/scenarios/10/additive_a.png",
             "q": "static/images/scenarios/10/good_mileage.png",
             "notq": "static/images/scenarios/10/poor_mileage.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -637,8 +637,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/11/light_a.png",
-            "notp": "static/images/scenarios/11/light_b.png",
+            "p": "static/images/scenarios/11/light_b.png",
+            "notp": "static/images/scenarios/11/light_a.png",
             "q": "static/images/scenarios/11/good_sleep.png",
             "notq": "static/images/scenarios/11/poor_sleep.png",
             "arrow": "static/images/yajirushi_right.png"
@@ -698,8 +698,8 @@
             "arrow": "static/images/yajirushi_right.png"
         },
         "images_symmetric1_2": {
-            "p": "static/images/scenarios/12/music_a.png",
-            "notp": "static/images/scenarios/12/music_b.png",
+            "p": "static/images/scenarios/12/music_b.png",
+            "notp": "static/images/scenarios/12/music_a.png",
             "q": "static/images/scenarios/12/focused.png",
             "notq": "static/images/scenarios/12/unfocused.png",
             "arrow": "static/images/yajirushi_right.png"
