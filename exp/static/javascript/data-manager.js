@@ -25,6 +25,7 @@ export class DataManager {
     this.customData = {};          // カスタムデータストレージ
     this.experimentType = '';      // 実験タイプ（eXaMinE1, eXaM1nE_2など）
     this.totalPages = 6;           // 実験の総ページ数（eXaM1nE_2のデフォルト）
+    this.sampleNumberList = [];    // examine1用サンプル番号リスト
   }
 
   /**
@@ -86,7 +87,11 @@ export class DataManager {
         console.warn('シナリオ配布の保存に失敗:', e);
       }
     }
-    
+    // examine1の場合のみサンプル番号リストをシャッフルしてセット
+    if (this.experimentType === 'eXaMinE1') {
+      this.sampleNumberList = shuffleArray([1,2,3,4,5,6]);
+      console.log('examine1: サンプル番号リスト（重複なし）:', this.sampleNumberList);
+    }
     // シナリオ配布情報をイベントで通知
     eventBus.emit('scenarios:assigned', { 
       experimentType: this.experimentType,
@@ -286,9 +291,14 @@ export class DataManager {
    */
   prepareSampleData() {
     const scenarioKey = this.getCurrentScenarioKey();
-    const sampleNumber = this.determineSampleNumber();
+    let sampleNumber;
+    // examine1は重複なしリストから取得、それ以外は従来ロジック
+    if (this.experimentType === 'eXaMinE1' && this.sampleNumberList.length === 6) {
+      sampleNumber = this.sampleNumberList[this.currentScenarioIndex];
+    } else {
+      sampleNumber = this.determineSampleNumber();
+    }
     const sampleData = this.experimentData[scenarioKey]['samples'][sampleNumber.toString()];
-    
     console.log(`シナリオ ${scenarioKey} ⇒ サンプル${sampleNumber} 使用`);
     
     // サンプルデータを保存（sample_typeは除外）
@@ -668,3 +678,16 @@ window.addEventListener('DOMContentLoaded', function() {
     if (msg) msg.style.display = 'block';
   }
 });
+
+/**
+ * 配列をシャッフルするユーティリティ関数
+ * @param {Array} array - シャッフル対象の配列
+ * @returns {Array} シャッフルされた配列
+ */
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
