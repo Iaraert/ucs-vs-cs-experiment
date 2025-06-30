@@ -39,12 +39,12 @@ except Exception as e:
     logger.critical("データベースの初期化に失敗しました：%s", str(e))
 
 # --- 参加制限用メモリストア ---
-BLOCK_DUPLICATE_PARTICIPATION = False  # これをFalseにすればブロック無効化
+BLOCK_DUPLICATE_PARTICIPATION = True  # これをFalseにすればブロック無効化
 _ip_hash_set = set()
 _ip_hash_expiry = dict()  # {hash: [timestamp1, timestamp2, ...]}
 _ip_hash_lock = Lock()
 _IP_HASH_TTL = 3600  # 1時間（秒）
-_IP_HASH_THRESHOLD = 5  # 1時間以内に3回以上同一IPからアクセスがあればブロック
+_IP_HASH_THRESHOLD = 3  # 1時間以内に3回以上同一IPからアクセスがあればブロック
 
 
 def is_duplicate_participant():

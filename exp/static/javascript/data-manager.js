@@ -468,6 +468,12 @@ export class DataManager {
       } else if (this.experimentType === 'eXaM1nE_2') {
         localStorage.setItem(`eXaM1nE_2_sent_${this.userId}`, 'sent');
       }
+      // 実験完了時に参加済みフラグをセット
+      try {
+        localStorage.setItem('already_participated', '1');
+      } catch (e) {
+        console.warn('already_participatedフラグのlocalStorage保存に失敗:', e);
+      }
       
       // 送信成功イベントを通知（Observerパターン）
       eventBus.emit('results:exported', { 
@@ -590,6 +596,12 @@ export class DataManager {
       });
       // 送信成功時にフラグ保存
       localStorage.setItem(`eXaM1nE_2_sent_${this.userId}`, 'sent');
+      // 実験完了時に参加済みフラグをセット
+      try {
+        localStorage.setItem('already_participated', '1');
+      } catch (e) {
+        console.warn('already_participatedフラグのlocalStorage保存に失敗:', e);
+      }
       
       // 実験結果送信成功イベントを通知
       eventBus.emit('examine12Results:sent', { 
