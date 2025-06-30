@@ -139,6 +139,29 @@ def reset_counters(conn):
     except sqlite3.Error as e:
         print(f"エラー: {e}")
 
+def export_all_tables_to_csv(conn, export_dir=None):
+    """全テーブルをCSVで一括保存"""
+    import csv
+    if export_dir is None:
+        export_dir = os.path.join(os.path.dirname(DB_PATH), 'exports')
+    os.makedirs(export_dir, exist_ok=True)
+    tables = list_tables(conn)
+    for table in tables:
+        try:
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT * FROM {table}")
+            rows = cursor.fetchall()
+            cursor.execute(f"PRAGMA table_info({table})")
+            columns = [col[1] for col in cursor.fetchall()]
+            csv_path = os.path.join(export_dir, f"{table}.csv")
+            with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+                writer = csv.writer(f)
+                writer.writerow(columns)
+                writer.writerows(rows)
+            print(f"テーブル '{table}' を '{csv_path}' にエクスポートしました")
+        except Exception as e:
+            print(f"テーブル '{table}' のエクスポートでエラー: {e}")
+
 def interactive_mode():
     """対話モード"""
     conn = connect_to_db()
@@ -154,6 +177,7 @@ def interactive_mode():
         print("5: 条件カウンターを追加/更新")
         print("6: 割り当て履歴を追加")
         print("7: 条件カウンターをリセット")
+        print("8: 全テーブルをCSVで一括保存")
         print("q: 終了")
         
         choice = input("\n選択してください: ")
@@ -194,6 +218,9 @@ def interactive_mode():
             if confirm.lower() == 'y':
                 reset_counters(conn)
         
+        elif choice == '8':
+            export_all_tables_to_csv(conn)
+        
         elif choice.lower() == 'q':
             break
         
@@ -211,6 +238,7 @@ def main():
     parser.add_argument('--limit', type=int, help='表示する行数を制限')
     parser.add_argument('--query', type=str, help='SQLクエリを実行')
     parser.add_argument('--reset-counters', action='store_true', help='条件カウンターをリセット')
+    parser.add_argument('--export-all-csv', action='store_true', help='全テーブルをCSVで一括保存')
     
     args = parser.parse_args()
     
@@ -237,6 +265,9 @@ def main():
         confirm = input("すべての条件カウンターをリセットしますか？(y/n): ")
         if confirm.lower() == 'y':
             reset_counters(conn)
+    
+    if args.export_all_csv:
+        export_all_tables_to_csv(conn)
     
     conn.close()
 
