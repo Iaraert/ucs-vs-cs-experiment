@@ -85,5 +85,38 @@ window.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// 参加済み判定（localStorage/cookie）
+window.addEventListener('DOMContentLoaded', function() {
+    function hasAlreadyParticipated() {
+        try {
+            if (localStorage.getItem('already_participated')) return true;
+        } catch (e) {}
+        if (document.cookie.split(';').some(c => c.trim().startsWith('simple_flag='))) return true;
+        return false;
+    }
+    function hideConsentUI() {
+        const btn = document.getElementById('button');
+        if (btn) btn.style.display = 'none';
+        let msg = document.getElementById('already_participated_msg');
+        if (!msg) {
+            msg = document.createElement('div');
+            msg.id = 'already_participated_msg';
+            msg.style.color = 'red';
+            msg.style.fontWeight = 'bold';
+            msg.textContent = 'すでに参加済みです。再度の参加はできません。';
+            if (btn && btn.parentNode) {
+                btn.parentNode.insertBefore(msg, btn.nextSibling);
+            } else {
+                document.body.appendChild(msg);
+            }
+        } else {
+            msg.style.display = 'block';
+        }
+    }
+    if (hasAlreadyParticipated()) {
+        hideConsentUI();
+    }
+});
 </script>
 </html>

@@ -1,0 +1,28 @@
+<!-- 参加済みフラグのリセットページ -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>参加済みリセット</title>
+    <style>
+        body { text-align: center; margin-top: 10vh; color: #333; font-size: 1.2em; }
+        button { font-size: 1.1em; padding: 0.5em 1.5em; margin-top: 2em; }
+        #result { margin-top: 2em; color: green; }
+    </style>
+</head>
+<body>
+    <h2>重複参加防止フラグのリセット</h2>
+    <p>このボタンを押すと、<b>このブラウザ</b>の「参加済み」フラグ（Cookie, localStorage）が削除されます。</p>
+    <button id="reset_btn">リセット実行</button>
+    <div id="result"></div>
+    <script>
+        document.getElementById('reset_btn').onclick = function() {
+            // Cookie削除
+            document.cookie = 'simple_flag=; path=/; max-age=0';
+            // localStorage削除
+            localStorage.removeItem('already_participated');
+            document.getElementById('result').textContent = 'リセット完了: このブラウザで再参加が可能になりました。';
+        };
+    </script>
+</body>
+</html>

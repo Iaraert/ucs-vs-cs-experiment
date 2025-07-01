@@ -98,14 +98,7 @@ def top1():
 
 @app.route('/t0P12', methods=['GET'])
 def top1_2():
-    if is_duplicate_participant():
-        # 参加済み画面へリダイレクト or メッセージ表示
-        return render_template('exp/already_participated.html'), 403
-    resp = make_response(render_template('exp/top1_2.html'))
-    # Cookieがなければセット
-    if not request.cookies.get('simple_flag'):
-        resp.set_cookie('simple_flag', 'true', max_age=60*60*24*30, httponly=True, samesite='Lax')
-    return resp
+    return render_template('exp/top1_2.html')
 
 
 @app.route('/eXaMinE1')
@@ -146,8 +139,14 @@ def examine3():
 
 @app.route('/end')
 def end():
+    # endページのみ重複参加防止を有効化
+    if is_duplicate_participant():
+        return render_template('exp/already_participated.html'), 403
     logger.debug("endページが表示されました")
-    return render_template('exp/end.html')
+    resp = make_response(render_template('exp/end.html'))
+    # ここで初めて参加済みCookieをセット
+    resp.set_cookie('simple_flag', 'true', max_age=60*60*24*30, httponly=True, samesite='Lax')
+    return resp
 
 
 @app.route('/getSampleType', methods=['GET'])
@@ -489,3 +488,26 @@ def step_page(n):
 @app.route('/step/<int:n>', methods=['GET'])
 def step_page_get(n):
     abort(405)
+
+@app.route('/reset_participation')
+def reset_participation():
+    """
+    管理者・開発用: 参加済みフラグのリセットページ
+    """
+    return render_template('exp/reset_participation.html')
+
+@app.route('/reset_participation/exec')
+def reset_participation_exec():
+    """
+    管理者・開発用: 参加済みフラグのリセット実行
+    CookieとIPハッシュをリセット
+    """
+    # Cookie削除
+    resp = make_response(render_template('exp/reset_participation.html', reset_done=True))
+    resp.set_cookie('simple_flag', '', expires=0)
+    # IP+UAハッシュもリセット
+    global _ip_hash_set, _ip_hash_expiry
+    with _ip_hash_lock:
+        _ip_hash_set.clear()
+        _ip_hash_expiry.clear()
+    return resp

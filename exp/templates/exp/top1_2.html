@@ -297,20 +297,33 @@
 
         function hideParticipationUI() {
             // 参加ボタンやフォームを非表示にする
-            const btn = document.getElementById('participate_btn');
+            const btn = document.getElementById('button'); // 修正: 正しいIDに変更
             if (btn) btn.style.display = 'none';
             // 参加不可メッセージ表示（必要に応じて）
-            const msg = document.getElementById('already_participated_msg');
-            if (msg) msg.style.display = 'block';
+            let msg = document.getElementById('already_participated_msg');
+            if (!msg) {
+                // メッセージ要素がなければ新規作成
+                msg = document.createElement('div');
+                msg.id = 'already_participated_msg';
+                msg.style.color = 'red';
+                msg.style.fontWeight = 'bold';
+                msg.textContent = 'すでに参加済みです。再度の参加はできません。';
+                // ボタンの直後に挿入
+                if (btn && btn.parentNode) {
+                    btn.parentNode.insertBefore(msg, btn.nextSibling);
+                } else {
+                    document.body.appendChild(msg);
+                }
+            } else {
+                msg.style.display = 'block';
+            }
         }
 
         window.addEventListener('DOMContentLoaded', function() {
             if (hasAlreadyParticipated()) {
                 hideParticipationUI();
-            } else {
-                // 初回アクセス時はフラグをセット
-                setAlreadyParticipatedFlag();
             }
+            // end.htmlでのみ参加済みフラグをセットするため、ここでは何もしない
         });
     </script>
     <script type="module">

@@ -39,6 +39,10 @@ function copy(){
     return document.execCommand("copy");
 }
 
+// 参加済みフラグをセット（再参加防止用）
+document.cookie = "simple_flag=true; path=/; max-age=31536000";
+localStorage.setItem("already_participated", "true");
+
 var text = document.getElementById('complete_code');
 text.readonly = false;
 text.value = window.location.search.split('=')[1];
