@@ -6,6 +6,9 @@ correlation_analysis_extended.py
 import os
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib_fontja
+from matplotlib import rcParams
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from scipy.stats import pearsonr
@@ -111,8 +114,7 @@ class CorrelationAnalyzer:
         for cl in range(k):
             ids = mat[mat["cluster"] == cl].index
             groups[f"Cluster{cl+1}"] = df_subset[df_subset["user_id"].isin(ids)]
-        
-        # 相関テーブル初期化
+          # 相関テーブル初期化
         corr_table = pd.DataFrame(index=groups.keys(),
                                  columns=["P(E|C)", "P(C|E)", "ΔP", "CS", "UCS", "pARIs", "DFH", "Dice"])
           # CRT平均テーブル初期化
@@ -231,7 +233,7 @@ class CorrelationAnalyzer:
                         "実験タイプ": experiment_type,
                         "条件": condition,
                         "クラスタ": f"クラスタ{cluster_num}",
-                        "n": cluster_sizes.get(cluster_index, 0),
+                        "n": cluster_sizes.get(cluster_index, 0),  # 6で割った値を表示
                         "CRT_mean": crt_table.loc[cluster_name, "CRT_mean"],
                         "estimate_mean": crt_table.loc[cluster_name, "estimate_mean"],
                         "P(E|C)": corr_table.loc[cluster_name, "P(E|C)"],
@@ -350,8 +352,243 @@ class CorrelationAnalyzer:
             print(condition_pivot.to_string())
             
             return combined_averages
+        
+    def create_crt_cluster_histograms(self, thresholds=None):
+        """クラスタごとのCRT生データヒストグラムを作成（特定のthreshold値で）"""
+        if thresholds is None:
+            # デフォルトは threshold = 1.0 のみ
+            thresholds = [1.0]
+        
+        self.load_data()
+        
+        # データ準備
+        ex1_first = self.df[self.df["ex1_is_first"] == 1].copy()
+        ex2_first = self.df[self.df["ex2_is_first"] == 1].copy()
+        
+        cases = [
+            ("Cond0_ex2", ex2_first[ex2_first["Cond"] == 0], "ex2"),
+            ("Cond1_ex2", ex2_first[ex2_first["Cond"] == 1], "ex2"),
+            ("Cond0_ex1", ex1_first[ex1_first["Cond"] == 0], "ex1"),
+            ("Cond1_ex1", ex1_first[ex1_first["Cond"] == 1], "ex1"),
+        ]
+        
+        for th in thresholds:
+            print(f"\n=== threshold = {th:.1f} でのCRTクラスターヒストグラム作成 ===")
+            
+            for label, df_sub, prefix in cases:
+                if df_sub.empty:
+                    continue
+                    
+                # 実験タイプと条件を抽出
+                if "ex1" in label:
+                    experiment_type = "サマリー"
+                elif "ex2" in label:
+                    experiment_type = "オンライン"
+                else:
+                    continue
+                if "Cond0" in label:
+                    condition = "非対称否定"
+                elif "Cond1" in label:
+                    condition = "対称否定"
+                else:
+                    continue
+                
+                condition_name = f"{condition}_{experiment_type}"
+                print(f"条件: {condition_name}")
+                
+                # クラスタリング実行
+                corr_table, crt_table, cluster_sizes, model_df = self.analyze_case(
+                    label, df_sub, prefix, th, th)
+                
+                if corr_table is None:
+                    print(f"  -> クラスタリングデータなし")
+                    continue
+                
+                # クラスタリング結果を取得
+                mat, k, labels = self.create_cluster_data(df_sub, prefix)
+                if mat is None:
+                    continue
+                
+                # クラスターごとのCRTヒストグラムを作成
+                self._plot_crt_cluster_histogram(condition_name, df_sub, mat, k, prefix, th)
+    
+    def _plot_crt_cluster_histogram(self, condition_name: str, df_subset: pd.DataFrame, 
+                                   mat: pd.DataFrame, k: int, prefix: str, threshold: float):
+        """個別条件のクラスター別CRTヒストグラム作成"""
+        
+        # CRTデータがない場合はスキップ
+        if 'crt_correct_cnt' not in df_subset.columns:
+            print(f"  -> {condition_name}: CRTデータなし")
+            return
+        
+        # 図の設定 (クラスター数に応じて調整)
+        fig, axes = plt.subplots(1, k, figsize=(4*k, 6))
+        if k == 1:
+            axes = [axes]
+        
+        colors = ['lightblue', 'lightcoral', 'lightgreen', 'lightyellow', 'lightgray']
+        
+        for cluster_idx in range(k):
+            ax = axes[cluster_idx]
+            
+            # このクラスターに属するユーザーIDを取得
+            cluster_users = mat[mat["cluster"] == cluster_idx].index
+            # このクラスターのユーザーのCRTデータを取得 (ユニークなuser_idごとに一度だけ)
+            cluster_df = df_subset[df_subset["user_id"].isin(cluster_users)]
+            unique_crt_data = cluster_df.drop_duplicates(subset="user_id")['crt_correct_cnt'].dropna()
+            
+            if len(unique_crt_data) == 0:
+                ax.text(0.5, 0.5, 'No CRT Data', transform=ax.transAxes, 
+                        ha='center', va='center', fontsize=12)
+                ax.set_title(f'クラスタ{cluster_idx+1}\n(n=0)', fontsize=12, fontweight='bold')
+                continue
+            
+            # ヒストグラムを描画（CRTは0-3の整数値）
+            bins = np.arange(-0.5, 4.5, 1)
+            counts, _, patches = ax.hist(unique_crt_data, bins=bins, alpha=0.7, 
+                                           edgecolor='black', color=colors[cluster_idx % len(colors)])
+            # バーの上に人数を表示
+            for i, count in enumerate(counts):
+                if count > 0:
+                    ax.text(i, count + 0.05, f'{int(count)}', ha='center', va='bottom', fontsize=10)
+            
+            # 統計情報を計算
+            mean_crt = unique_crt_data.mean()
+            std_crt = unique_crt_data.std()
+            
+            # タイトルと軸ラベル設定
+            ax.set_title(f'クラスタ{cluster_idx+1}\n(n={len(unique_crt_data)}, 平均={mean_crt:.2f})', 
+                         fontsize=12, fontweight='bold')
+            ax.set_xlabel('CRTスコア（正答数）', fontsize=10)
+            ax.set_ylabel('人数', fontsize=10)
+            
+            # x軸の目盛りを整数に設定
+            ax.set_xticks([0, 1, 2, 3])
+            ax.set_xlim(-0.5, 3.5)
+            
+            # y軸の最大値を設定（全クラスターで統一）
+            max_count = max([max(df_subset[df_subset["user_id"].isin(
+                mat[mat["cluster"] == i].index)].drop_duplicates(subset='user_id')['crt_correct_cnt']
+                .dropna().value_counts().values, default=0) for i in range(k)], default=1)
+            ax.set_ylim(0, max_count * 1.2)
+            
+            ax.grid(True, alpha=0.3)
+        
+        # 全体のタイトル
+        fig.suptitle(f'CRTスコア分布（クラスター別）- {condition_name}', 
+                    fontsize=14, fontweight='bold')
+        
+        # ファイル名を作成して保存
+        filename = f"crt_cluster_histogram_{condition_name}_th{threshold:.1f}.png"
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        print(f"  -> CRTクラスターヒストグラム保存: {filename}")
+        plt.close()  # メモリ節約のためクローズ
+        
+    def create_crt_cluster_summary_table(self, thresholds=None):
+        """クラスタごとのCRT要約統計量テーブルを作成"""
+        if thresholds is None:
+            thresholds = [1.0]
+        
+        self.load_data()
+        
+        all_summary_data = []
+        
+        # データ準備
+        ex1_first = self.df[self.df["ex1_is_first"] == 1].copy()
+        ex2_first = self.df[self.df["ex2_is_first"] == 1].copy()
+        
+        cases = [
+            ("Cond0_ex2", ex2_first[ex2_first["Cond"] == 0], "ex2"),
+            ("Cond1_ex2", ex2_first[ex2_first["Cond"] == 1], "ex2"),
+            ("Cond0_ex1", ex1_first[ex1_first["Cond"] == 0], "ex1"),
+            ("Cond1_ex1", ex1_first[ex1_first["Cond"] == 1], "ex1"),
+        ]
+        
+        for th in thresholds:
+            print(f"\n=== threshold = {th:.1f} でのCRT要約統計量計算 ===")
+            
+            for label, df_sub, prefix in cases:
+                if df_sub.empty:
+                    continue
+                    
+                # 実験タイプと条件を抽出
+                if "ex1" in label:
+                    experiment_type = "サマリー"
+                elif "ex2" in label:
+                    experiment_type = "オンライン"
+                else:
+                    continue
+                if "Cond0" in label:
+                    condition = "非対称否定"
+                elif "Cond1" in label:
+                    condition = "対称否定"
+                else:
+                    continue
+                
+                condition_name = f"{condition}_{experiment_type}"
+                
+                # クラスタリング実行
+                corr_table, crt_table, cluster_sizes, model_df = self.analyze_case(
+                    label, df_sub, prefix, th, th)
+                
+                if corr_table is None:
+                    continue
+                
+                # クラスタリング結果を取得
+                mat, k, labels = self.create_cluster_data(df_sub, prefix)
+                if mat is None:
+                    continue
+                
+                # 各クラスターの統計量を計算
+                for cluster_idx in range(k):
+                    cluster_users = mat[mat["cluster"] == cluster_idx].index
+                    cluster_df = df_sub[df_sub["user_id"].isin(cluster_users)]
+                    crt_data = cluster_df['crt_correct_cnt'].dropna()
+                    
+                    if len(crt_data) > 0:
+                        # スコア別の人数を計算
+                        score_counts = crt_data.value_counts().sort_index()
+                        
+                        summary_row = {
+                            'threshold': th,
+                            '実験タイプ': experiment_type,
+                            '条件': condition,
+                            'クラスタ': f'クラスタ{cluster_idx+1}',
+                            'n': len(crt_data),
+                            'CRT平均': round(crt_data.mean(), 3),
+                            'CRT標準偏差': round(crt_data.std(), 3),
+                            'CRT最小値': int(crt_data.min()),
+                            'CRT中央値': round(crt_data.median(), 3),
+                            'CRT最大値': int(crt_data.max()),
+                            'スコア0': score_counts.get(0, 0),
+                            'スコア1': score_counts.get(1, 0),
+                            'スコア2': score_counts.get(2, 0),
+                            'スコア3': score_counts.get(3, 0),
+                            'スコア0_%': round((score_counts.get(0, 0) / len(crt_data)) * 100, 1),
+                            'スコア1_%': round((score_counts.get(1, 0) / len(crt_data)) * 100, 1),
+                            'スコア2_%': round((score_counts.get(2, 0) / len(crt_data)) * 100, 1),
+                            'スコア3_%': round((score_counts.get(3, 0) / len(crt_data)) * 100, 1),
+                        }
+                        
+                        all_summary_data.append(summary_row)
+        
+        if all_summary_data:
+            # DataFrameに変換
+            summary_df = pd.DataFrame(all_summary_data)
+            
+            # CSVファイルに保存
+            filename = "crt_cluster_summary_statistics.csv"
+            summary_df.to_csv(filename, index=False, encoding="utf-8-sig")
+            print(f"\n→ CRTクラスター要約統計量テーブル保存: {filename}")
+            
+            # プレビュー表示
+            print(f"\n=== CRTクラスター要約統計量テーブル プレビュー ===")
+            print(summary_df.head(20).to_string(index=False))
+            
+            return summary_df
         else:
-            print("sample_numberとcover_storyごとの平均回答値の計算でデータが見つかりませんでした")
+            print("CRTクラスター要約統計量の計算でデータが見つかりませんでした")
             return None
 
 
@@ -368,6 +605,14 @@ if __name__ == "__main__":
     print("\n=== sample_numberとcover_storyごとの平均回答値計算 ===")
     analyzer.load_data()  # データを読み込み
     sample_averages = analyzer.calculate_sample_averages()
+    
+    # CRTクラスターヒストグラムを作成（threshold = 1.0 のみ）
+    print("\n=== CRTクラスターヒストグラム作成 ===")
+    analyzer.create_crt_cluster_histograms([1.0])
+    
+    # CRTクラスター要約統計量テーブル作成
+    print("\n=== CRTクラスター要約統計量テーブル作成 ===")
+    crt_cluster_summary = analyzer.create_crt_cluster_summary_table([1.0])
     
     # threshold分析を実行
     print("\n=== threshold分析開始 ===")

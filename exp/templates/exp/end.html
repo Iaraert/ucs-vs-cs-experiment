@@ -30,7 +30,33 @@
         <li>CrowdWorksへの入力を確認してからページを閉じてください。</li>
     </ul>
     </div>
-<script>
+<script type="module">
+import { showCRTExperienceModal, getUserIdFromUrl } from '{{ url_for("static", filename="javascript/utilities.js") }}';
+
+// CRT受験歴アンケートを表示する関数
+async function showCRTSurvey() {
+  try {
+    // URLパラメータからユーザーIDを取得（end.htmlではURLパラメータを隠さない）
+    const userId = getUserIdFromUrl(false);
+    
+    if (!userId) {
+      console.warn('showCRTSurvey: ユーザーIDが取得できないため、アンケートをスキップします');
+      return;
+    }
+    
+    console.log(`showCRTSurvey: CRT受験歴アンケートを開始 - ユーザーID: ${userId}`);
+    
+    // CRT受験歴アンケートモーダルを表示
+    await showCRTExperienceModal(userId);
+    
+    console.log('showCRTSurvey: CRT受験歴アンケート完了');
+    
+  } catch (error) {
+    console.error('showCRTSurvey: CRT受験歴アンケートでエラーが発生しました:', error);
+    // エラーが発生しても処理を続行
+  }
+}
+
 // end.htmlでは完了IDとしてURLパラメータを表示するため、URLの変更は行わない
 function copy(){
     // コピー時は警告を解除
@@ -39,20 +65,28 @@ function copy(){
     return document.execCommand("copy");
 }
 
-// 参加済みフラグをセット（再参加防止用）
-document.cookie = "simple_flag=true; path=/; max-age=31536000";
-localStorage.setItem("already_participated", "true");
+// DOM読み込み完了時にCRT受験歴アンケートを表示
+document.addEventListener('DOMContentLoaded', async function() {
+    // CRT受験歴アンケートを最初に実行
+    await showCRTSurvey();
+    
+    // 通常の完了処理を実行
+    // 参加済みフラグをセット（再参加防止用）
+    document.cookie = "simple_flag=true; path=/; max-age=31536000";
+    localStorage.setItem("already_participated", "true");
 
-var text = document.getElementById('complete_code');
-text.readonly = false;
-text.value = window.location.search.split('=')[1];
-text.readonly = true;
-document.querySelector("#copy_button").addEventListener("click", copy);
+    var text = document.getElementById('complete_code');
+    text.readonly = false;
+    text.value = window.location.search.split('=')[1];
+    text.readonly = true;
+    document.querySelector("#copy_button").addEventListener("click", copy);
 
-window.onbeforeunload = function(e) {
-    e.returnValue = "ページを離れると、これまで入力した内容は全て破棄されます。ページを離れてもよろしいですか？";
-}
-preventBrowserBack();
+    window.onbeforeunload = function(e) {
+        e.returnValue = "ページを離れると、これまで入力した内容は全て破棄されます。ページを離れてもよろしいですか？";
+    }
+    preventBrowserBack();
+});
+
 // ブラウザバックを禁止する関数
 function preventBrowserBack() {
     history.pushState(null, null, location.href);
@@ -60,7 +94,6 @@ function preventBrowserBack() {
         history.go(1);
     });
 }
-
 </script>
 </body>
 

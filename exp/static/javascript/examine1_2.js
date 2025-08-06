@@ -807,7 +807,7 @@ class Experiment12Manager {
     this.showStimulation();
     setTimeout(() => {
       button1.disabled = false;
-    }, 1500);
+    }, 1);
   }  /**
    * スライダーの質問文を設定
    */

@@ -1,7 +1,7 @@
 import numpy as np
 
 # ループ回数
-loop_count = 20000
+loop_count = 15000
 
 def UCS(conts, threshold, is_gene, loops=loop_count):
     rng = np.random.default_rng()  # 乱数ジェネレーター

@@ -134,6 +134,17 @@ class Database:
         )
         ''')
 
+        # CRT受験歴アンケートのテーブルを作成
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS crt_experience_survey (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL UNIQUE,
+            experience TEXT NOT NULL CHECK (experience IN ('yes', 'no', 'unknown')),
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        ''')
+
         # 初期データが存在しない場合は挿入
         cursor.execute("SELECT count(*) FROM condition_counters WHERE condition_name = 'asymmetric'")
         if cursor.fetchone()[0] == 0:
@@ -461,3 +472,85 @@ class Database:
             conn.commit()
             conn.close()
             return rows
+
+    def save_crt_experience(self, user_id, experience, timestamp=None):
+        """
+        CRT受験歴アンケートの回答をデータベースに保存
+        
+        Args:
+            user_id (str): ユーザーID
+            experience (str): 受験歴回答 ('yes', 'no', 'unknown')
+            timestamp (str, optional): タイムスタンプ（指定がない場合は現在時刻）
+            
+        Returns:
+            dict: 保存結果
+        """
+        # ユーザーIDの検証とサニタイズ
+        if not self.validate_user_id(user_id):
+            app_logger.warning(f"無効なユーザーID: {user_id}")
+            return {"error": "Invalid user ID", "userId": user_id}
+        
+        sanitized_user_id = self.sanitize_user_id(user_id)
+        
+        # experienceの値が有効かチェック
+        valid_experiences = ['yes', 'no', 'unknown']
+        if experience not in valid_experiences:
+            app_logger.warning(f"無効なCRT受験歴回答: {experience}")
+            return {"error": "Invalid experience value", "experience": experience}
+        
+        try:
+            with self.db_lock:  # スレッドセーフに処理
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
+                
+                # トランザクション開始
+                conn.execute("BEGIN TRANSACTION")
+                
+                # JSTタイムスタンプを生成（timestampが指定されていない場合）
+                if not timestamp:
+                    JST = datetime.timezone(datetime.timedelta(hours=9), 'Asia/Tokyo')
+                    now_jst = datetime.datetime.now(JST)
+                    timestamp = now_jst.strftime("%Y-%m-%d %H:%M:%S")
+                
+                # 既存のレコードがあるかチェック
+                cursor.execute(
+                    "SELECT id FROM crt_experience_survey WHERE user_id = ?",
+                    (sanitized_user_id,)
+                )
+                existing_record = cursor.fetchone()
+                
+                if existing_record:
+                    # 既存レコードを更新
+                    cursor.execute(
+                        "UPDATE crt_experience_survey SET experience = ?, timestamp = ? WHERE user_id = ?",
+                        (experience, timestamp, sanitized_user_id)
+                    )
+                    action = "updated"
+                    app_logger.info(f"CRT受験歴データ更新: ユーザーID {sanitized_user_id} -> {experience}")
+                else:
+                    # 新規レコードを挿入
+                    cursor.execute(
+                        "INSERT INTO crt_experience_survey (user_id, experience, timestamp) VALUES (?, ?, ?)",
+                        (sanitized_user_id, experience, timestamp)
+                    )
+                    action = "created"
+                    app_logger.info(f"CRT受験歴データ新規作成: ユーザーID {sanitized_user_id} -> {experience}")
+                
+                # トランザクションをコミット
+                conn.commit()
+                conn.close()
+                
+                return {
+                    "status": "success",
+                    "action": action,
+                    "userId": sanitized_user_id,
+                    "experience": experience,
+                    "timestamp": timestamp
+                }
+                
+        except Exception as e:
+            app_logger.error(f"CRT受験歴データ保存エラー: {e}", exc_info=True)
+            if 'conn' in locals() and conn:
+                conn.rollback()  # エラー時はロールバック
+                conn.close()
+            return {"error": str(e), "userId": user_id}

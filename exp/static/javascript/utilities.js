@@ -670,3 +670,267 @@ export function disableSelectionAndCopy() {
     }, true);
   });
 }
+
+/**
+ * CRT受験歴確認アンケートモーダル機能
+ */
+
+/**
+ * CRT受験歴確認アンケートモーダルを表示する関数
+ * @param {string} userId - ユーザーID
+ * @returns {Promise<void>}
+ */
+export function showCRTExperienceModal(userId) {
+  return new Promise((resolve, reject) => {
+    try {
+      // 重複表示防止チェック
+      const notificationKey = `crt_experience_modal_${userId}`;
+      const hasShownModal = sessionStorage.getItem(notificationKey);
+      if (hasShownModal) {
+        console.log('showCRTExperienceModal: 既に表示済みのためスキップ');
+        resolve();
+        return;
+      }
+
+      // 既存のモーダルがあれば削除
+      const existingModal = document.getElementById('crt-experience-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+
+      // モーダル要素を作成
+      const modal = document.createElement('div');
+      modal.id = 'crt-experience-modal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+
+      // モーダルコンテンツを作成
+      const modalContent = document.createElement('div');
+      modalContent.style.cssText = `
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 90%;
+        text-align: left;
+        position: relative;
+      `;
+
+      // タイトル
+      const titleElement = document.createElement('h3');
+      titleElement.textContent = 'CRT問題の受験歴について';
+      titleElement.style.cssText = `
+        margin: 0 0 20px 0;
+        color: #333;
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+      `;
+
+      // 質問文
+      const questionElement = document.createElement('p');
+      questionElement.textContent = '今回実施した最後の3つの問題（バットとボール、機械、睡蓮）について、これらの問題を以前に見たことがありますか？';
+      questionElement.style.cssText = `
+        margin: 0 0 25px 0;
+        color: #555;
+        line-height: 1.6;
+        font-size: 16px;
+      `;
+
+      // ラジオボタン選択肢コンテナ
+      const optionsContainer = document.createElement('div');
+      optionsContainer.style.cssText = `
+        margin: 0 0 25px 0;
+      `;
+
+      const options = [
+        { value: 'yes', text: 'はい、見たことがあります' },
+        { value: 'no', text: 'いいえ、初めて見ました' },
+        { value: 'unknown', text: 'わからない・覚えていない' }
+      ];
+
+      options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.style.cssText = `
+          margin: 10px 0;
+          display: flex;
+          align-items: center;
+        `;
+
+        const radioInput = document.createElement('input');
+        radioInput.type = 'radio';
+        radioInput.name = 'crt_experience';
+        radioInput.value = option.value;
+        radioInput.id = `crt_${option.value}`;
+        radioInput.style.cssText = `
+          margin-right: 10px;
+          transform: scale(1.2);
+        `;
+
+        const label = document.createElement('label');
+        label.htmlFor = `crt_${option.value}`;
+        label.textContent = option.text;
+        label.style.cssText = `
+          font-size: 16px;
+          color: #333;
+          cursor: pointer;
+          user-select: none;
+        `;
+
+        optionDiv.appendChild(radioInput);
+        optionDiv.appendChild(label);
+        optionsContainer.appendChild(optionDiv);
+      });
+
+      // エラーメッセージ
+      const errorMessage = document.createElement('div');
+      errorMessage.id = 'crt-error-message';
+      errorMessage.style.cssText = `
+        color: #dc3545;
+        font-size: 14px;
+        margin: 10px 0;
+        display: none;
+      `;
+      errorMessage.textContent = '選択肢を選んでください。';
+
+      // 送信ボタン
+      const submitButton = document.createElement('button');
+      submitButton.textContent = '回答を送信';
+      submitButton.style.cssText = `
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        width: 100%;
+        margin-top: 10px;
+      `;
+
+      // ボタンホバーエフェクト
+      submitButton.addEventListener('mouseenter', () => {
+        submitButton.style.background = '#0056b3';
+      });
+      submitButton.addEventListener('mouseleave', () => {
+        submitButton.style.background = '#007bff';
+      });
+
+      // 送信ボタンのクリックイベント
+      submitButton.addEventListener('click', async () => {
+        const selectedOption = document.querySelector('input[name="crt_experience"]:checked');
+        
+        if (!selectedOption) {
+          errorMessage.style.display = 'block';
+          return;
+        }
+
+        errorMessage.style.display = 'none';
+        submitButton.disabled = true;
+        submitButton.textContent = '送信中...';
+        submitButton.style.background = '#6c757d';
+
+        try {
+          // 回答データを保存
+          await saveCRTExperienceData(userId, selectedOption.value);
+          
+          // 表示済みフラグを設定
+          sessionStorage.setItem(notificationKey, 'true');
+          
+          console.log(`showCRTExperienceModal: 回答保存完了 - ユーザーID: ${userId}, 回答: ${selectedOption.value}`);
+          
+          // モーダルを閉じる
+          modal.remove();
+          resolve();
+          
+        } catch (error) {
+          console.error('showCRTExperienceModal: 回答保存エラー:', error);
+          submitButton.disabled = false;
+          submitButton.textContent = '再試行';
+          submitButton.style.background = '#dc3545';
+          
+          // エラーメッセージを表示
+          errorMessage.textContent = '送信に失敗しました。再試行してください。';
+          errorMessage.style.display = 'block';
+        }
+      });
+
+      // キーボード操作対応
+      modal.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          submitButton.click();
+        }
+      });
+
+      // 要素を組み立て
+      modalContent.appendChild(titleElement);
+      modalContent.appendChild(questionElement);
+      modalContent.appendChild(optionsContainer);
+      modalContent.appendChild(errorMessage);
+      modalContent.appendChild(submitButton);
+      modal.appendChild(modalContent);
+
+      // DOMに追加
+      document.body.appendChild(modal);
+
+      // アニメーション効果
+      modal.style.opacity = '0';
+      setTimeout(() => {
+        modal.style.transition = 'opacity 0.3s ease-in-out';
+        modal.style.opacity = '1';
+      }, 10);
+
+      console.log('showCRTExperienceModal: CRT受験歴アンケートモーダルを表示しました');
+
+    } catch (error) {
+      console.error('showCRTExperienceModal: モーダル表示エラー:', error);
+      reject(error);
+    }
+  });
+}
+
+/**
+ * CRT受験歴データを保存する関数
+ * @param {string} userId - ユーザーID
+ * @param {string} experience - 受験歴回答（'yes', 'no', 'unknown'）
+ * @returns {Promise<void>}
+ */
+async function saveCRTExperienceData(userId, experience) {
+  try {
+    const response = await fetch('/api/save_crt_experience', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        experience: experience,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('saveCRTExperienceData: 保存成功:', result);
+    
+  } catch (error) {
+    console.error('saveCRTExperienceData: 保存失敗:', error);
+    throw error;
+  }
+}

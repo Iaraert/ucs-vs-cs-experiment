@@ -511,3 +511,76 @@ def reset_participation_exec():
         _ip_hash_set.clear()
         _ip_hash_expiry.clear()
     return resp
+
+@app.route('/api/save_crt_experience', methods=['POST'])
+def save_crt_experience():
+    """
+    CRT受験歴アンケートの回答を保存するエンドポイント
+    """
+    try:
+        app_logger.info("/api/save_crt_experience APIリクエスト受信")
+        
+        # JSON形式でリクエストを受け取る
+        request_data = request.get_json()
+        
+        if not request_data:
+            raise UserFriendlyError(
+                message="CRT受験歴データが空です",
+                user_message="送信データが空です。もう一度お試しください。",
+                status_code=400,
+                error_code="EMPTY_CRT_EXPERIENCE_DATA",
+                recovery_path="/end"
+            )
+        
+        user_id = request_data.get('user_id')
+        experience = request_data.get('experience')
+        timestamp = request_data.get('timestamp')
+        
+        if not user_id or not experience:
+            raise UserFriendlyError(
+                message="必要なデータが不足しています",
+                user_message="必要な情報が不足しています。もう一度お試しください。",
+                status_code=400,
+                error_code="MISSING_CRT_EXPERIENCE_DATA",
+                recovery_path="/end"
+            )
+        
+        # experienceの値が有効かチェック
+        valid_experiences = ['yes', 'no', 'unknown']
+        if experience not in valid_experiences:
+            raise UserFriendlyError(
+                message=f"無効な回答値: {experience}",
+                user_message="無効な回答です。もう一度お試しください。",
+                status_code=400,
+                error_code="INVALID_CRT_EXPERIENCE_VALUE",
+                recovery_path="/end"
+            )
+        
+        logger.info(f"CRT受験歴データの保存リクエスト: user_id={user_id}, experience={experience}")
+        
+        # データベースに保存
+        result = db.save_crt_experience(user_id, experience, timestamp)
+        
+        app_logger.info(f"/api/save_crt_experience データ保存結果: {result}")
+        logger.info(f"CRT受験歴データ保存結果: {result}")
+        
+        return jsonify({
+            "status": "success",
+            "message": "CRT受験歴データが正常に保存されました"
+        })
+    
+    except UserFriendlyError as e:
+        app_logger.error(f"/api/save_crt_experience UserFriendlyError: {e}")
+        error_logger.log_api_error(request, e.status_code)
+        return jsonify(e.to_dict()), e.status_code
+    
+    except Exception as e:
+        app_logger.error(f"/api/save_crt_experience 例外発生: {e}", exc_info=True)
+        error_info = error_logger.log_api_error(request, e)
+        logger.error(f"/api/save_crt_experience エンドポイントでのエラー: {e}", exc_info=True)
+        return jsonify({
+            "error": True,
+            "message": "CRT受験歴データの保存中にエラーが発生しました。もう一度お試しください。",
+            "error_code": "CRT_EXPERIENCE_SAVE_ERROR",
+            "status_code": 500
+        }), 500
