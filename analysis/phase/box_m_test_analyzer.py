@@ -1,4 +1,3 @@
-# filepath: c:\Users\spira\Desktop\research\MCP\Project\ucs_vs_cs_experiment-summary\analysis\phase\phase_homogeneity_analysis.py
 """
 Phase1とPhase2の共分散行列等質性検定（Box's M test）実装
 
@@ -66,25 +65,23 @@ class BoxMTestAnalyzer:
         print(f"Phase1 (ex1_is_first==1): {phase1_count}行")
         print(f"Phase2 (ex1_is_first==0): {phase2_count}行")
         
-        # 条件別の分布確認
-        print(f"\n条件別データ分布:")
-        condition_counts = self.df['Cond'].value_counts().sort_index()
-        for cond, count in condition_counts.items():
-            print(f"  条件{cond}: {count}行")
+        # 条件別分布の確認
+        cond_dist = self.df['Cond'].value_counts().sort_index()
+        print(f"条件分布: {dict(cond_dist)}")
         
         if phase1_count < 2 or phase2_count < 2:
             print("警告: 各フェーズのサンプル数が少なすぎます (n<2)")
     
     def extract_phase_subsets(self, variables=None, condition=None):
         """
-        フェーズごとのサブセットを抽出
+        フェーズごとのサブセットを抽出（条件指定対応）
         
         Parameters:
         -----------
         variables : list
             検定対象となる数値列（デフォルト: ['ex1_estimate', 'ex2_estimate']）
-        condition : int or None
-            特定の条件で絞り込む場合の条件番号（Noneの場合は全データ）
+        condition : int, optional
+            特定の条件でフィルタ（Cond列の値）
         
         Returns:
         --------
@@ -97,18 +94,16 @@ class BoxMTestAnalyzer:
         print(f"\n--- フェーズごとのサブセット抽出 ---")
         print(f"検定対象変数: {variables}")
         if condition is not None:
-            print(f"対象条件: 条件{condition}")
+            print(f"条件フィルタ: Cond={condition}")
         
-        # 条件で絞り込み
-        df_subset = self.df.copy()
+        # データのフィルタリング
+        df_filtered = self.df.copy()
         if condition is not None:
-            df_subset = df_subset[df_subset['Cond'] == condition]
-            if len(df_subset) == 0:
-                print(f"警告: 条件{condition}のデータが見つかりません")
-                return None, None
+            df_filtered = df_filtered[df_filtered['Cond'] == condition]
+            print(f"条件フィルタ後: {len(df_filtered)}行")
         
         # NaNを含む行を除外
-        df_clean = df_subset.dropna(subset=variables)
+        df_clean = df_filtered.dropna(subset=variables)
         print(f"欠損値除去後: {len(df_clean)}行")
         
         # Phase1とPhase2のデータを抽出
@@ -325,9 +320,9 @@ class BoxMTestAnalyzer:
         print("\nBox's M検定結果:")
         print(summary_table.to_string(index=False))
     
-    def run_complete_analysis(self, variables=None, alpha=0.05, by_condition=True):
+    def run_complete_analysis(self, variables=None, alpha=0.05, condition=None):
         """
-        完全なBox's M test分析を実行
+        完全なBox's M test分析を実行（条件別分析対応）
         
         Parameters:
         -----------
@@ -335,215 +330,214 @@ class BoxMTestAnalyzer:
             検定対象変数（デフォルト: ['ex1_estimate', 'ex2_estimate']）
         alpha : float
             有意水準（デフォルト: 0.05）
-        by_condition : bool
-            条件ごとに分析するかどうか（デフォルト: True）
+        condition : int, optional
+            特定の条件でのみ分析を実行（Cond列の値）
         
         Returns:
         --------
         dict : 完全な分析結果
         """
-        print("=== Box's M Test完全分析を開始 ===")
+        condition_label = f" (条件: Cond={condition})" if condition is not None else " (全体)"
+        print(f"=== Box's M Test完全分析を開始{condition_label} ===")
         
-        results_summary = {}
+        # 1. データ読み込み（既に__init__で実行済み）
         
-        if by_condition:
-            # 条件ごとの分析
-            conditions = sorted(self.df['Cond'].unique())
-            print(f"条件ごとの分析を実行します: {conditions}")
-            
-            for condition in conditions:
-                print(f"\n{'='*20} 条件{condition}の分析 {'='*20}")
-                
-                # 条件ごとのフェーズサブセット抽出
-                phase1_data, phase2_data = self.extract_phase_subsets(variables, condition)
-                
-                if phase1_data is None or len(phase1_data) < 2 or len(phase2_data) < 2:
-                    print(f"条件{condition}: サンプル数不足により検定をスキップ")
-                    results_summary[f'condition_{condition}'] = None
-                    continue
-                
-                # 共分散行列の計算
-                cov1, cov2, pooled_cov, n1, n2, p = self.calculate_covariance_matrices(phase1_data, phase2_data)
-                
-                # Box's M統計量と自由度の算出
-                test_results = self.compute_box_m_statistic(cov1, cov2, pooled_cov, n1, n2, p)
-                
-                if test_results is None:
-                    results_summary[f'condition_{condition}'] = None
-                    continue
-                
-                # 検定結果の判断
-                interpretation = self.interpret_results(test_results, alpha)
-                
-                # 結果の要約
-                self.create_summary_table(test_results, phase1_data, phase2_data)
-                
-                # 条件ごとの結果を保存
-                results_summary[f'condition_{condition}'] = {
-                    'condition': condition,
-                    'test_results': test_results,
-                    'interpretation': interpretation,
-                    'phase1_data': phase1_data,
-                    'phase2_data': phase2_data,
-                    'covariance_matrices': {
-                        'phase1': cov1,
-                        'phase2': cov2,
-                        'pooled': pooled_cov
-                    }
-                }
-        
-        # 全体での分析も実行
-        print(f"\n{'='*20} 全体での分析 {'='*20}")
-        
-        # 全体のフェーズサブセット抽出
-        phase1_data, phase2_data = self.extract_phase_subsets(variables)
+        # 2. フェーズごとのサブセット抽出
+        phase1_data, phase2_data = self.extract_phase_subsets(variables, condition)
         
         if len(phase1_data) < 2 or len(phase2_data) < 2:
-            print("エラー: 全体でもサンプル数不足により検定を実行できません")
-            overall_results = None
-        else:
-            # 共分散行列の計算
-            cov1, cov2, pooled_cov, n1, n2, p = self.calculate_covariance_matrices(phase1_data, phase2_data)
-            
-            # Box's M統計量と自由度の算出
-            test_results = self.compute_box_m_statistic(cov1, cov2, pooled_cov, n1, n2, p)
-            
-            if test_results is not None:
-                # 検定結果の判断
-                interpretation = self.interpret_results(test_results, alpha)
-                
-                # 結果の要約
-                self.create_summary_table(test_results, phase1_data, phase2_data)
-                
-                # 全体の結果
-                overall_results = {
-                    'test_results': test_results,
-                    'interpretation': interpretation,
-                    'phase1_data': phase1_data,
-                    'phase2_data': phase2_data,
-                    'covariance_matrices': {
-                        'phase1': cov1,
-                        'phase2': cov2,
-                        'pooled': pooled_cov
-                    }
-                }
-            else:
-                overall_results = None
+            print(f"エラー: サンプル数不足により検定を実行できません{condition_label}")
+            return None
         
-        # 総合結果
+        # 3. 共分散行列の計算
+        cov1, cov2, pooled_cov, n1, n2, p = self.calculate_covariance_matrices(phase1_data, phase2_data)
+        
+        # 4. Box's M統計量と自由度の算出
+        results = self.compute_box_m_statistic(cov1, cov2, pooled_cov, n1, n2, p)
+        
+        if results is None:
+            return None
+        
+        # 5. 検定結果の判断
+        interpretation = self.interpret_results(results, alpha)
+        
+        # 6. 結果の要約と解釈
+        self.create_summary_table(results, phase1_data, phase2_data)
+        
+        # 完全な結果を返す
         complete_results = {
-            'overall': overall_results,
-            'by_condition': results_summary if by_condition else None
+            'test_results': results,
+            'interpretation': interpretation,
+            'phase1_data': phase1_data,
+            'phase2_data': phase2_data,
+            'covariance_matrices': {
+                'phase1': cov1,
+                'phase2': cov2,
+                'pooled': pooled_cov
+            },
+            'condition': condition
         }
         
-        # 条件別サマリーの表示
-        if by_condition:
-            self._display_condition_summary(results_summary, alpha)
-        
-        print("\n=== Box's M Test分析完了 ===")
+        print(f"\n=== Box's M Test分析完了{condition_label} ===")
         return complete_results
     
-    def _display_condition_summary(self, results_summary, alpha):
+    def run_condition_analysis(self, variables=None, alpha=0.05):
         """
-        条件別結果のサマリーを表示
+        2×2要因計画での条件別Box's M test分析を実行
+        
+        Parameters:
+        -----------
+        variables : list
+            検定対象変数（デフォルト: ['ex1_estimate', 'ex2_estimate']）
+        alpha : float
+            有意水準（デフォルト: 0.05）
+        
+        Returns:
+        --------
+        dict : 条件別分析結果
         """
-        print(f"\n{'='*40}")
+        print("\n" + "="*60)
+        print("2×2要因計画 条件別Box's M Test分析")
+        print("="*60)
+        
+        # 利用可能な条件を確認
+        available_conditions = sorted(self.df['Cond'].unique())
+        print(f"利用可能な条件: {available_conditions}")
+        
+        # 各条件での分析を実行
+        condition_results = {}
+        
+        for condition in available_conditions:
+            print(f"\n" + "-"*40)
+            print(f"条件 {condition} の分析")
+            print("-"*40)
+            
+            result = self.run_complete_analysis(
+                variables=variables, 
+                alpha=alpha, 
+                condition=condition
+            )
+            
+            if result is not None:
+                condition_results[condition] = result
+            else:
+                print(f"条件 {condition} の分析に失敗しました")
+        
+        # 全体分析も実行
+        print(f"\n" + "-"*40)
+        print("全体データの分析")
+        print("-"*40)
+        
+        overall_result = self.run_complete_analysis(
+            variables=variables, 
+            alpha=alpha, 
+            condition=None
+        )
+        
+        if overall_result is not None:
+            condition_results['overall'] = overall_result
+        
+        # 条件別サマリーを表示
+        self._display_condition_summary(condition_results, alpha)
+        
+        return condition_results
+    
+    def _display_condition_summary(self, condition_results, alpha=0.05):
+        """
+        条件別分析結果のサマリーを表示
+        
+        Parameters:
+        -----------
+        condition_results : dict
+            条件別分析結果
+        alpha : float
+            有意水準
+        """
+        print("\n" + "="*60)
         print("条件別Box's M Test結果サマリー")
-        print(f"{'='*40}")
+        print("="*60)
         
+        # サマリーテーブルのデータを準備
         summary_data = []
-        for key, result in results_summary.items():
-            if result is None:
-                continue
-            
-            condition = result['condition']
-            test_results = result['test_results']
-            interpretation = result['interpretation']
-            
-            summary_data.append({
-                '条件': condition,
-                'χ²統計量': f"{test_results['chi2_statistic']:.3f}",
-                '自由度': test_results['degrees_of_freedom'],
-                'p値': f"{test_results['p_value']:.6f}",
-                '判定': '有意' if test_results['p_value'] < alpha else '非有意',
-                '解釈': interpretation['interpretation'],
-                'n1': test_results['n1'],
-                'n2': test_results['n2']
-            })
         
+        for condition_key, result in condition_results.items():
+            if result is not None:
+                test_results = result['test_results']
+                interpretation = result['interpretation']
+                
+                condition_label = f"条件 {condition_key}" if condition_key != 'overall' else "全体"
+                
+                summary_data.append({
+                    '条件': condition_label,
+                    'n1 (Phase1)': test_results['n1'],
+                    'n2 (Phase2)': test_results['n2'],
+                    'χ²統計量': f"{test_results['chi2_statistic']:.4f}",
+                    '自由度': test_results['degrees_of_freedom'],
+                    'p値': f"{test_results['p_value']:.6f}",
+                    '判定': '有意' if test_results['p_value'] < alpha else '非有意',
+                    '解釈': interpretation['interpretation']
+                })
+        
+        # サマリーテーブルを作成・表示
         if summary_data:
-            import pandas as pd
             summary_df = pd.DataFrame(summary_data)
             print(summary_df.to_string(index=False))
             
-            # 有意な条件の数
-            significant_count = sum(1 for data in summary_data if data['判定'] == '有意')
-            total_count = len(summary_data)
-            print(f"\n有意差のある条件: {significant_count}/{total_count}")
+            print(f"\n【解釈】")
+            print(f"有意水準α = {alpha}")
+            print("帰無仮説 H0: Phase1とPhase2の共分散行列は同質")
+            print("対立仮説 H1: Phase1とPhase2の共分散行列は異質")
             
-            if significant_count > 0:
-                print("有意差のある条件:")
-                for data in summary_data:
-                    if data['判定'] == '有意':
-                        print(f"  条件{data['条件']}: p={data['p値']}")
+            # 条件間での比較コメント
+            significant_conditions = [row['条件'] for row in summary_data if row['判定'] == '有意']
+            non_significant_conditions = [row['条件'] for row in summary_data if row['判定'] == '非有意']
+            
+            if significant_conditions:
+                print(f"\n有意差が検出された条件: {', '.join(significant_conditions)}")
+            if non_significant_conditions:
+                print(f"有意差が検出されなかった条件: {', '.join(non_significant_conditions)}")
         else:
-            print("有効な結果がありません")
+            print("有効な分析結果がありません")
 
 
 def main():
     """
-    メイン実行関数: Box's M testの完全な実行例
+    メイン実行関数: Box's M testの完全な実行例（条件別分析対応）
     """
     try:
         # 分析器の初期化（データ読み込み）
         analyzer = BoxMTestAnalyzer('final_valid_6_samples.csv')
         
-        # Box's M test完全分析の実行（条件ごと + 全体）
-        results = analyzer.run_complete_analysis(
+        # 2×2要因計画での条件別Box's M test分析の実行
+        condition_results = analyzer.run_condition_analysis(
             variables=['ex1_estimate', 'ex2_estimate'],
-            alpha=0.05,
-            by_condition=True
+            alpha=0.05
         )
         
-        if results is not None:
-            print("\n" + "="*60)
-            print("Box's M Test 実行完了")
-            print("="*60)
-            
-            # 全体結果の表示
-            if results['overall'] is not None:
-                print("\n【全体結果】")
-                overall_results = results['overall']['test_results']
-                overall_interpretation = results['overall']['interpretation']
-                
-                print(f"統計量χ²: {overall_results['chi2_statistic']:.3f}")
-                print(f"自由度: {overall_results['degrees_of_freedom']}")
-                print(f"p値: {overall_results['p_value']:.6f}")
-                print(f"判定: {overall_interpretation['interpretation']}")
-                print(f"結論: {overall_interpretation['conclusion']}")
-            
-            # 条件別結果がある場合の追加情報
-            if results['by_condition'] is not None:
-                valid_conditions = [k for k, v in results['by_condition'].items() if v is not None]
-                print(f"\n【条件別分析】")
-                print(f"分析対象条件数: {len(valid_conditions)}")
-                
-                # 有意な条件の詳細
-                significant_conditions = []
-                for key, result in results['by_condition'].items():
-                    if result is not None and result['test_results']['p_value'] < 0.05:
-                        significant_conditions.append(result['condition'])
-                
-                if significant_conditions:
-                    print(f"有意差のある条件: {significant_conditions}")
-                else:
-                    print("有意差のある条件: なし")
-            
+        print("\n" + "="*60)
+        print("Box's M Test 条件別分析完了")
+        print("="*60)
+        
+        # 結果の要約表示
+        if condition_results:
+            print(f"\n実行された分析数: {len(condition_results)}")
+            for condition_key, result in condition_results.items():
+                if result is not None:
+                    test_results = result['test_results']
+                    interpretation = result['interpretation']
+                    condition_label = f"条件 {condition_key}" if condition_key != 'overall' else "全体"
+                    
+                    print(f"\n【{condition_label}】")
+                    print(f"  χ²統計量: {test_results['chi2_statistic']:.3f}")
+                    print(f"  p値: {test_results['p_value']:.6f}")
+                    print(f"  判定: {interpretation['interpretation']}")
         else:
-            print("分析を完了できませんでした")
+            print("条件別分析を完了できませんでした")
             
     except Exception as e:
         print(f"分析中にエラーが発生しました: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 if __name__ == '__main__':
