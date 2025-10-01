@@ -109,7 +109,7 @@ def UCS_generic(counts, threshold, is_gene=True, loops=10000):
     rng = np.random.default_rng()  # 高速な乱数ジェネレータを生成
     power = np.zeros((loops, 3))   # wCE, wBC, wBE を保存する行列
 
-    # 各サンプルでランダムに確率値を生成（稀少性を制限）
+    # 各サンプルでランダムに確率値を生成
     for i in range(loops):
         power0 = rng.uniform(0, 1)                # 原因→結果（wCE）
         power1 = rng.uniform(1e-100, threshold)   # 背景→原因（wBC）
@@ -118,9 +118,9 @@ def UCS_generic(counts, threshold, is_gene=True, loops=10000):
 
     a, b, c, d = counts  # データカウントを展開
 
-    # 各事象に対応する確率を定義（生成型/抑制型で異なる）
+    # 各事象に対応する確率の定義
     if is_gene:
-        # 生成的原因のケース
+        # 生成
         denom = (
             np.sqrt(power[:,1]*power[:,2]*(1 - (1 - power[:,0])*(1 - power[:,1]))*(1 - (1 - power[:,0])*(1 - power[:,2])))
             + np.sqrt(power[:,1]*(1 - power[:,2])*power[:,1]*((1 - power[:,0])*(1 - power[:,2])))
@@ -134,7 +134,7 @@ def UCS_generic(counts, threshold, is_gene=True, loops=10000):
             (1 - power[:,1])*(1 - power[:,2]) / denom                                                                              # P(E=0|C=0)
         ]
     else:
-        # 抑制的原因のケース
+        # 抑制
         denom = (
             np.sqrt(power[:,1]*power[:,2]*((power[:,1]*(1 - power[:,0]))*(power[:,2]*(1 - power[:,0]))))
             + np.sqrt(power[:,1]*(1 - power[:,2])*power[:,1]*(1 - (power[:,2]*(1 - power[:,0]))))
@@ -156,7 +156,7 @@ def UCS_generic(counts, threshold, is_gene=True, loops=10000):
         (1 - power[:,1])*(1 - power[:,2])           # P(E=0|C=0)
     ]
 
-    # 尤度（log space）計算
+    # 尤度計算
     loglike1 = np.sum(np.array([a, b, c, d])[:, np.newaxis] * np.log(probs1), axis=0)
     loglike0 = np.sum(np.array([a, b, c, d])[:, np.newaxis] * np.log(probs0), axis=0)
 
@@ -174,8 +174,8 @@ with json_path.open("r", encoding="utf-8") as f:
     samples = json.load(f)["common_samples"]
 
 # 計算条件（必要に応じて変更可）
-threshold = 0.3     # 稀少性上限 x（例：0.3）
-loops     = 40000   # モンテカルロ試行回数（計算時間と精度のトレードオフ）
+threshold = 1.0     # 稀少性上限 x（例：0.3）
+loops     = 50000   # モンテカルロ試行回数（計算時間と精度のトレードオフ）
 
 # 各刺激について CS_generic と UCS_generic を計算し、差分を表にまとめる
 rows = []

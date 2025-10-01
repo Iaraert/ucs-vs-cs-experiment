@@ -578,10 +578,10 @@ class CorrelationAnalyzer:
         ex2_first = self.df[self.df["ex2_is_first"] == 1].copy()
         
         conditions = [
-            ("非対称否定_オンライン", ex1_first[ex1_first["Cond"] == 0], "ex1"),
-            ("対称否定_オンライン", ex1_first[ex1_first["Cond"] == 1], "ex1"),
-            ("非対称否定_オンライン２", ex2_first[ex2_first["Cond"] == 0], "ex2"),
-            ("対称否定_オンライン２", ex2_first[ex2_first["Cond"] == 1], "ex2"),
+            ("非対称否定_サマリー", ex1_first[ex1_first["Cond"] == 0], "ex1"),
+            ("対称否定_サマリー", ex1_first[ex1_first["Cond"] == 1], "ex1"),
+            ("非対称否定_オンライン", ex2_first[ex2_first["Cond"] == 0], "ex2"),
+            ("対称否定_オンライン", ex2_first[ex2_first["Cond"] == 1], "ex2"),
         ]
         
         all_sample_averages = []
@@ -680,7 +680,7 @@ class CorrelationAnalyzer:
         ]
 
         for th in thresholds:
-            print(f"\n=== threshold = {th:.1f} 縺ｧ縺ｮCRT繧ｯ繝ｩ繧ｹ繧ｿ繝ｼ繝偵せ繝医げ繝ｩ繝菴懈・ ===")
+            print(f"\n=== threshold = {th:.1f}  ===")
 
             valid_cases = []
             for label, df_sub, prefix in cases:
@@ -688,15 +688,15 @@ class CorrelationAnalyzer:
                     continue
 
                 if "ex1" in label:
-                    experiment_type = "繧ｵ繝槭Μ繝ｼ"
+                    experiment_type = "サマリー"
                 elif "ex2" in label:
-                    experiment_type = "繧ｪ繝ｳ繝ｩ繧､繝ｳ"
+                    experiment_type = "オンライン"
                 else:
                     continue
                 if "Cond0" in label:
-                    condition = "髱槫ｯｾ遘ｰ蜷ｦ螳・"
+                    condition = "非対称否定"
                 elif "Cond1" in label:
-                    condition = "蟇ｾ遘ｰ蜷ｦ螳・"
+                    condition = "対称否定"
                 else:
                     continue
 

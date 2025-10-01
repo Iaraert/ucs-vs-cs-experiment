@@ -507,10 +507,10 @@ class CorrelationAnalyzer:
         ex2_first = self.df[self.df["ex2_is_first"] == 1].copy()
         
         conditions = [
-            ("非対称否定_オンライン", ex1_first[ex1_first["Cond"] == 0], "ex1"),
-            ("対称否定_オンライン", ex1_first[ex1_first["Cond"] == 1], "ex1"),
-            ("非対称否定_オンライン２", ex2_first[ex2_first["Cond"] == 0], "ex2"),
-            ("対称否定_オンライン２", ex2_first[ex2_first["Cond"] == 1], "ex2"),
+            ("非対称否定_サマリー", ex1_first[ex1_first["Cond"] == 0], "ex1"),
+            ("対称否定_サマリー", ex1_first[ex1_first["Cond"] == 1], "ex1"),
+            ("非対称否定_オンライン", ex2_first[ex2_first["Cond"] == 0], "ex2"),
+            ("対称否定_オンライン", ex2_first[ex2_first["Cond"] == 1], "ex2"),
         ]
         
         all_sample_averages = []
