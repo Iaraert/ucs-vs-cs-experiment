@@ -600,7 +600,7 @@ if __name__ == "__main__":
     print(f"threshold値: {thresholds}")
     print(f"総パターン数: {len(thresholds)}")
     print("=" * 50)
-    analyzer = CorrelationAnalyzer("final_valid_updated.csv", max_k=5)
+    analyzer = CorrelationAnalyzer("final_valid_6_samples.csv", max_k=5)
       # sample_numberごとの平均回答値を計算
     print("\n=== sample_numberとcover_storyごとの平均回答値計算 ===")
     analyzer.load_data()  # データを読み込み
