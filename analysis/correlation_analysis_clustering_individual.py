@@ -15,8 +15,6 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from scipy.stats import pearsonr, spearmanr
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -554,220 +552,6 @@ class CorrelationAnalyzer:
         return corr_pearson, corr_spearman, summary
 
     # ------------------------------------------------------------------
-    # Visualization
-    # ------------------------------------------------------------------
-    def plot_estimate_patterns(
-        self,
-        case: CaseDefinition,
-        cluster_result: Optional[ClusterResult] = None,
-        save_path: Optional[Path | str] = None,
-        show: bool = False,
-        ax: Optional["plt.Axes"] = None,
-    ) -> Tuple["plt.Figure", "plt.Axes"]:
-        """Plot estimate trajectories for a case grouped by cluster when available."""
-        est_col = f"{case.prefix}_estimate"
-        num_col = f"{case.prefix}_sample_number"
-        required_columns = {"user_id", est_col, num_col}
-
-        if not required_columns.issubset(case.data.columns):
-            missing = ", ".join(sorted(required_columns.difference(case.data.columns)))
-            raise ValueError(f"Missing required columns for plotting: {missing}")
-
-        plot_df = case.data[list(required_columns)].copy().dropna(subset=[est_col, num_col])
-        if plot_df.empty:
-            raise ValueError("No valid data points available for plotting.")
-
-        plot_df[num_col] = pd.to_numeric(plot_df[num_col], errors="coerce")
-        plot_df[est_col] = pd.to_numeric(plot_df[est_col], errors="coerce")
-        plot_df = plot_df.dropna(subset=[est_col, num_col])
-        plot_df[num_col] = plot_df[num_col].astype(int)
-
-        if plot_df.empty:
-            raise ValueError("No numeric sample numbers or estimates available.")
-
-        plot_df = (
-            plot_df.groupby(["user_id", num_col], as_index=False)[est_col]
-            .mean()
-            .sort_values(["user_id", num_col])
-        )
-
-        created_fig = False
-        if ax is None:
-            fig, ax = plt.subplots(figsize=(10, 6))
-            created_fig = True
-        else:
-            fig = ax.figure
-
-        if cluster_result is None:
-            cluster_result = self._create_cluster_result(case.data, case.prefix)
-
-        if cluster_result is None or cluster_result.k <= 1:
-            self._plot_single_group(ax, plot_df, num_col, est_col)
-        else:
-            self._plot_cluster_patterns(ax, plot_df, num_col, est_col, cluster_result)
-
-        title = f"{case.experiment} / {case.condition} ({case.label})"
-        ax.set_title(title)
-        ax.set_xlabel("Sample Number")
-        ax.set_ylabel("Estimate")
-        sample_ticks = sorted(plot_df[num_col].unique())
-        ax.set_xticks(sample_ticks)
-        ax.grid(True, linestyle="--", linewidth=0.6, alpha=0.5)
-        handles, labels = ax.get_legend_handles_labels()
-        if labels:
-            ax.legend(frameon=False, loc="best")
-
-        if save_path:
-            save_path = Path(save_path)
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-            fig.savefig(save_path, bbox_inches="tight")
-
-        if show and created_fig:
-            plt.show()
-
-        return fig, ax
-
-    def _plot_cluster_patterns(
-        self,
-        ax: "plt.Axes",
-        plot_df: pd.DataFrame,
-        sample_column: str,
-        estimate_column: str,
-        cluster_result: ClusterResult,
-    ) -> None:
-        """Draw participant trajectories and cluster means for each cluster."""
-        cluster_map = cluster_result.matrix["cluster"].to_dict()
-        base_df = plot_df.copy()
-        plot_df["cluster"] = plot_df["user_id"].map(cluster_map)
-        plot_df = plot_df.dropna(subset=["cluster"])
-        if plot_df.empty:
-            self._plot_single_group(ax, base_df, sample_column, estimate_column)
-            return
-
-        plot_df["cluster"] = plot_df["cluster"].astype(int)
-        palette = sns.color_palette("tab10", n_colors=min(cluster_result.k, 10))
-        if cluster_result.k > len(palette):
-            palette = sns.color_palette("husl", n_colors=cluster_result.k)
-
-        for cluster_idx in range(cluster_result.k):
-            cluster_data = plot_df[plot_df["cluster"] == cluster_idx]
-            if cluster_data.empty:
-                continue
-
-            color = palette[cluster_idx % len(palette)]
-            for _, user_df in cluster_data.groupby("user_id"):
-                ax.plot(
-                    user_df[sample_column],
-                    user_df[estimate_column],
-                    color=color,
-                    linewidth=0.9,
-                    alpha=0.3,
-                )
-
-            mean_series = (
-                cluster_data.groupby(sample_column)[estimate_column]
-                .mean()
-                .reset_index()
-                .sort_values(sample_column)
-            )
-            ax.plot(
-                mean_series[sample_column],
-                mean_series[estimate_column],
-                color=color,
-                linewidth=2.8,
-                label=f"Cluster {cluster_idx + 1} Mean (n={cluster_result.size(cluster_idx)})",
-            )
-
-    def _plot_single_group(
-        self,
-        ax: "plt.Axes",
-        plot_df: pd.DataFrame,
-        sample_column: str,
-        estimate_column: str,
-    ) -> None:
-        """Draw participant trajectories and overall mean when no clusters."""
-        if plot_df.empty:
-            return
-
-        color = sns.color_palette("tab10", 1)[0]
-        for _, user_df in plot_df.groupby("user_id"):
-            ax.plot(
-                user_df[sample_column],
-                user_df[estimate_column],
-                color=color,
-                linewidth=0.9,
-                alpha=0.3,
-            )
-
-        group_mean = (
-            plot_df.groupby(sample_column)[estimate_column]
-            .mean()
-            .reset_index()
-            .sort_values(sample_column)
-        )
-        participant_count = plot_df["user_id"].nunique()
-        ax.plot(
-            group_mean[sample_column],
-            group_mean[estimate_column],
-            color=color,
-            linewidth=2.8,
-            label=f"Group Mean (n={participant_count})",
-        )
-
-    def visualize_all_cases(
-        self,
-        output_dir: Optional[Path | str] = None,
-        show: bool = False,
-    ) -> Dict[str, Path]:
-        """Create estimate plots for all experimental cases."""
-        if self.df is None:
-            self.load_data()
-
-        save_dir = Path(output_dir) if output_dir else None
-        if save_dir:
-            save_dir.mkdir(parents=True, exist_ok=True)
-
-        outputs: Dict[str, Path] = {}
-        for case in self._iter_cases():
-            try:
-                cluster_result = self._create_cluster_result(case.data, case.prefix)
-            except Exception as exc:
-                cluster_result = None
-                if self.debug:
-                    print(f"[DEBUG] Failed to compute clusters for {case.label}: {exc}")
-
-            fig, ax = plt.subplots(figsize=(10, 6))
-            save_path = None
-            if save_dir:
-                safe_label = case.label.replace("/", "_")
-                save_path = save_dir / f"{safe_label}_patterns.png"
-
-            try:
-                fig, ax = self.plot_estimate_patterns(
-                    case=case,
-                    cluster_result=cluster_result,
-                    save_path=save_path,
-                    show=False,
-                    ax=ax,
-                )
-            except ValueError as exc:
-                if self.debug:
-                    print(f"[DEBUG] Skipping visualization for {case.label}: {exc}")
-                plt.close(fig)
-                continue
-
-            if not show:
-                plt.close(fig)
-
-            if save_path:
-                outputs[case.label] = Path(save_path)
-
-        if show:
-            plt.show()
-
-        return outputs
-
-    # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
     def run_threshold_analysis(
@@ -1019,16 +803,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         help="Skip generating sample average tables.",
     )
     parser.add_argument(
-        "--plots-dir",
-        default=None,
-        help="Directory to save visualization plots (defaults to the output directory).",
-    )
-    parser.add_argument(
-        "--skip-plots",
-        action="store_true",
-        help="Skip generating visualization plots.",
-    )
-    parser.add_argument(
         "--debug",
         action="store_true",
         help="Enable debug logging.",
@@ -1072,25 +846,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print("Sample averages saved:")
     for name, path in outputs.items():
         print(f"  - {name}: {path}")
-
-    if not args.skip_plots:
-        plots_dir = (
-            Path(args.plots_dir)
-            if args.plots_dir
-            else Path(args.output).resolve().parent
-        )
-        
-        plot_outputs = analyzer.visualize_all_cases(
-            output_dir=plots_dir,
-            show=False,
-        )
-        
-        if plot_outputs:
-            print("Visualization plots saved:")
-            for case_label, path in plot_outputs.items():
-                print(f"  - {case_label}: {path}")
-        else:
-            print("No visualization plots were generated.")
 
     return 0
 

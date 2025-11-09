@@ -15,11 +15,150 @@ import csv
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
+import warnings
 
 import numpy as np
 
 EPS = 1e-12
 LABEL_ORDER = ("low", "mid", "high")
+
+
+def CS(counts, threshold, is_gene=True, loops=50000):
+    rng = np.random.default_rng()
+    power = np.zeros((loops, 2))
+
+    for i in range(loops):
+        power0 = rng.uniform(0+1e-100, threshold)
+        power1 = rng.uniform(0, 1)
+        power[i] = [power0, power1]
+
+    a, b, c, d = counts
+    wBE = power[:, 0]
+    wCE = power[:, 1]
+
+    if is_gene:
+        probs1 = [
+            (1 - (1 - wCE) * (1 - wBE)),  # P(E=1|C=1)
+            (1 - wCE) * (1 - wBE),        # P(E=0|C=1)
+            wBE,                          # P(E=1|C=0)
+            (1 - wBE),                    # P(E=0|C=0)
+        ]
+    else:
+        probs1 = [
+            wBE - (wCE * wBE),            # P(E=1|C=1)
+            1 - (wBE - (wCE * wBE)),      # P(E=0|C=1)
+            wBE,                          # P(E=1|C=0)
+            1 - wBE,                      # P(E=0|C=0)
+        ]
+
+    probs0 = [
+        wBE,        # P(E=1|C=1)
+        (1 - wBE),  # P(E=0|C=1)
+        wBE,        # P(E=1|C=0)
+        (1 - wBE),  # P(E=0|C=0)
+    ]
+
+    loglike1 = np.sum((np.ones((loops, 1)) * np.array(counts)) * np.log(probs1).T, axis=1)
+    like1 = sum(np.exp(loglike1)) * (1/loops)
+
+    loglike0 = np.sum((np.ones((loops, 1)) * np.array(counts)) * np.log(probs0).T, axis=1)
+    like0 = sum(np.exp(loglike0)) * (1/loops)
+
+    logscore = np.log(like1/like0)
+    return logscore
+
+
+def UCS(counts, threshold, is_gene=True, loops=100000):
+    rng = np.random.default_rng()
+    power = np.zeros((loops, 3))
+
+    for i in range(loops):
+        power0 = rng.uniform(0+1e-100, threshold)  # wBC
+        power1 = rng.uniform(0+1e-100, threshold)  # wBE
+        power2 = rng.uniform(0, 1)                 # wCE
+        power[i] = [power0, power1, power2]
+
+    a, b, c, d = counts
+    wBC = power[:, 0]
+    wBE = power[:, 1]
+    wCE = power[:, 2]
+
+    # BC / BE
+    if is_gene:  # noisy-OR
+        sameBC, diffBC = wBC, (1 - wBC)
+        sameBE, diffBE = wBE, (1 - wBE)
+    else:        # noisy-AND-NOT
+        sameBC, diffBC = (1 - wBC), wBC
+        sameBE, diffBE = (1 - wBE), wBE
+
+    # --- CE ---
+    if is_gene:
+        # noisy-OR: P(E=1|C,B=1)
+        Pe1_c1 = 1.0 - (1.0 - wBE) * (1.0 - wCE)
+        Pe1_c0 = wBE
+    else:
+        # noisy-AND-NOT: P(E=1|C,B=1)
+        Pe1_c1 = wBE * (1.0 - wCE)
+        Pe1_c0 = wBE
+
+    Pe0_c1 = 1.0 - Pe1_c1
+    Pe0_c0 = 1.0 - Pe1_c0
+
+    # 事前 P(C=1|B=1)=wBC を使って、周辺 P(E|B=1) を作る（分母）
+    # P(E=1|B=1) = sum_c P(E=1|c,B=1) P(c|B=1)
+    Pe1_b1 = wBC * Pe1_c1 + (1.0 - wBC) * Pe1_c0
+    Pe0_b1 = 1.0 - Pe1_b1
+
+    # Bayes: P(C=1|E=e,B=1) = P(E=e|C=1,B=1) P(C=1|B=1) / P(E=e|B=1)
+    Pc1_e1 = (Pe1_c1 * wBC) / (Pe1_b1 + 1e-100)
+    Pc1_e0 = (Pe0_c1 * wBC) / (Pe0_b1 + 1e-100)
+    Pc0_e1 = 1.0 - Pc1_e1
+    Pc0_e0 = 1.0 - Pc1_e0
+
+    # セルごとの ψ_CE = sqrt( P(E|C,B=1) * P(C|E,B=1) )
+    psi_ce_11 = np.sqrt(Pe1_c1 * Pc1_e1)  # C=1,E=1
+    psi_ce_10 = np.sqrt(Pe0_c1 * Pc1_e0)  # C=1,E=0
+    psi_ce_01 = np.sqrt(Pe1_c0 * Pc0_e1)  # C=0,E=1
+    psi_ce_00 = np.sqrt(Pe0_c0 * Pc0_e0)  # C=0,E=0
+
+    # G1'
+    # φ(c,e) = ψ(b,c) ψ(b,e) ψ(c,e)  ; (C,E)=(11,10,01,00)
+    phi11 = (sameBC) * (sameBE) * (psi_ce_11)
+    phi10 = (sameBC) * (diffBE) * (psi_ce_10)
+    phi01 = (diffBC) * (sameBE) * (psi_ce_01)
+    phi00 = (diffBC) * (diffBE) * (psi_ce_00)
+
+    Z1 = phi11 + phi10 + phi01 + phi00
+    p11 = phi11 / (Z1 + 1e-100)
+    p10 = phi10 / (Z1 + 1e-100)
+    p01 = phi01 / (Z1 + 1e-100)
+    p00 = phi00 / (Z1 + 1e-100)
+
+    probs1 = [p11, p10, p01, p00]
+
+    # G0'
+    phi11_0 = (sameBC) * (sameBE)
+    phi10_0 = (sameBC) * (diffBE)
+    phi01_0 = (diffBC) * (sameBE)
+    phi00_0 = (diffBC) * (diffBE)
+
+    Z0 = phi11_0 + phi10_0 + phi01_0 + phi00_0
+    q11 = phi11_0 / (Z0 + 1e-100)
+    q10 = phi10_0 / (Z0 + 1e-100)
+    q01 = phi01_0 / (Z0 + 1e-100)
+    q00 = phi00_0 / (Z0 + 1e-100)
+
+    probs0 = [q11, q10, q01, q00]
+
+    # 尤度 → 周辺化
+    loglike1 = np.sum((np.ones((loops, 1)) * np.array(counts)) * np.log(np.array(probs1) + 1e-100).T, axis=1)
+    like1 = np.sum(np.exp(loglike1)) * (1/loops)
+
+    loglike0 = np.sum((np.ones((loops, 1)) * np.array(counts)) * np.log(np.array(probs0) + 1e-100).T, axis=1)
+    like0 = np.sum(np.exp(loglike0)) * (1/loops)
+
+    logscore = np.log(like1/like0)
+    return logscore
 
 
 def log_mean_exp(log_vals: np.ndarray) -> float:
@@ -31,7 +170,7 @@ def log_mean_exp(log_vals: np.ndarray) -> float:
 @dataclass
 class SearchConfig:
     """User-configurable knobs for the CS/UCS sweep."""
-    threshold: float = 0.3  # Upper bound for background edge sampling in Monte Carlo
+    threshold: float = 1.0  # Upper bound for background edge sampling in Monte Carlo
     cs_loops: int = 12000  # Number of Monte Carlo draws used by CS_generic
     ucs_loops: int = 12000  # Number of Monte Carlo draws used by UCS_generic
     seed: int = 0  # Shared RNG seed so experiments stay reproducible
@@ -51,24 +190,35 @@ class CSUCSMonteCarlo:
         self._rng = np.random.default_rng(config.seed)
         self._build_cs_tables()
         self._build_ucs_tables()
-
+    
     def _build_cs_tables(self) -> None:
-        """Sample CS-specific probabilities once so subsequent score calls reuse them."""
         cfg = self.config
         rng = self._rng
-        power0 = rng.uniform(0.0, 1.0, cfg.cs_loops)
-        power1 = rng.uniform(1e-8, cfg.threshold, cfg.cs_loops)
+        power0 = rng.uniform(1e-8, cfg.threshold, cfg.cs_loops)
+        power1 = rng.uniform(0.0, 1.0, cfg.cs_loops)
 
-        # Precompute noisy-OR style probabilities under causal (G1) and null (G0) models
-        probs1 = np.stack(
-            (
-                power1,              # P(E=1|C=1)
-                1.0 - power1,        # P(E=0|C=1)
-                power0,              # P(E=1|C=0)
-                1.0 - power0,        # P(E=0|C=0)
-            ),
-            axis=1,
-        )
+        # Precompute CS-style probabilities under causal (G1) and null (G0) models
+        if cfg.is_gene:
+            probs1 = np.stack(
+                (
+                    (1 - (1 - power1) * (1 - power0)),  # P(E=1|C=1)
+                    (1 - power1) * (1 - power0),        # P(E=0|C=1)
+                    power0,                             # P(E=1|C=0)
+                    (1 - power0),                       # P(E=0|C=0)
+                ),
+                axis=1,
+            )
+        else:
+            probs1 = np.stack(
+                (
+                    power0 - (power1 * power0),         # P(E=1|C=1)
+                    1 - (power0 - (power1 * power0)),   # P(E=0|C=1)
+                    power0,                             # P(E=1|C=0)
+                    1 - power0,                         # P(E=0|C=0)
+                ),
+                axis=1,
+            )
+        
         probs0 = np.stack(
             (
                 power0,              # P(E=1|C=1)
@@ -81,54 +231,68 @@ class CSUCSMonteCarlo:
 
         self.cs_log_probs1 = np.log(np.clip(probs1, EPS, None))
         self.cs_log_probs0 = np.log(np.clip(probs0, EPS, None))
-
+    
     def _build_ucs_tables(self) -> None:
-        """Sample UCS-specific probabilities once so subsequent score calls reuse them."""
         cfg = self.config
         rng = self._rng
-        power0 = rng.uniform(0.0, 1.0, cfg.ucs_loops)
-        power1 = rng.uniform(1e-8, cfg.threshold, cfg.ucs_loops)
-        power2 = rng.uniform(1e-8, cfg.threshold, cfg.ucs_loops)
+        wBC = rng.uniform(1e-8, cfg.threshold, cfg.ucs_loops)
+        wBE = rng.uniform(1e-8, cfg.threshold, cfg.ucs_loops)
+        wCE = rng.uniform(0.0, 1.0, cfg.ucs_loops)
 
-        # Cache complements to simplify later formulas
-        om0 = 1.0 - power0
-        om1 = 1.0 - power1
-        om2 = 1.0 - power2
+        # BC / BE
+        if cfg.is_gene:  # noisy-OR
+            sameBC, diffBC = wBC, (1 - wBC)
+            sameBE, diffBE = wBE, (1 - wBE)
+        else:  # noisy-AND-NOT
+            sameBC, diffBC = (1 - wBC), wBC
+            sameBE, diffBE = (1 - wBE), wBE
 
+        # --- CE ---
         if cfg.is_gene:
-            t11 = np.sqrt(
-                power1 * power2 * (1.0 - om0 * om1) * (1.0 - om0 * om2)
-            )
-            t10 = np.sqrt(
-                power1 * (1.0 - power2) * power1 * (om0 * (1.0 - power2))
-            )
-            t01 = np.sqrt(
-                (1.0 - power1) * power2 * power2 * (om0 * (1.0 - power1))
-            )
-            t00 = om1 * om2
+            # noisy-OR: P(E=1|C,B=1)
+            Pe1_c1 = 1.0 - (1.0 - wBE) * (1.0 - wCE)
+            Pe1_c0 = wBE
         else:
-            t11 = np.sqrt(
-                power1 * power2 * ((power1 * om0) * (power2 * om0))
-            )
-            t10 = np.sqrt(
-                power1 * (1.0 - power2) * power1 * (1.0 - (power2 * om0))
-            )
-            t01 = np.sqrt(
-                (1.0 - power1) * power2 * (1.0 - (power1 * om0)) * power2
-            )
-            t00 = om1 * om2
+            # noisy-AND-NOT: P(E=1|C,B=1)
+            Pe1_c1 = wBE * (1.0 - wCE)
+            Pe1_c0 = wBE
 
-        denom = np.clip(t11 + t10 + t01 + t00, EPS, None)
-        probs1 = np.stack((t11 / denom, t10 / denom, t01 / denom, t00 / denom), axis=1)
-        probs0 = np.stack(
-            (
-                power1 * power2,
-                power1 * om2,
-                om1 * power2,
-                om1 * om2,
-            ),
-            axis=1,
-        )
+        Pe0_c1 = 1.0 - Pe1_c1
+        Pe0_c0 = 1.0 - Pe1_c0
+
+        # 事前 P(C=1|B=1)=wBC を使って、周辺 P(E|B=1) を作る（分母）
+        Pe1_b1 = wBC * Pe1_c1 + (1.0 - wBC) * Pe1_c0
+        Pe0_b1 = 1.0 - Pe1_b1
+
+        # Bayes: P(C=1|E=e,B=1) = P(E=e|C=1,B=1) P(C=1|B=1) / P(E=e|B=1)
+        Pc1_e1 = (Pe1_c1 * wBC) / np.clip(Pe1_b1, 1e-100, None)
+        Pc1_e0 = (Pe0_c1 * wBC) / np.clip(Pe0_b1, 1e-100, None)
+        Pc0_e1 = 1.0 - Pc1_e1
+        Pc0_e0 = 1.0 - Pc1_e0
+
+        # セルごとの ψ_CE = sqrt( P(E|C,B=1) * P(C|E,B=1) )
+        psi_ce_11 = np.sqrt(Pe1_c1 * Pc1_e1)  # C=1,E=1
+        psi_ce_10 = np.sqrt(Pe0_c1 * Pc1_e0)  # C=1,E=0
+        psi_ce_01 = np.sqrt(Pe1_c0 * Pc0_e1)  # C=0,E=1
+        psi_ce_00 = np.sqrt(Pe0_c0 * Pc0_e0)  # C=0,E=0
+
+        # G1'
+        phi11 = sameBC * sameBE * psi_ce_11
+        phi10 = sameBC * diffBE * psi_ce_10
+        phi01 = diffBC * sameBE * psi_ce_01
+        phi00 = diffBC * diffBE * psi_ce_00
+
+        Z1 = np.clip(phi11 + phi10 + phi01 + phi00, EPS, None)
+        probs1 = np.stack((phi11 / Z1, phi10 / Z1, phi01 / Z1, phi00 / Z1), axis=1)
+
+        # G0'
+        phi11_0 = sameBC * sameBE
+        phi10_0 = sameBC * diffBE
+        phi01_0 = diffBC * sameBE
+        phi00_0 = diffBC * diffBE
+
+        Z0 = np.clip(phi11_0 + phi10_0 + phi01_0 + phi00_0, EPS, None)
+        probs0 = np.stack((phi11_0 / Z0, phi10_0 / Z0, phi01_0 / Z0, phi00_0 / Z0), axis=1)
 
         self.ucs_log_probs1 = np.log(np.clip(probs1, EPS, None))
         self.ucs_log_probs0 = np.log(np.clip(probs0, EPS, None))
