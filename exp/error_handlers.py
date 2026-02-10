@@ -2,16 +2,23 @@ from flask import render_template, jsonify, request
 from exp import app
 from utils.logger import error_logger, UserFriendlyError
 
+
+# API/HTML判定の共通関数
+def is_api_request():
+    """APIリクエストかどうかを判定（JSON形式のリクエストまたはAPIパス）"""
+    return (request.path.startswith('/api/') or 
+            request.is_json or 
+            request.headers.get('Accept') == 'application/json')
+
+
 # カスタムエラーハンドラーの登録
 @app.errorhandler(404)
 def page_not_found(e):
-    """
-    404 Not Found エラーハンドラー
-    """
+    """404 Not Found エラーハンドラー"""
     error_logger.logger.warning(f"404エラー: {request.path}")
     
-    # APIリクエストとHTMLリクエストで応答を分ける
-    if request.path.startswith('/api/') or request.is_json or request.headers.get('Accept') == 'application/json':
+    # API/HTML判定で応答形式を分ける
+    if is_api_request():
         return jsonify({
             'error': True,
             'message': 'リクエストされたリソースが見つかりません',
@@ -24,10 +31,8 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    """
-    500 Internal Server Error ハンドラー
-    """
-    # エラーのログ記録
+    """500 Internal Server Error ハンドラー"""
+    # エラー情報をログに記録し、ユーザー向けメッセージを準備
     if isinstance(e, UserFriendlyError):
         error_info = error_logger.log_exception(e, level='ERROR')
         user_message = e.user_message
@@ -39,8 +44,8 @@ def internal_server_error(e):
         recovery_path = app.config.get('DEFAULT_RECOVERY_PATH', '/')
         status_code = 500
     
-    # APIリクエストとHTMLリクエストで応答を分ける
-    if request.path.startswith('/api/') or request.is_json or request.headers.get('Accept') == 'application/json':
+    # API/HTML判定で応答形式を分ける
+    if is_api_request():
         return jsonify({
             'error': True,
             'message': user_message,
@@ -57,13 +62,11 @@ def internal_server_error(e):
 
 @app.errorhandler(UserFriendlyError)
 def handle_user_friendly_error(e):
-    """
-    カスタムエラークラスのハンドラー
-    """
+    """カスタムエラークラス（UserFriendlyError）のハンドラー"""
     error_logger.log_exception(e, level='ERROR')
     
-    # APIリクエストとHTMLリクエストで応答を分ける
-    if request.path.startswith('/api/') or request.is_json or request.headers.get('Accept') == 'application/json':
+    # API/HTML判定で応答形式を分ける
+    if is_api_request():
         return jsonify(e.to_dict()), e.status_code
     
     return render_template(
@@ -73,16 +76,14 @@ def handle_user_friendly_error(e):
     ), e.status_code
 
 
-# すべての未処理の例外を捕捉するためのエラーハンドラー
+# 未処理の例外をキャッチするフォールバックハンドラー
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
-    """
-    未処理の例外をキャッチするフォールバックハンドラー
-    """
+    """予期しない例外をすべてキャッチして適切にログ記録・応答"""
     error_info = error_logger.log_exception(e, level='ERROR')
     
-    # APIリクエストとHTMLリクエストで応答を分ける
-    if request.path.startswith('/api/') or request.is_json or request.headers.get('Accept') == 'application/json':
+    # API/HTML判定で応答形式を分ける
+    if is_api_request():
         return jsonify({
             'error': True,
             'message': app.config.get('DEFAULT_ERROR_MESSAGE', 'システムエラーが発生しました。'),
@@ -97,15 +98,14 @@ def handle_unexpected_error(e):
     ), 500
 
 
-# フロントエンドからのエラーレポートを受け取るエンドポイント
+# フロントエンドからのエラーレポートを受け取るエンドポイント（JavaScriptエラーのサーバー側記録用）
 @app.route('/api/report-error', methods=['POST'])
 def report_client_error():
-    """
-    フロントエンドからのエラー報告を受け取り、ログに記録する
-    """
+    """クライアント側で発生したJavaScriptエラーをサーバーログに記録"""
     try:
         data = request.get_json() or {}
         
+        # クライアントから送られたエラー情報を取得
         error_message = data.get('message', 'Unknown client error')
         error_type = data.get('type', 'ClientError')
         error_stack = data.get('stack', '')

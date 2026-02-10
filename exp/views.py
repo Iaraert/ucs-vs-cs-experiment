@@ -38,13 +38,14 @@ except Exception as e:
     error_logger.log_exception(e, level='CRITICAL', context={'module': 'views', 'action': 'init_db'})
     logger.critical("データベースの初期化に失敗しました：%s", str(e))
 
-# --- 参加制限用メモリストア ---
-BLOCK_DUPLICATE_PARTICIPATION = True  # これをFalseにすればブロック無効化
-_ip_hash_set = set()
-_ip_hash_expiry = dict()  # {hash: [timestamp1, timestamp2, ...]}
+# --- 重複参加防止機構 ---
+# CookieとIP+UserAgentハッシュで同一人物の再参加をブロック
+BLOCK_DUPLICATE_PARTICIPATION = True  # Falseにすると無効化
+_ip_hash_set = set()  # ブロック対象のIP+UAハッシュを保持
+_ip_hash_expiry = dict()  # {hash: [timestamp1, timestamp2, ...]} アクセス履歴を記録
 _ip_hash_lock = Lock()
-_IP_HASH_TTL = 3600  # 1時間（秒）
-_IP_HASH_THRESHOLD = 3  # 1時間以内に3回以上同一IPからアクセスがあればブロック
+_IP_HASH_TTL = 3600  # 1時間（秒）- アクセス履歴の有効期限
+_IP_HASH_THRESHOLD = 3  # 1時間内に3回以上同一IPからアクセスでブロック（複数デバイスでの再参加防止）
 
 
 def is_duplicate_participant():
@@ -86,23 +87,27 @@ def is_duplicate_participant():
 
 @app.route('/')
 def index():
+    """ルート: トップページへリダイレクト"""
     logger.debug("トップページにリダイレクトします")
     return redirect('/t0P1')
 
 
 @app.route('/t0P1')
 def top1():
+    """ルート: 実験説明ページ（初回訪問者用）"""
     logger.debug("top1ページが表示されました")
     return render_template('exp/top1.html')
 
 
 @app.route('/t0P12', methods=['GET'])
 def top1_2():
+    """ルート: 実験説明ページ（条件割り当て後）"""
     return render_template('exp/top1_2.html')
 
 
 @app.route('/eXaMinE1')
 def examine1():
+    """ルート: 実験1（因果判断課題）"""
     user_id = request.args.get("id")
     if not user_id:
         return redirect('/')
@@ -112,15 +117,17 @@ def examine1():
 
 @app.route('/eXaM1nE_2')
 def examine1_2():
+    """ルート: 実験1_2（因果判断課題・別バージョン）"""
     user_id = request.args.get("id")
     if not user_id:
-        return redirect('/t0P12')  # 修正: トップページではなく説明ページにリダイレクト
+        return redirect('/t0P12')
     logger.debug("examine1_2ページが表示されました")
     return render_template('exp/examine1_2.html', user_id=user_id)
 
 
 @app.route('/Ex2')
 def examine2():
+    """ルート: 実験2（IMC課題）"""
     user_id = request.args.get("id")
     if not user_id:
         return redirect('/')
@@ -130,6 +137,7 @@ def examine2():
 
 @app.route('/CRT3')
 def examine3():
+    """ルート: 実験3（CRT課題）"""
     user_id = request.args.get("id")
     if not user_id:
         return redirect('/')
@@ -139,12 +147,14 @@ def examine3():
 
 @app.route('/end')
 def end():
-    # endページのみ重複参加防止を有効化
+    """ルート: 実験終了ページ（重複参加チェック有り）"""
+    # 重複参加をチェックし、ブロック
     if is_duplicate_participant():
         return render_template('exp/already_participated.html'), 403
+    
     logger.debug("endページが表示されました")
     resp = make_response(render_template('exp/end.html'))
-    # ここで初めて参加済みCookieをセット
+    # 参加済みフラグをCookieにセット（30日間有効）
     resp.set_cookie('simple_flag', 'true', max_age=60*60*24*30, httponly=True, samesite='Lax')
     return resp
 

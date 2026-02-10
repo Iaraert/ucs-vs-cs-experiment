@@ -1,5 +1,6 @@
 /**
- * data-manager.js - 実験データの管理と送信を担当するモジュール
+ * data-manager.js - 実験データの管理・送信を担当するモジュール
+ * ユーザーデータ、推定値、シナリオデータを一元管理
  */
 import { getNow, getOrCreateUserId, getProgressToken, isAlreadyParticipated } from './utilities.js';
 import { fetchJson, fetchWithRetry, handleAjaxError, postData } from './ajax-utils.js';
@@ -7,34 +8,29 @@ import config from './config.js';
 import eventBus from './event-bus.js';
 
 /**
- * 実験データを管理するクラス
+ * 実験データマネージャークラス
  */
 export class DataManager {
-  /**
-   * コンストラクタ - データマネージャーを初期化
-   */
   constructor() {
-    this.experimentData = null;   // JSONから読み込んだ実験データ
-    this.userData = [];           // ユーザー情報データ
-    this.estimations = [];        // 回答結果データ
-    this.currentScenarioIndex = 0; // 現在のシナリオインデックス
+    this.experimentData = null;   // material1.jsonから読み込んだシナリオデータ
+    this.userData = [];           // ユーザー情報データ（examine2のIMC回答など）
+    this.estimations = [];        // 因果判断の回答結果データ（examine1/1_2）
+    this.currentScenarioIndex = 0; // 現在表示中のシナリオ番号（0-5）
     this.currentSampleData = {};   // 現在表示中のサンプルデータ
-    this.userId = null;            // ユーザーID
+    this.userId = null;            // ユーザーID（ランダム生成または復元）
     this.sampleType = null;        // 実験条件（対称/非対称）
-    this.startTime = '';           // 実験開始時間
+    this.startTime = '';           // 実験開始時刻
     this.customData = {};          // カスタムデータストレージ
     this.experimentType = '';      // 実験タイプ（eXaMinE1, eXaM1nE_2など）
-    this.totalPages = 6;           // 実験の総ページ数（eXaM1nE_2のデフォルト）
-    this.sampleNumberList = [];    // examine1用サンプル番号リスト
+    this.totalPages = 6;           // 実験の総ページ数
+    this.sampleNumberList = [];    // examine1用サンプル番号リスト（1-6の順列）
   }
 
   /**
    * データマネージャーの初期化
-   * @returns {Promise} 初期化処理のPromise
    */
   async init() {
-    // ★ ここで必ずstartTimeを初期化する
-    this.startTime = getNow();
+    this.startTime = getNow(); // 実験開始時刻を記録
     try {
       await this.loadExperimentData();
       this.estimations = [];
@@ -54,6 +50,7 @@ export class DataManager {
 
   /**
    * 実験タイプに基づいてシナリオを設定
+   * ユーザーIDベースで決定論的にシナリオを割り当て、localStorageに保存
    */
   setupExperimentScenarios() {
     if (!this.experimentType || !this.userId) {
@@ -61,7 +58,7 @@ export class DataManager {
       return;
     }
     
-    // シナリオ配布の永続化チェック
+    // シナリオ配布の永続化チェック（ページをリロードしても同じシナリオセット）
     const storageKey = `scenario_assignment_${this.experimentType}_${this.userId}`;
     let assignedScenarios = null;
     
@@ -87,11 +84,13 @@ export class DataManager {
         console.warn('シナリオ配布の保存に失敗:', e);
       }
     }
+    
     // examine1の場合のみサンプル番号リストをシャッフルしてセット
     if (this.experimentType === 'eXaMinE1') {
       this.sampleNumberList = shuffleArray([1,2,3,4,5,6]);
       console.log('examine1: サンプル番号リスト（重複なし）:', this.sampleNumberList);
     }
+    
     // シナリオ配布情報をイベントで通知
     eventBus.emit('scenarios:assigned', { 
       experimentType: this.experimentType,

@@ -1,14 +1,15 @@
 /**
- * イベント管理システム（Observer/Pub-Subパターン）
+ * event-bus.js - イベント管理システム（Pub-Subパターン）
+ * 複数のモジュール間でイベントを通知・購読する仕組み
  */
 
 /**
- * イベントバス
+ * イベントバスクラス - イベントのemit/onを管理
  */
 export class EventBus {
   constructor() {
-    this.listeners = new Map();
-    this.debug = false;
+    this.listeners = new Map();  // イベント名 → リスナー配列のマップ
+    this.debug = false;          // デバッグモード
   }
 
   /**
@@ -26,6 +27,7 @@ export class EventBus {
     const handler = { callback, context };
     this.listeners.get(event).push(handler);
     
+    // 登録解除用のハンドルを返す
     return {
       remove: () => this.off(event, callback, context)
     };
