@@ -1,0 +1,30 @@
+Asymmetric Online (Cond=0, ex2_is_first=1) order effect summary
+n_participants=37
+
+first_type_counts={'diagnostic': 13, 'predictive': 12, 'intermediate': 12}
+second_type_counts={'intermediate': 16, 'predictive': 12, 'diagnostic': 9}
+
+Combination-level means (first_type x second_type)
+diagnostic -> diagnostic: n=2, corr_predictive_mean=-0.4874, corr_diagnostic_mean=0.5609, corr_diff_mean=-1.0483
+diagnostic -> intermediate: n=4, corr_predictive_mean=-0.6012, corr_diagnostic_mean=0.6266, corr_diff_mean=-1.2278
+diagnostic -> predictive: n=7, corr_predictive_mean=-0.1342, corr_diagnostic_mean=0.0987, corr_diff_mean=-0.2330
+intermediate -> diagnostic: n=4, corr_predictive_mean=-0.5433, corr_diagnostic_mean=0.4472, corr_diff_mean=-0.9905
+intermediate -> intermediate: n=3, corr_predictive_mean=0.0747, corr_diagnostic_mean=-0.1300, corr_diff_mean=0.2047
+intermediate -> predictive: n=5, corr_predictive_mean=-0.4414, corr_diagnostic_mean=0.3233, corr_diff_mean=-0.7648
+predictive -> diagnostic: n=3, corr_predictive_mean=-0.1147, corr_diagnostic_mean=0.1679, corr_diff_mean=-0.2826
+predictive -> intermediate: n=9, corr_predictive_mean=-0.4719, corr_diagnostic_mean=0.4274, corr_diff_mean=-0.8993
+
+Kruskal-Wallis by first_type x second_type combination
+corr_predictive: groups=['diagnostic->diagnostic', 'diagnostic->intermediate', 'diagnostic->predictive', 'intermediate->diagnostic', 'intermediate->intermediate', 'intermediate->predictive', 'predictive->diagnostic', 'predictive->intermediate'], n={'diagnostic->diagnostic': 2, 'diagnostic->intermediate': 4, 'diagnostic->predictive': 7, 'intermediate->diagnostic': 4, 'intermediate->intermediate': 3, 'intermediate->predictive': 5, 'predictive->diagnostic': 3, 'predictive->intermediate': 9}, H=4.8950, p=0.6728
+corr_diagnostic: groups=['diagnostic->diagnostic', 'diagnostic->intermediate', 'diagnostic->predictive', 'intermediate->diagnostic', 'intermediate->intermediate', 'intermediate->predictive', 'predictive->diagnostic', 'predictive->intermediate'], n={'diagnostic->diagnostic': 2, 'diagnostic->intermediate': 4, 'diagnostic->predictive': 7, 'intermediate->diagnostic': 4, 'intermediate->intermediate': 3, 'intermediate->predictive': 5, 'predictive->diagnostic': 3, 'predictive->intermediate': 9}, H=4.5371, p=0.7162
+corr_diff: groups=['diagnostic->diagnostic', 'diagnostic->intermediate', 'diagnostic->predictive', 'intermediate->diagnostic', 'intermediate->intermediate', 'intermediate->predictive', 'predictive->diagnostic', 'predictive->intermediate'], n={'diagnostic->diagnostic': 2, 'diagnostic->intermediate': 4, 'diagnostic->predictive': 7, 'intermediate->diagnostic': 4, 'intermediate->intermediate': 3, 'intermediate->predictive': 5, 'predictive->diagnostic': 3, 'predictive->intermediate': 9}, H=4.3312, p=0.7409
+
+Welch t-test by first stimulus type (predictive vs diagnostic)
+corr_predictive: mean_pred=-0.3826, mean_diag=-0.3322, t=-0.2096, p=0.836, n_pred=12, n_diag=13
+corr_diagnostic: mean_pred=0.3625, mean_diag=0.3323, t=0.1393, p=0.8906, n_pred=12, n_diag=13
+corr_diff: mean_pred=-0.7451, mean_diag=-0.6645, t=-0.1775, p=0.8608, n_pred=12, n_diag=13
+
+Kruskal-Wallis by second stimulus type (predictive/diagnostic/intermediate)
+corr_predictive: means={'predictive': -0.2622275035349259, 'diagnostic': -0.3879914940745878, 'intermediate': -0.4017402512324415}, n={'predictive': 12, 'diagnostic': 9, 'intermediate': 16}, H=0.0635, p=0.9687
+corr_diagnostic: means={'predictive': 0.1923212333956532, 'diagnostic': 0.3793616769344948, 'intermediate': 0.37270682384950915}, n={'predictive': 12, 'diagnostic': 9, 'intermediate': 16}, H=0.2904, p=0.8648
+corr_diff: means={'predictive': -0.4545487369305791, 'diagnostic': -0.7673531710090826, 'intermediate': -0.7744470750819505}, n={'predictive': 12, 'diagnostic': 9, 'intermediate': 16}, H=0.3054, p=0.8584
