@@ -30,9 +30,9 @@ venv-wsl/
 ENV/
 
 # データとログ
-# data/
-# data/*.csv
-# data/*.db
+data/
+data/*.csv
+data/*.db
 logs/
 pre_experiment_data/
 pre/
